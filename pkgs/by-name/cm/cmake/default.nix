@@ -10,7 +10,7 @@ else
 , uiToolkits ? [ ] # can contain "ncurses" and/or "qt5"
 , buildDocs ? !(isMinimalBuild || (uiToolkits == [ ])), darwin
 # , libsForQt5
-, gitUpdater }:
+}:
 
 let
   inherit (darwin.apple_sdk.frameworks) CoreServices SystemConfiguration;
@@ -150,12 +150,6 @@ stdenv.mkDerivation (finalAttrs: {
   enableParallelBuilding = true;
 
   doCheck = false; # fails
-
-  passthru.updateScript = gitUpdater {
-    url = "https://gitlab.kitware.com/cmake/cmake.git";
-    rev-prefix = "v";
-    ignoredVersions = "-"; # -rc1 and friends
-  };
 
   meta = {
     homepage = "https://cmake.org/";
