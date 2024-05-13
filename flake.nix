@@ -1,21 +1,20 @@
 {
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    auxlib.url = "github:auxolotl/lib";
   };
 
   outputs =
-    { self, nixpkgs, ... }:
+    { self, auxlib, ... }:
     let
+      inherit (auxlib) lib;
       forAllSystems = self.lib.genAttrs self.lib.systems.flakeExposed;
     in
     {
-      lib = import ./lib;
-
-      nixPackages = forAllSystems (system: nixpkgs.legacyPackages.${system});
+      inherit lib;
 
       auxPackages = forAllSystems (system:
         (
-          let requiredVersion = import ./lib/minver.nix; in
+          let requiredVersion = import ./minver.nix; in
 
           if ! builtins ? nixVersion || builtins.compareVersions requiredVersion builtins.nixVersion == 1 then
             abort ''
@@ -38,14 +37,8 @@
               If you need further help, see https://nixos.org/nixos/support.html
             ''
           else
-            import ./pkgs/top-level/default.nix { localSystem = system; }
+            import ./pkgs/top-level/default.nix { inherit lib; localSystem = system; }
         )
       );
-
-      # To test, run nix build .#tests.x86_64-linux.release
-      tests = forAllSystems (system: {
-        systems = import ./lib/tests/systems.nix;
-        release = import ./lib/tests/release.nix { pkgs = self.auxPackages.${system}; };
-      });
     };
 }
