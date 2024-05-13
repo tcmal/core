@@ -1,22 +1,10 @@
-{ lib
-, stdenv
-, fetchFromGitHub
-, installShellFiles
-, coreutils
-, darwin
-, libxcrypt
-, openldap
-, ninja
-, pkg-config
-, python3
-, substituteAll
-, zlib
-}:
+{ lib, stdenv, fetchFromGitHub, installShellFiles, coreutils, darwin, libxcrypt
+, openldap, ninja, pkg-config, python3, substituteAll, zlib }:
 
 let
-  inherit (darwin.apple_sdk.frameworks) AppKit Cocoa Foundation LDAP OpenAL OpenGL;
-in
-python3.pkgs.buildPythonApplication rec {
+  inherit (darwin.apple_sdk.frameworks)
+    AppKit Cocoa Foundation LDAP OpenAL OpenGL;
+in python3.pkgs.buildPythonApplication rec {
   pname = "meson";
   version = "1.4.0";
 
@@ -71,21 +59,13 @@ python3.pkgs.buildPythonApplication rec {
     ./0001-Revert-rust-recursively-pull-proc-macro-dependencies.patch
   ];
 
-  buildInputs = lib.optionals (python3.pythonOlder "3.9") [
-    libxcrypt
-  ];
+  buildInputs = lib.optionals (python3.pythonOlder "3.9") [ libxcrypt ];
 
   nativeBuildInputs = [ installShellFiles ];
 
-  nativeCheckInputs = [
-    ninja
-    pkg-config
-  ];
+  nativeCheckInputs = [ ninja pkg-config ];
 
-  checkInputs = [
-    zlib
-  ]
-  ++ lib.optionals stdenv.isDarwin [
+  checkInputs = [ zlib ] ++ lib.optionals stdenv.isDarwin [
     AppKit
     Cocoa
     Foundation
@@ -106,21 +86,20 @@ python3.pkgs.buildPythonApplication rec {
     ''
   ]
   # Remove problematic tests
-  ++ (builtins.map (f: ''rm -vr "${f}";'') [
-    # requires git, creating cyclic dependency
-    ''test cases/common/66 vcstag''
-    # requires glib, creating cyclic dependency
-    ''test cases/linuxlike/6 subdir include order''
-    ''test cases/linuxlike/9 compiler checks with dependencies''
-    # requires static zlib, see #66461
-    ''test cases/linuxlike/14 static dynamic linkage''
-    # Nixpkgs cctools does not have bitcode support.
-    ''test cases/osx/7 bitcode''
-  ])
-  ++ [
-    ''HOME="$TMPDIR" python ./run_project_tests.py''
-    "runHook postCheck"
-  ]);
+    ++ (builtins.map (f: ''rm -vr "${f}";'') [
+      # requires git, creating cyclic dependency
+      "test cases/common/66 vcstag"
+      # requires glib, creating cyclic dependency
+      "test cases/linuxlike/6 subdir include order"
+      "test cases/linuxlike/9 compiler checks with dependencies"
+      # requires static zlib, see #66461
+      "test cases/linuxlike/14 static dynamic linkage"
+      # Nixpkgs cctools does not have bitcode support.
+      "test cases/osx/7 bitcode"
+    ]) ++ [
+      ''HOME="$TMPDIR" python ./run_project_tests.py''
+      "runHook postCheck"
+    ]);
 
   postInstall = ''
     installShellCompletion --zsh data/shell-completions/zsh/_meson
@@ -146,7 +125,8 @@ python3.pkgs.buildPythonApplication rec {
 
   meta = {
     homepage = "https://mesonbuild.com";
-    description = "An open source, fast and friendly build system made in Python";
+    description =
+      "An open source, fast and friendly build system made in Python";
     mainProgram = "meson";
     longDescription = ''
       Meson is an open source build system meant to be both extremely fast, and,

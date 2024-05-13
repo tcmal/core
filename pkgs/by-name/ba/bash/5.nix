@@ -1,40 +1,34 @@
-{ lib
-, stdenv
-, buildPackages
-, fetchurl
-, bison
-, util-linux
+{ lib, stdenv, buildPackages, fetchurl, bison, util-linux
 
-  # patch for cygwin requires readline support
-, interactive ? stdenv.isCygwin
-, readline
-, withDocs ? false
-, texinfo
+# patch for cygwin requires readline support
+, interactive ? stdenv.isCygwin, readline, withDocs ? false, texinfo
 , forFHSEnv ? false
 
-, pkgsStatic
-}:
+, pkgsStatic }:
 
 let
-  upstreamPatches = import ./bash-5.2-patches.nix (nr: sha256: fetchurl {
-    url = "mirror://gnu/bash/bash-5.2-patches/bash52-${nr}";
-    inherit sha256;
-  });
-in
-stdenv.mkDerivation rec {
+  upstreamPatches = import ./bash-5.2-patches.nix (nr: sha256:
+    fetchurl {
+      url = "mirror://gnu/bash/bash-5.2-patches/bash52-${nr}";
+      inherit sha256;
+    });
+in stdenv.mkDerivation rec {
   pname = "bash${lib.optionalString interactive "-interactive"}";
   version = "5.2${patch_suffix}";
   patch_suffix = "p${toString (builtins.length upstreamPatches)}";
 
   src = fetchurl {
-    url = "mirror://gnu/bash/bash-${lib.removeSuffix patch_suffix version}.tar.gz";
+    url =
+      "mirror://gnu/bash/bash-${lib.removeSuffix patch_suffix version}.tar.gz";
     sha256 = "sha256-oTnBZt9/9EccXgczBRZC7lVWwcyKSnjxRVg8XIGrMvs=";
   };
 
-  hardeningDisable = [ "format" ]
-    # bionic libc is super weird and has issues with fortify outside of its own libc, check this comment:
-    # https://github.com/NixOS/nixpkgs/pull/192630#discussion_r978985593
-    # or you can check libc/include/sys/cdefs.h in bionic source code
+  hardeningDisable = [
+    "format"
+  ]
+  # bionic libc is super weird and has issues with fortify outside of its own libc, check this comment:
+  # https://github.com/NixOS/nixpkgs/pull/192630#discussion_r978985593
+  # or you can check libc/include/sys/cdefs.h in bionic source code
     ++ lib.optional (stdenv.hostPlatform.libc == "bionic") "fortify";
 
   outputs = [ "out" "dev" "man" "doc" "info" ];
@@ -58,7 +52,8 @@ stdenv.mkDerivation rec {
     ./pgrp-pipe-5.patch
     (fetchurl {
       name = "fix-static.patch";
-      url = "https://cgit.freebsd.org/ports/plain/shells/bash/files/patch-configure?id=3e147a1f594751a68fea00a28090d0792bee0b51";
+      url =
+        "https://cgit.freebsd.org/ports/plain/shells/bash/files/patch-configure?id=3e147a1f594751a68fea00a28090d0792bee0b51";
       sha256 = "XHFMQ6eXTReNoywdETyrfQEv1rKF8+XFbQZP4YoVKFk=";
     })
     # Apply parallel build fix pending upstream inclusion:
@@ -86,15 +81,12 @@ stdenv.mkDerivation rec {
     "bash_cv_dev_stdin=present"
     "bash_cv_dev_fd=standard"
     "bash_cv_termcap_lib=libncurses"
-  ] ++ lib.optionals (stdenv.hostPlatform.libc == "musl") [
-    "--disable-nls"
-  ];
+  ] ++ lib.optionals (stdenv.hostPlatform.libc == "musl") [ "--disable-nls" ];
 
   strictDeps = true;
   # Note: Bison is needed because the patches above modify parse.y.
   depsBuildBuild = [ buildPackages.stdenv.cc ];
-  nativeBuildInputs = [ bison ]
-    ++ lib.optional withDocs texinfo
+  nativeBuildInputs = [ bison ] ++ lib.optional withDocs texinfo
     ++ lib.optional stdenv.hostPlatform.isDarwin stdenv.cc.bintools;
 
   buildInputs = lib.optional interactive readline;
@@ -114,16 +106,14 @@ stdenv.mkDerivation rec {
     rm -f $out/lib/bash/Makefile.inc
   '';
 
-  postFixup =
-    if interactive
-    then ''
-      substituteInPlace "$out/bin/bashbug" \
-        --replace '#!/bin/sh' "#!$out/bin/bash"
-    ''
-    # most space is taken by locale data
-    else ''
-      rm -rf "$out/share" "$out/bin/bashbug"
-    '';
+  postFixup = if interactive then ''
+    substituteInPlace "$out/bin/bashbug" \
+      --replace '#!/bin/sh' "#!$out/bin/bash"
+  ''
+  # most space is taken by locale data
+  else ''
+    rm -rf "$out/share" "$out/bin/bashbug"
+  '';
 
   passthru = {
     shellPath = "/bin/bash";
@@ -132,7 +122,8 @@ stdenv.mkDerivation rec {
 
   meta = with lib; {
     homepage = "https://www.gnu.org/software/bash/";
-    description = "GNU Bourne-Again Shell, the de facto standard shell on Linux" + lib.optionalString interactive " (for interactive use)";
+    description = "GNU Bourne-Again Shell, the de facto standard shell on Linux"
+      + lib.optionalString interactive " (for interactive use)";
     longDescription = ''
       Bash is the shell, or command language interpreter, that will
       appear in the GNU operating system.  Bash is an sh-compatible

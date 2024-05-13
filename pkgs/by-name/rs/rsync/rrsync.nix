@@ -6,7 +6,8 @@ stdenv.mkDerivation {
 
   buildInputs = [
     rsync
-    (python3.withPackages (pythonPackages: with pythonPackages; [ braceexpand ]))
+    (python3.withPackages
+      (pythonPackages: with pythonPackages; [ braceexpand ]))
   ];
   # Skip configure and build phases.
   # We just want something from the support directory

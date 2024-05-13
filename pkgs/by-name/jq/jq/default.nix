@@ -1,12 +1,5 @@
-{ lib
-, stdenv
-, fetchurl
-, removeReferencesTo
-, autoreconfHook
-, bison
-, onigurumaSupport ? true
-, oniguruma
-}:
+{ lib, stdenv, fetchurl, removeReferencesTo, autoreconfHook, bison
+, onigurumaSupport ? true, oniguruma }:
 
 stdenv.mkDerivation rec {
   pname = "jq";
@@ -14,7 +7,8 @@ stdenv.mkDerivation rec {
 
   # Note: do not use fetchpatch or fetchFromGitHub to keep this package available in __bootPackages
   src = fetchurl {
-    url = "https://github.com/jqlang/jq/releases/download/jq-${version}/jq-${version}.tar.gz";
+    url =
+      "https://github.com/jqlang/jq/releases/download/jq-${version}/jq-${version}.tar.gz";
     hash = "sha256-R4ycoSn9LjRD/icxS0VeIR4NjGC8j/ffcDhz3u7lgMI=";
   };
 
@@ -42,10 +36,8 @@ stdenv.mkDerivation rec {
   # Otherwise, configure will detect that they’re in libm, but the build will fail
   # with clang 16+ due to calls to undeclared functions.
   # This is fixed upstream and can be removed once jq is updated (to 1.7 or an unstable release).
-  env.NIX_CFLAGS_COMPILE = lib.optionalString stdenv.isDarwin (toString [
-    "-D_REENTRANT=1"
-    "-D_DARWIN_C_SOURCE=1"
-  ]);
+  env.NIX_CFLAGS_COMPILE = lib.optionalString stdenv.isDarwin
+    (toString [ "-D_REENTRANT=1" "-D_DARWIN_C_SOURCE=1" ]);
 
   configureFlags = [
     "--bindir=\${bin}/bin"
@@ -53,8 +45,8 @@ stdenv.mkDerivation rec {
     "--datadir=\${doc}/share"
     "--mandir=\${man}/share/man"
   ] ++ lib.optional (!onigurumaSupport) "--with-oniguruma=no"
-  # jq is linked to libjq:
-  ++ lib.optional (!stdenv.isDarwin) "LDFLAGS=-Wl,-rpath,\\\${libdir}";
+    # jq is linked to libjq:
+    ++ lib.optional (!stdenv.isDarwin) "LDFLAGS=-Wl,-rpath,\\\${libdir}";
 
   # Break the dependency cycle: $dev refers to $bin via propagated-build-outputs, and
   # $bin refers to $dev because of https://github.com/jqlang/jq/commit/583e4a27188a2db097dd043dd203b9c106bba100

@@ -1,10 +1,4 @@
-{
-  lib,
-  fetchFromGitHub,
-  fetchpatch,
-  stdenvNoCC,
-  darwin-stubs,
-}:
+{ lib, fetchFromGitHub, fetchpatch, stdenvNoCC, darwin-stubs, }:
 
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "CoreSymbolication";
@@ -21,11 +15,13 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     # Add missing symbol definitions needed to build `zlog` in system_cmds.
     # https://github.com/matthewbauer/CoreSymbolication/pull/2
     (fetchpatch {
-      url = "https://github.com/matthewbauer/CoreSymbolication/commit/ae7ac6a7043dbae8e63d6ce5e63dfaf02b5977fe.patch";
+      url =
+        "https://github.com/matthewbauer/CoreSymbolication/commit/ae7ac6a7043dbae8e63d6ce5e63dfaf02b5977fe.patch";
       hash = "sha256-IuXGMsaR1LIGs+BpDU1b4YlznKm9VhK5DQ+Dthtb1mI=";
     })
     (fetchpatch {
-      url = "https://github.com/matthewbauer/CoreSymbolication/commit/6531da946949a94643e6d8424236174ae64fe0ca.patch";
+      url =
+        "https://github.com/matthewbauer/CoreSymbolication/commit/6531da946949a94643e6d8424236174ae64fe0ca.patch";
       hash = "sha256-+nDX04yY92yVT9KxiAFY2LxKcS7P8JpU539K+YVRqV4=";
     })
   ];
@@ -49,7 +45,8 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   '';
 
   meta = with lib; {
-    description = "Reverse engineered headers for Apple's CoreSymbolication framework";
+    description =
+      "Reverse engineered headers for Apple's CoreSymbolication framework";
     homepage = "https://github.com/matthewbauer/CoreSymbolication";
     license = licenses.mit;
     platforms = platforms.darwin;

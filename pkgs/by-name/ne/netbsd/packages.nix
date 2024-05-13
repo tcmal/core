@@ -1,10 +1,7 @@
 { ... }:
 res: pkgs: super:
 
-with pkgs;
-{
+with pkgs; {
   netbsd = callPackage ./. { };
-  netbsdCross = callPackage ./. {
-    stdenv = crossLibcStdenv;
-  };
+  netbsdCross = callPackage ./. { stdenv = crossLibcStdenv; };
 }

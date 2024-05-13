@@ -1,6 +1,4 @@
-{ lib, stdenv, fetchFromGitHub
-, cmake
-, CoreServices
+{ lib, stdenv, fetchFromGitHub, cmake, CoreServices
 # for passthru.tests
 # , curlHTTP3
 }:
@@ -20,13 +18,9 @@ stdenv.mkDerivation rec {
   outputs = [ "out" "dev" "doc" ];
 
   nativeBuildInputs = [ cmake ];
-  buildInputs = lib.optionals stdenv.isDarwin [
-    CoreServices
-  ];
+  buildInputs = lib.optionals stdenv.isDarwin [ CoreServices ];
 
-  cmakeFlags = [
-    (lib.cmakeBool "ENABLE_STATIC_LIB" false)
-  ];
+  cmakeFlags = [ (lib.cmakeBool "ENABLE_STATIC_LIB" false) ];
 
   doCheck = true;
 
@@ -36,7 +30,8 @@ stdenv.mkDerivation rec {
 
   meta = with lib; {
     homepage = "https://github.com/ngtcp2/nghttp3";
-    description = "nghttp3 is an implementation of HTTP/3 mapping over QUIC and QPACK in C.";
+    description =
+      "nghttp3 is an implementation of HTTP/3 mapping over QUIC and QPACK in C.";
     license = licenses.mit;
     platforms = platforms.unix;
     maintainers = with maintainers; [ izorkin ];

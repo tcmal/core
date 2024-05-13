@@ -4,16 +4,10 @@
 
 let
   handledArgs = [ "files" "fileSpecs" "meta" ];
-  genericBuild = import ./generic.nix { inherit lib stdenv emacs texinfo writeText gcc; };
+  genericBuild =
+    import ./generic.nix { inherit lib stdenv emacs texinfo writeText gcc; };
 
-in
-
-{ pname
-, version
-, src
-, meta ? {}
-, ...
-}@args:
+in { pname, version, src, meta ? { }, ... }@args:
 
 genericBuild ({
 
@@ -30,8 +24,9 @@ genericBuild ({
   '';
 
   meta = {
-    homepage = args.src.meta.homepage or "https://elpa.gnu.org/packages/${pname}.html";
+    homepage =
+      args.src.meta.homepage or "https://elpa.gnu.org/packages/${pname}.html";
   } // meta;
 }
 
-// removeAttrs args handledArgs)
+  // removeAttrs args handledArgs)

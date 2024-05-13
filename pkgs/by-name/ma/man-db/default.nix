@@ -1,16 +1,5 @@
-{ buildPackages
-, db
-, fetchurl
-, groff
-, gzip
-, lib
-, libiconv
-, libpipeline
-, makeWrapper
-, pkg-config
-, stdenv
-, zstd
-, autoreconfHook
+{ buildPackages, db, fetchurl, groff, gzip, lib, libiconv, libpipeline
+, makeWrapper, pkg-config, stdenv, zstd, autoreconfHook
 # for passthru.tests
 # , nixosTests
 }:
@@ -29,12 +18,13 @@ stdenv.mkDerivation rec {
 
   strictDeps = true;
   nativeBuildInputs = [ autoreconfHook groff makeWrapper pkg-config zstd ];
-  buildInputs = [ libpipeline db groff ]; # (Yes, 'groff' is both native and build input)
-  nativeCheckInputs = [ libiconv /* for 'iconv' binary */ ];
-
-  patches = [
-    ./systemwide-man-db-conf.patch
+  buildInputs =
+    [ libpipeline db groff ]; # (Yes, 'groff' is both native and build input)
+  nativeCheckInputs = [
+    libiconv # for 'iconv' binary
   ];
+
+  patches = [ ./systemwide-man-db-conf.patch ];
 
   postPatch = ''
     # Remove all mandatory manpaths. Nixpkgs makes no requirements on
@@ -76,13 +66,14 @@ stdenv.mkDerivation rec {
     done
   '';
 
-  disallowedReferences = lib.optionals (stdenv.hostPlatform != stdenv.buildPlatform) [
-    buildPackages.groff
-  ];
+  disallowedReferences =
+    lib.optionals (stdenv.hostPlatform != stdenv.buildPlatform)
+    [ buildPackages.groff ];
 
   enableParallelBuilding = true;
 
-  doCheck = !stdenv.hostPlatform.isMusl /* iconv binary */;
+  doCheck = !stdenv.hostPlatform.isMusl # iconv binary
+  ;
 
   # passthru.tests = {
   #   nixos = nixosTests.man;
@@ -90,7 +81,8 @@ stdenv.mkDerivation rec {
 
   meta = with lib; {
     homepage = "http://man-db.nongnu.org";
-    description = "An implementation of the standard Unix documentation system accessed using the man command";
+    description =
+      "An implementation of the standard Unix documentation system accessed using the man command";
     license = licenses.gpl2;
     platforms = lib.platforms.unix;
     mainProgram = "man";

@@ -26,8 +26,7 @@ let
       runHook postInstall
     '';
   });
-in
-stdenvNoCC.mkDerivation (finalAttrs: {
+in stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "composer-local-repo-plugin";
   version = "1.1.0";
 
@@ -43,13 +42,9 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   COMPOSER_HTACCESS_PROTECT = "0";
   COMPOSER_DISABLE_NETWORK = "1";
 
-  nativeBuildInputs = [
-    makeBinaryWrapper
-  ];
+  nativeBuildInputs = [ makeBinaryWrapper ];
 
-  buildInputs = [
-    composer
-  ];
+  buildInputs = [ composer ];
 
   configurePhase = ''
     runHook preConfigure

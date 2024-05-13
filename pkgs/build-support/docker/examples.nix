@@ -7,19 +7,18 @@
 #  $ nix-build '<nixpkgs>' -A dockerTools.examples.redis
 #  $ docker load < result
 
-{ pkgs, buildImage, buildLayeredImage, fakeNss, pullImage, shadowSetup, buildImageWithNixDb, pkgsCross, streamNixShellImage }:
+{ pkgs, buildImage, buildLayeredImage, fakeNss, pullImage, shadowSetup
+, buildImageWithNixDb, pkgsCross, streamNixShellImage }:
 
 let
   nixosLib = import ../../../nixos/lib {
     # Experimental features need testing too, but there's no point in warning
     # about it, so we enable the feature flag.
-    featureFlags.minimalModules = {};
+    featureFlags.minimalModules = { };
   };
   evalMinimalConfig = module: nixosLib.evalModules { modules = [ module ]; };
 
-in
-
-rec {
+in rec {
   # 1. basic example
   bash = buildImage {
     name = "bash";
@@ -53,9 +52,7 @@ rec {
     config = {
       Cmd = [ "/bin/redis-server" ];
       WorkingDir = "/data";
-      Volumes = {
-        "/data" = {};
-      };
+      Volumes = { "/data" = { }; };
     };
   };
 
@@ -82,14 +79,10 @@ rec {
     nginxWebRoot = pkgs.writeTextDir "index.html" ''
       <html><body><h1>Hello from NGINX</h1></body></html>
     '';
-  in
-  buildLayeredImage {
+  in buildLayeredImage {
     name = "nginx-container";
     tag = "latest";
-    contents = [
-      fakeNss
-      pkgs.nginx
-    ];
+    contents = [ fakeNss pkgs.nginx ];
 
     extraCommands = ''
       mkdir -p tmp/nginx_client_body
@@ -101,16 +94,15 @@ rec {
 
     config = {
       Cmd = [ "nginx" "-c" nginxConf ];
-      ExposedPorts = {
-        "${nginxPort}/tcp" = {};
-      };
+      ExposedPorts = { "${nginxPort}/tcp" = { }; };
     };
   };
 
   # 4. example of pulling an image. could be used as a base for other images
   nixFromDockerHub = pullImage {
     imageName = "nixos/nix";
-    imageDigest = "sha256:85299d86263a3059cf19f419f9d286cc9f06d3c13146a8ebbb21b3437f598357";
+    imageDigest =
+      "sha256:85299d86263a3059cf19f419f9d286cc9f06d3c13146a8ebbb21b3437f598357";
     sha256 = "19fw0n3wmddahzr20mhdqv6jkjn1kanh6n2mrr08ai53dr8ph5n7";
     finalImageTag = "2.2.1";
     finalImageName = "nix";
@@ -119,7 +111,8 @@ rec {
   # NOTE: Only use this for testing, or you'd be wasting a lot of time, network and space.
   testNixFromDockerHub = pkgs.testers.invalidateFetcherByDrvHash pullImage {
     imageName = "nixos/nix";
-    imageDigest = "sha256:85299d86263a3059cf19f419f9d286cc9f06d3c13146a8ebbb21b3437f598357";
+    imageDigest =
+      "sha256:85299d86263a3059cf19f419f9d286cc9f06d3c13146a8ebbb21b3437f598357";
     sha256 = "19fw0n3wmddahzr20mhdqv6jkjn1kanh6n2mrr08ai53dr8ph5n7";
     finalImageTag = "2.2.1";
     finalImageName = "nix";
@@ -131,13 +124,7 @@ rec {
     copyToRoot = pkgs.buildEnv {
       name = "image-root";
       pathsToLink = [ "/bin" ];
-      paths = [
-        pkgs.coreutils
-        pkgs.bash
-        pkgs.emacs
-        pkgs.vim
-        pkgs.nano
-      ];
+      paths = [ pkgs.coreutils pkgs.bash pkgs.emacs pkgs.vim pkgs.nano ];
     };
   };
 
@@ -231,9 +218,7 @@ rec {
     config = {
       Env = [ "PATH=${pkgs.coreutils}/bin/" ];
       WorkingDir = "/example-output";
-      Cmd = [
-        "${pkgs.bash}/bin/bash" "-c" "echo hello > foo; cat foo"
-      ];
+      Cmd = [ "${pkgs.bash}/bin/bash" "-c" "echo hello > foo; cat foo" ];
     };
   };
 
@@ -249,9 +234,7 @@ rec {
     config = {
       Env = [ "PATH=${pkgs.coreutils}/bin/" ];
       WorkingDir = "/example-output";
-      Cmd = [
-        "${pkgs.bash}/bin/bash" "-c" "echo hello > foo; cat foo"
-      ];
+      Cmd = [ "${pkgs.bash}/bin/bash" "-c" "echo hello > foo; cat foo" ];
     };
   };
 
@@ -312,12 +295,7 @@ rec {
   environmentVariablesParent = pkgs.dockerTools.buildImage {
     name = "parent";
     tag = "latest";
-    config = {
-      Env = [
-        "FROM_PARENT=true"
-        "LAST_LAYER=parent"
-      ];
-    };
+    config = { Env = [ "FROM_PARENT=true" "LAST_LAYER=parent" ]; };
   };
 
   environmentVariables = pkgs.dockerTools.buildImage {
@@ -329,12 +307,7 @@ rec {
       pathsToLink = [ "/bin" ];
       paths = [ pkgs.coreutils ];
     };
-    config = {
-      Env = [
-        "FROM_CHILD=true"
-        "LAST_LAYER=child"
-      ];
-    };
+    config = { Env = [ "FROM_CHILD=true" "LAST_LAYER=child" ]; };
   };
 
   environmentVariablesLayered = pkgs.dockerTools.buildLayeredImage {
@@ -342,12 +315,7 @@ rec {
     fromImage = environmentVariablesParent;
     tag = "latest";
     contents = [ pkgs.coreutils ];
-    config = {
-      Env = [
-        "FROM_CHILD=true"
-        "LAST_LAYER=child"
-      ];
-    };
+    config = { Env = [ "FROM_CHILD=true" "LAST_LAYER=child" ]; };
   };
 
   # 16. Create another layered image, for comparing layers with image 10.
@@ -371,9 +339,7 @@ rec {
   bulk-layer = pkgs.dockerTools.buildLayeredImage {
     name = "bulk-layer";
     tag = "latest";
-    contents = with pkgs; [
-      coreutils hello
-    ];
+    contents = with pkgs; [ coreutils hello ];
     maxLayers = 2;
   };
 
@@ -383,9 +349,7 @@ rec {
     name = "layered-bulk-layer";
     tag = "latest";
     fromImage = two-layered-image;
-    contents = with pkgs; [
-      coreutils hello
-    ];
+    contents = with pkgs; [ coreutils hello ];
     maxLayers = 4;
   };
 
@@ -455,8 +419,7 @@ rec {
 
   # 23. Ensure that layers are unpacked in the correct order before the
   # runAsRoot script is executed.
-  layersUnpackOrder =
-  let
+  layersUnpackOrder = let
     layerOnTopOf = parent: layerName:
       pkgs.dockerTools.buildImage {
         name = "layers-unpack-order-${layerName}";
@@ -475,7 +438,7 @@ rec {
     # When executing the runAsRoot script when building layer C, if layer B is
     # not unpacked on top of layer A, the contents of /layer-order will not be
     # "ABC".
-    layerA = layerOnTopOf null   "a";
+    layerA = layerOnTopOf null "a";
     layerB = layerOnTopOf layerA "b";
     layerC = layerOnTopOf layerB "c";
   in layerC;
@@ -532,47 +495,42 @@ rec {
   };
 
   # buildLayeredImage with non-root user
-  bashLayeredWithUser =
-  let
-    nonRootShadowSetup = { user, uid, gid ? uid }: with pkgs; [
-      (
-      writeTextDir "etc/shadow" ''
-        root:!x:::::::
-        ${user}:!:::::::
-      ''
-      )
-      (
-      writeTextDir "etc/passwd" ''
-        root:x:0:0::/root:${runtimeShell}
-        ${user}:x:${toString uid}:${toString gid}::/home/${user}:
-      ''
-      )
-      (
-      writeTextDir "etc/group" ''
-        root:x:0:
-        ${user}:x:${toString gid}:
-      ''
-      )
-      (
-      writeTextDir "etc/gshadow" ''
-        root:x::
-        ${user}:x::
-      ''
-      )
-    ];
-  in
-    pkgs.dockerTools.buildLayeredImage {
-      name = "bash-layered-with-user";
-      tag = "latest";
-      contents = [ pkgs.bash pkgs.coreutils ] ++ nonRootShadowSetup { uid = 999; user = "somebody"; };
+  bashLayeredWithUser = let
+    nonRootShadowSetup = { user, uid, gid ? uid }:
+      with pkgs; [
+        (writeTextDir "etc/shadow" ''
+          root:!x:::::::
+          ${user}:!:::::::
+        '')
+        (writeTextDir "etc/passwd" ''
+          root:x:0:0::/root:${runtimeShell}
+          ${user}:x:${toString uid}:${toString gid}::/home/${user}:
+        '')
+        (writeTextDir "etc/group" ''
+          root:x:0:
+          ${user}:x:${toString gid}:
+        '')
+        (writeTextDir "etc/gshadow" ''
+          root:x::
+          ${user}:x::
+        '')
+      ];
+  in pkgs.dockerTools.buildLayeredImage {
+    name = "bash-layered-with-user";
+    tag = "latest";
+    contents = [ pkgs.bash pkgs.coreutils ] ++ nonRootShadowSetup {
+      uid = 999;
+      user = "somebody";
     };
+  };
 
   # basic example, with cross compilation
   cross = let
     # Cross compile for x86_64 if on aarch64
-    crossPkgs =
-      if pkgs.stdenv.hostPlatform.system == "aarch64-linux" then pkgsCross.gnu64
-      else pkgsCross.aarch64-multiplatform;
+    crossPkgs = if pkgs.stdenv.hostPlatform.system == "aarch64-linux" then
+      pkgsCross.gnu64
+    else
+      pkgsCross.aarch64-multiplatform;
   in crossPkgs.dockerTools.buildImage {
     name = "hello-cross";
     tag = "latest";
@@ -584,16 +542,16 @@ rec {
   };
 
   # layered image where a store path is itself a symlink
-  layeredStoreSymlink =
-  let
+  layeredStoreSymlink = let
     target = pkgs.writeTextDir "dir/target" "Content doesn't matter.";
-    symlink = pkgs.runCommand "symlink" {} "ln -s ${target} $out";
-  in
-    pkgs.dockerTools.buildLayeredImage {
-      name = "layeredstoresymlink";
-      tag = "latest";
-      contents = [ pkgs.bash symlink ];
-    } // { passthru = { inherit symlink; }; };
+    symlink = pkgs.runCommand "symlink" { } "ln -s ${target} $out";
+  in pkgs.dockerTools.buildLayeredImage {
+    name = "layeredstoresymlink";
+    tag = "latest";
+    contents = [ pkgs.bash symlink ];
+  } // {
+    passthru = { inherit symlink; };
+  };
 
   # image with registry/ prefix
   prefixedImage = pkgs.dockerTools.buildImage {
@@ -613,44 +571,34 @@ rec {
   layeredImageWithFakeRootCommands = pkgs.dockerTools.buildLayeredImage {
     name = "layered-image-with-fake-root-commands";
     tag = "latest";
-    contents = [
-      pkgs.pkgsStatic.busybox
-    ];
+    contents = [ pkgs.pkgsStatic.busybox ];
     fakeRootCommands = ''
       mkdir -p ./home/alice
       chown 1000 ./home/alice
-      ln -s ${pkgs.hello.overrideAttrs (o: {
-        # A unique `hello` to make sure that it isn't included via another mechanism by accident.
-        configureFlags = o.configureFlags or [] ++ [ " --program-prefix=layeredImageWithFakeRootCommands-" ];
-        doCheck = false;
-      })} ./hello
+      ln -s ${
+        pkgs.hello.overrideAttrs (o: {
+          # A unique `hello` to make sure that it isn't included via another mechanism by accident.
+          configureFlags = o.configureFlags or [ ]
+            ++ [ " --program-prefix=layeredImageWithFakeRootCommands-" ];
+          doCheck = false;
+        })
+      } ./hello
     '';
   };
 
   # tarball consisting of both bash and redis images
-  mergedBashAndRedis = pkgs.dockerTools.mergeImages [
-    bash
-    redis
-  ];
+  mergedBashAndRedis = pkgs.dockerTools.mergeImages [ bash redis ];
 
   # tarball consisting of bash (without tag) and redis images
-  mergedBashNoTagAndRedis = pkgs.dockerTools.mergeImages [
-    bashNoTag
-    redis
-  ];
+  mergedBashNoTagAndRedis = pkgs.dockerTools.mergeImages [ bashNoTag redis ];
 
   # tarball consisting of bash and layered image with different owner of the
   # /home/alice directory
-  mergedBashFakeRoot = pkgs.dockerTools.mergeImages [
-    bash
-    layeredImageWithFakeRootCommands
-  ];
+  mergedBashFakeRoot =
+    pkgs.dockerTools.mergeImages [ bash layeredImageWithFakeRootCommands ];
 
-  mergeVaryingCompressor = pkgs.dockerTools.mergeImages [
-    redis
-    bashUncompressed
-    bashZstdCompressed
-  ];
+  mergeVaryingCompressor =
+    pkgs.dockerTools.mergeImages [ redis bashUncompressed bashZstdCompressed ];
 
   helloOnRoot = pkgs.dockerTools.streamLayeredImage {
     name = "hello";
@@ -691,36 +639,32 @@ rec {
     enableFakechroot = true;
   };
 
-  etc =
-    let
-      inherit (pkgs) lib;
-      nixosCore = (evalMinimalConfig ({ config, ... }: {
-        imports = [
-          pkgs.pkgsModule
-          ../../../nixos/modules/system/etc/etc.nix
-        ];
-        environment.etc."some-config-file" = {
-          text = ''
-            127.0.0.1 localhost
-            ::1 localhost
-          '';
-          # For executables:
-          # mode = "0755";
-        };
-      }));
-    in pkgs.dockerTools.streamLayeredImage {
-      name = "etc";
-      tag = "latest";
-      enableFakechroot = true;
-      fakeRootCommands = ''
-        mkdir -p /etc
-        ${nixosCore.config.system.build.etcActivationCommands}
-      '';
-      config.Cmd = pkgs.writeScript "etc-cmd" ''
-        #!${pkgs.busybox}/bin/sh
-        ${pkgs.busybox}/bin/cat /etc/some-config-file
-      '';
-    };
+  etc = let
+    inherit (pkgs) lib;
+    nixosCore = (evalMinimalConfig ({ config, ... }: {
+      imports = [ pkgs.pkgsModule ../../../nixos/modules/system/etc/etc.nix ];
+      environment.etc."some-config-file" = {
+        text = ''
+          127.0.0.1 localhost
+          ::1 localhost
+        '';
+        # For executables:
+        # mode = "0755";
+      };
+    }));
+  in pkgs.dockerTools.streamLayeredImage {
+    name = "etc";
+    tag = "latest";
+    enableFakechroot = true;
+    fakeRootCommands = ''
+      mkdir -p /etc
+      ${nixosCore.config.system.build.etcActivationCommands}
+    '';
+    config.Cmd = pkgs.writeScript "etc-cmd" ''
+      #!${pkgs.busybox}/bin/sh
+      ${pkgs.busybox}/bin/cat /etc/some-config-file
+    '';
+  };
 
   # Example export of the bash image
   exportBash = pkgs.dockerTools.exportImage { fromImage = bash; };
@@ -774,14 +718,10 @@ rec {
 
     copyToRoot = pkgs.buildEnv {
       name = "image-with-certs-root";
-      paths = [
-        pkgs.coreutils
-        pkgs.dockerTools.caCertificates
-      ];
+      paths = [ pkgs.coreutils pkgs.dockerTools.caCertificates ];
     };
 
-    config = {
-    };
+    config = { };
   };
 
   nix-shell-basic = streamNixShellImage {
@@ -804,11 +744,7 @@ rec {
   nix-shell-inputs = streamNixShellImage {
     name = "nix-shell-inputs";
     tag = "latest";
-    drv = pkgs.mkShell {
-      nativeBuildInputs = [
-        pkgs.hello
-      ];
-    };
+    drv = pkgs.mkShell { nativeBuildInputs = [ pkgs.hello ]; };
     command = ''
       hello
     '';
@@ -829,7 +765,7 @@ rec {
   nix-shell-run = streamNixShellImage {
     name = "nix-shell-run";
     tag = "latest";
-    drv = pkgs.mkShell {};
+    drv = pkgs.mkShell { };
     run = ''
       case "$-" in
       *i*) echo This shell is interactive ;;
@@ -841,7 +777,7 @@ rec {
   nix-shell-command = streamNixShellImage {
     name = "nix-shell-command";
     tag = "latest";
-    drv = pkgs.mkShell {};
+    drv = pkgs.mkShell { };
     command = ''
       case "$-" in
       *i*) echo This shell is interactive ;;
@@ -853,7 +789,7 @@ rec {
   nix-shell-writable-home = streamNixShellImage {
     name = "nix-shell-writable-home";
     tag = "latest";
-    drv = pkgs.mkShell {};
+    drv = pkgs.mkShell { };
     run = ''
       if [[ "$HOME" != "$(eval "echo ~$(whoami)")" ]]; then
         echo "\$HOME ($HOME) is not the same as ~\$(whoami) ($(eval "echo ~$(whoami)"))"
@@ -871,7 +807,7 @@ rec {
   nix-shell-nonexistent-home = streamNixShellImage {
     name = "nix-shell-nonexistent-home";
     tag = "latest";
-    drv = pkgs.mkShell {};
+    drv = pkgs.mkShell { };
     homeDirectory = "/homeless-shelter";
     run = ''
       if [[ "$HOME" != "$(eval "echo ~$(whoami)")" ]]; then

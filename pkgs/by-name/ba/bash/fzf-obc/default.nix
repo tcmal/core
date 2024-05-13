@@ -23,7 +23,8 @@ stdenv.mkDerivation rec {
 
   meta = with lib; {
     homepage = "https://fzf-obc.readthedocs.io";
-    description = "Completion script adding fzf over all know bash completion functions";
+    description =
+      "Completion script adding fzf over all know bash completion functions";
     license = licenses.unfree;
     maintainers = with maintainers; [ loicreynier ];
   };

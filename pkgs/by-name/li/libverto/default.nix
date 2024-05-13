@@ -1,20 +1,8 @@
-{ lib
-, stdenv
-, fetchFromGitHub
-, autoreconfHook
-, glib
-, libev
-, libevent
-, pkg-config
-, glibSupport ? true
-, libevSupport ? true
-, libeventSupport ? true
-}:
+{ lib, stdenv, fetchFromGitHub, autoreconfHook, glib, libev, libevent
+, pkg-config, glibSupport ? true, libevSupport ? true, libeventSupport ? true }:
 
-let
-  inherit (lib) optional;
-in
-stdenv.mkDerivation (finalAttrs: {
+let inherit (lib) optional;
+in stdenv.mkDerivation (finalAttrs: {
   pname = "libverto";
   version = "0.3.2";
 
@@ -25,14 +13,9 @@ stdenv.mkDerivation (finalAttrs: {
     hash = "sha256-csoJ0WdKyrza8kBSMKoaItKvcbijI6Wl8nWCbywPScQ=";
   };
 
-  nativeBuildInputs = [
-    autoreconfHook
-    pkg-config
-  ];
+  nativeBuildInputs = [ autoreconfHook pkg-config ];
 
-  buildInputs =
-    optional glibSupport glib
-    ++ optional libevSupport libev
+  buildInputs = optional glibSupport glib ++ optional libevSupport libev
     ++ optional libeventSupport libevent;
 
   meta = with lib; {

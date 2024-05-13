@@ -1,9 +1,4 @@
-{ lib
-, buildPythonPackage
-, fetchpatch
-, fetchPypi
-, re2
-}:
+{ lib, buildPythonPackage, fetchpatch, fetchPypi, re2 }:
 
 buildPythonPackage rec {
   pname = "fb-re2";
@@ -20,7 +15,8 @@ buildPythonPackage rec {
     # https://github.com/facebook/pyre2/issues/24
     # https://github.com/facebook/pyre2/pull/25
     (fetchpatch {
-      url = "https://github.com/facebook/pyre2/pull/25/commits/08fb06ec3ccd412ca69483d27234684a04cb91a0.patch";
+      url =
+        "https://github.com/facebook/pyre2/pull/25/commits/08fb06ec3ccd412ca69483d27234684a04cb91a0.patch";
       hash = "sha256-kzxE2AxpE1tJJK0dJgoFfVka9zy2u0HEqiHoS7DQDQ0=";
     })
   ];

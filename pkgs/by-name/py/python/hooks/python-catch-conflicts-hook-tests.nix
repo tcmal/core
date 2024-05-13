@@ -1,4 +1,5 @@
-{ pythonOnBuildForHost, runCommand, writeShellScript, coreutils, gnugrep }: let
+{ pythonOnBuildForHost, runCommand, writeShellScript, coreutils, gnugrep }:
+let
 
   pythonPkgs = pythonOnBuildForHost.pkgs;
 
@@ -8,24 +9,26 @@
   customize = pkg: pkg.overrideAttrs { some_modification = true; };
 
   # generates minimal pyproject.toml
-  pyprojectToml = pname: builtins.toFile "pyproject.toml" ''
-    [project]
-    name = "${pname}"
-    version = "1.0.0"
-  '';
+  pyprojectToml = pname:
+    builtins.toFile "pyproject.toml" ''
+      [project]
+      name = "${pname}"
+      version = "1.0.0"
+    '';
 
   # generates source for a python project
-  projectSource = pname: runCommand "my-project-source" {} ''
-    mkdir -p $out/src
-    cp ${pyprojectToml pname} $out/pyproject.toml
-    touch $out/src/__init__.py
-  '';
+  projectSource = pname:
+    runCommand "my-project-source" { } ''
+      mkdir -p $out/src
+      cp ${pyprojectToml pname} $out/pyproject.toml
+      touch $out/src/__init__.py
+    '';
 
   # helper to reduce boilerplate
-  generatePythonPackage = args: pythonPkgs.buildPythonPackage (
-    {
+  generatePythonPackage = args:
+    pythonPkgs.buildPythonPackage ({
       version = "1.0.0";
-      src = runCommand "my-project-source" {} ''
+      src = runCommand "my-project-source" { } ''
         mkdir -p $out/src
         cp ${pyprojectToml args.pname} $out/pyproject.toml
         touch $out/src/__init__.py
@@ -33,26 +36,25 @@
       pyproject = true;
       catchConflicts = true;
       buildInputs = [ pythonPkgs.setuptools ];
-    }
-    // args
-  );
+    } // args);
 
   # in order to test for a failing build, wrap it in a shell script
-  expectFailure = build: errorMsg: build.overrideDerivation (old: {
-    builder = writeShellScript "test-for-failure" ''
-      export PATH=${coreutils}/bin:${gnugrep}/bin:$PATH
-      ${old.builder} "$@" > ./log 2>&1
-      status=$?
-      cat ./log
-      if [ $status -eq 0 ] || ! grep -q "${errorMsg}" ./log; then
-        echo "The build should have failed with '${errorMsg}', but it didn't"
-        exit 1
-      else
-        echo "The build failed as expected with: ${errorMsg}"
-        mkdir -p $out
-      fi
-    '';
-  });
+  expectFailure = build: errorMsg:
+    build.overrideDerivation (old: {
+      builder = writeShellScript "test-for-failure" ''
+        export PATH=${coreutils}/bin:${gnugrep}/bin:$PATH
+        ${old.builder} "$@" > ./log 2>&1
+        status=$?
+        cat ./log
+        if [ $status -eq 0 ] || ! grep -q "${errorMsg}" ./log; then
+          echo "The build should have failed with '${errorMsg}', but it didn't"
+          exit 1
+        else
+          echo "The build failed as expected with: ${errorMsg}"
+          mkdir -p $out
+        fi
+      '';
+    });
 in {
 
   ### TEST CASES
@@ -61,31 +63,29 @@ in {
   # This derivation has runtime dependencies on custom versions of multiple build tools.
   # This scenario is relevant for lang2nix tools which do not override the nixpkgs fix-point.
   # see https://github.com/NixOS/nixpkgs/issues/283695
-  ignores-build-time-deps =
-    generatePythonPackage {
-      pname = "ignores-build-time-deps";
-      buildInputs = [
-        pythonPkgs.build
-        pythonPkgs.packaging
-        pythonPkgs.setuptools
-        pythonPkgs.wheel
-      ];
-      propagatedBuildInputs = [
-        # Add customized versions of build tools as runtime deps
-        (customize pythonPkgs.packaging)
-        (customize pythonPkgs.setuptools)
-        (customize pythonPkgs.wheel)
-      ];
-    };
+  ignores-build-time-deps = generatePythonPackage {
+    pname = "ignores-build-time-deps";
+    buildInputs = [
+      pythonPkgs.build
+      pythonPkgs.packaging
+      pythonPkgs.setuptools
+      pythonPkgs.wheel
+    ];
+    propagatedBuildInputs = [
+      # Add customized versions of build tools as runtime deps
+      (customize pythonPkgs.packaging)
+      (customize pythonPkgs.setuptools)
+      (customize pythonPkgs.wheel)
+    ];
+  };
 
   # multi-output derivation with dependency on itself must not crash
-  cyclic-dependencies =
-    generatePythonPackage {
-      pname = "cyclic-dependencies";
-      preFixup = ''
-        propagatedBuildInputs+=("$out")
-      '';
-    };
+  cyclic-dependencies = generatePythonPackage {
+    pname = "cyclic-dependencies";
+    preFixup = ''
+      propagatedBuildInputs+=("$out")
+    '';
+  };
 
   # Simplest test case that should trigger a conflict
   catches-simple-conflict = let
@@ -96,30 +96,24 @@ in {
       src = projectSource pname;
       pyproject = true;
       catchConflicts = true;
-      buildInputs = [
-        pythonPkgs.setuptools
-      ];
+      buildInputs = [ pythonPkgs.setuptools ];
       # depend on two different versions of packaging
       # (an actual runtime dependency conflict)
-      propagatedBuildInputs = [
-        pythonPkgs.packaging
-        (customize pythonPkgs.packaging)
-      ];
+      propagatedBuildInputs =
+        [ pythonPkgs.packaging (customize pythonPkgs.packaging) ];
     };
-  in
-    expectFailure package "Found duplicated packages in closure for dependency 'packaging'";
+  in expectFailure package
+  "Found duplicated packages in closure for dependency 'packaging'";
 
+  /* More complex test case with a transitive conflict
 
-  /*
-    More complex test case with a transitive conflict
+     Test sets up this dependency tree:
 
-    Test sets up this dependency tree:
-
-      toplevel
-      ├── dep1
-      │   └── leaf
-      └── dep2
-          └── leaf (customized version -> conflicting)
+       toplevel
+       ├── dep1
+       │   └── leaf
+       └── dep2
+           └── leaf (customized version -> conflicting)
   */
   catches-transitive-conflict = let
     # package depending on both dependency1 and dependency2
@@ -138,9 +132,7 @@ in {
       propagatedBuildInputs = [ (customize leaf) ];
     };
     # some leaf package
-    leaf = generatePythonPackage {
-      pname = "leaf";
-    };
-  in
-    expectFailure toplevel "Found duplicated packages in closure for dependency 'leaf'";
+    leaf = generatePythonPackage { pname = "leaf"; };
+  in expectFailure toplevel
+  "Found duplicated packages in closure for dependency 'leaf'";
 }

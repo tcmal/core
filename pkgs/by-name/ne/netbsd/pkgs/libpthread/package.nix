@@ -1,7 +1,4 @@
-{ lib, mkDerivation
-, headers
-, common, libc, librt, sys
-}:
+{ lib, mkDerivation, headers, common, libc, librt, sys }:
 
 mkDerivation (import ./base.nix // {
   pname = "libpthread";

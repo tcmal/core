@@ -1,10 +1,5 @@
-{ lib
-, buildPythonPackage
-, pythonOlder
-, fetchFromGitHub
-, pretend
-, pytestCheckHook
-}:
+{ lib, buildPythonPackage, pythonOlder, fetchFromGitHub, pretend
+, pytestCheckHook }:
 
 let
   self = buildPythonPackage rec {
@@ -28,10 +23,7 @@ let
 
     doCheck = false; # avoid infinite recursion with hatchling
 
-    nativeCheckInputs = [
-      pretend
-      pytestCheckHook
-    ];
+    nativeCheckInputs = [ pretend pytestCheckHook ];
 
     pythonImportsCheck = [ "calver" ];
 
@@ -44,5 +36,4 @@ let
       maintainers = with lib.maintainers; [ dotlambda ];
     };
   };
-in
-  self
+in self

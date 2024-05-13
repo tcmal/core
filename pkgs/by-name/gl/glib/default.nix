@@ -1,27 +1,14 @@
-{ config
-, lib
-, stdenv
-, fetchurl
-, fetchpatch
-, gettext
-, meson
-, ninja
-, pkg-config
-, perl
-, python3
-, libiconv, zlib, libffi, pcre2, elfutils, /*gnome,*/ libselinux, bash, gnum4, gtk-doc, docbook_xsl, docbook_xml_dtd_45, libxslt
+{ config, lib, stdenv, fetchurl, fetchpatch, gettext, meson, ninja, pkg-config
+, perl, python3, libiconv, zlib, libffi, pcre2, elfutils, # gnome,
+libselinux, bash, gnum4, gtk-doc, docbook_xsl, docbook_xml_dtd_45, libxslt
 # use util-linuxMinimal to avoid circular dependency (util-linux, systemd, glib)
-, util-linuxMinimal ? null
-, buildPackages
+, util-linuxMinimal ? null, buildPackages
 
 # for passthru.tests
 # this is just for tests (not in the closure of any regular package)
-, coreutils, dbus, libxml2, tzdata
-, desktop-file-utils, shared-mime-info
-, darwin
+, coreutils, dbus, libxml2, tzdata, desktop-file-utils, shared-mime-info, darwin
 # , makeHardcodeGsettingsPatch
-, testers
-}:
+, testers }:
 
 assert stdenv.isLinux -> util-linuxMinimal != null;
 
@@ -39,110 +26,104 @@ let
     ln -sr -t "''${!outputInclude}/include/" "''${!outputInclude}"/lib/*/include/* 2>/dev/null || true
   '';
 
-  buildDocs = stdenv.hostPlatform == stdenv.buildPlatform && !stdenv.hostPlatform.isStatic;
-in
+  buildDocs = stdenv.hostPlatform == stdenv.buildPlatform
+    && !stdenv.hostPlatform.isStatic;
 
-stdenv.mkDerivation (finalAttrs: {
+in stdenv.mkDerivation (finalAttrs: {
   pname = "glib";
   version = "2.78.4";
 
   src = fetchurl {
-    url = "mirror://gnome/sources/glib/${lib.versions.majorMinor finalAttrs.version}/glib-${finalAttrs.version}.tar.xz";
+    url = "mirror://gnome/sources/glib/${
+        lib.versions.majorMinor finalAttrs.version
+      }/glib-${finalAttrs.version}.tar.xz";
     sha256 = "sha256-JLjgZy3KEgzDLTlLzLhYROcy4E/nXRi7BXOy28dUj2M=";
   };
 
-  patches = lib.optionals stdenv.isDarwin [
-    ./darwin-compilation.patch
-  ] ++ lib.optionals stdenv.hostPlatform.isMusl [
-    ./quark_init_on_demand.patch
-    ./gobject_init_on_demand.patch
-  ] ++ [
-    (fetchpatch {
-      name = "GLib-against-PCRE2-10.43.patch";
-      url = "https://gitlab.gnome.org/GNOME/glib/-/commit/cce3ae98a2c1966719daabff5a4ec6cf94a846f6.patch";
-      hash = "sha256-vgKzb5hQmFQGD8zxRrXnuX9Gpg/TeSrzehlOH2vA1xU=";
-    })
+  patches = lib.optionals stdenv.isDarwin [ ./darwin-compilation.patch ]
+    ++ lib.optionals stdenv.hostPlatform.isMusl [
+      ./quark_init_on_demand.patch
+      ./gobject_init_on_demand.patch
+    ] ++ [
+      (fetchpatch {
+        name = "GLib-against-PCRE2-10.43.patch";
+        url =
+          "https://gitlab.gnome.org/GNOME/glib/-/commit/cce3ae98a2c1966719daabff5a4ec6cf94a846f6.patch";
+        hash = "sha256-vgKzb5hQmFQGD8zxRrXnuX9Gpg/TeSrzehlOH2vA1xU=";
+      })
 
-    ./glib-appinfo-watch.patch
-    ./schema-override-variable.patch
+      ./glib-appinfo-watch.patch
+      ./schema-override-variable.patch
 
-    # Add support for Pantheon’s terminal emulator.
-    ./elementary-terminal-support.patch
+      # Add support for Pantheon’s terminal emulator.
+      ./elementary-terminal-support.patch
 
-    # GLib contains many binaries used for different purposes;
-    # we will install them to different outputs:
-    # 1. Tools for desktop environment ($bin)
-    #    * gapplication (non-darwin)
-    #    * gdbus
-    #    * gio
-    #    * gio-launch-desktop (symlink to $out)
-    #    * gsettings
-    # 2. Development/build tools ($dev)
-    #    * gdbus-codegen
-    #    * gio-querymodules
-    #    * glib-compile-resources
-    #    * glib-compile-schemas
-    #    * glib-genmarshal
-    #    * glib-gettextize
-    #    * glib-mkenums
-    #    * gobject-query
-    #    * gresource
-    #    * gtester
-    #    * gtester-report
-    # 3. Tools for desktop environment that cannot go to $bin due to $out depending on them ($out)
-    #    * gio-launch-desktop
-    ./split-dev-programs.patch
+      # GLib contains many binaries used for different purposes;
+      # we will install them to different outputs:
+      # 1. Tools for desktop environment ($bin)
+      #    * gapplication (non-darwin)
+      #    * gdbus
+      #    * gio
+      #    * gio-launch-desktop (symlink to $out)
+      #    * gsettings
+      # 2. Development/build tools ($dev)
+      #    * gdbus-codegen
+      #    * gio-querymodules
+      #    * glib-compile-resources
+      #    * glib-compile-schemas
+      #    * glib-genmarshal
+      #    * glib-gettextize
+      #    * glib-mkenums
+      #    * gobject-query
+      #    * gresource
+      #    * gtester
+      #    * gtester-report
+      # 3. Tools for desktop environment that cannot go to $bin due to $out depending on them ($out)
+      #    * gio-launch-desktop
+      ./split-dev-programs.patch
 
-    # Disable flaky test.
-    # https://gitlab.gnome.org/GNOME/glib/-/issues/820
-    ./skip-timer-test.patch
-  ];
+      # Disable flaky test.
+      # https://gitlab.gnome.org/GNOME/glib/-/issues/820
+      ./skip-timer-test.patch
+    ];
 
   outputs = [ "bin" "out" "dev" "devdoc" ];
 
   setupHook = ./setup-hook.sh;
 
-  buildInputs = [
-    finalAttrs.setupHook
-    pcre2
-  ] ++ lib.optionals (!stdenv.hostPlatform.isWindows) [
-    bash gnum4 # install glib-gettextize and m4 macros for other apps to use
-  ] ++ lib.optionals (lib.meta.availableOn stdenv.hostPlatform elfutils) [
-    elfutils
-  ] ++ lib.optionals stdenv.isLinux [
-    libselinux
-    util-linuxMinimal # for libmount
-  ] ++ lib.optionals stdenv.isDarwin (with darwin.apple_sdk.frameworks; [
-    AppKit Carbon Cocoa CoreFoundation CoreServices Foundation
-  ]) ++ lib.optionals buildDocs [
-    # Note: this needs to be both in buildInputs and nativeBuildInputs. The
-    # Meson gtkdoc module uses find_program to look it up (-> build dep), but
-    # glib's own Meson configuration uses the host pkg-config to find its
-    # version (-> host dep). We could technically go and fix this in glib, add
-    # pkg-config to depsBuildBuild, but this would be a futile exercise since
-    # Meson's gtkdoc integration does not support cross compilation[1] anyway
-    # and this derivation disables the docs build when cross compiling.
-    #
-    # [1] https://github.com/mesonbuild/meson/issues/2003
-    gtk-doc
-  ];
+  buildInputs = [ finalAttrs.setupHook pcre2 ]
+    ++ lib.optionals (!stdenv.hostPlatform.isWindows) [
+      bash
+      gnum4 # install glib-gettextize and m4 macros for other apps to use
+    ] ++ lib.optionals (lib.meta.availableOn stdenv.hostPlatform elfutils)
+    [ elfutils ] ++ lib.optionals stdenv.isLinux [
+      libselinux
+      util-linuxMinimal # for libmount
+    ] ++ lib.optionals stdenv.isDarwin (with darwin.apple_sdk.frameworks; [
+      AppKit
+      Carbon
+      Cocoa
+      CoreFoundation
+      CoreServices
+      Foundation
+    ]) ++ lib.optionals buildDocs [
+      # Note: this needs to be both in buildInputs and nativeBuildInputs. The
+      # Meson gtkdoc module uses find_program to look it up (-> build dep), but
+      # glib's own Meson configuration uses the host pkg-config to find its
+      # version (-> host dep). We could technically go and fix this in glib, add
+      # pkg-config to depsBuildBuild, but this would be a futile exercise since
+      # Meson's gtkdoc integration does not support cross compilation[1] anyway
+      # and this derivation disables the docs build when cross compiling.
+      #
+      # [1] https://github.com/mesonbuild/meson/issues/2003
+      gtk-doc
+    ];
 
   strictDeps = true;
 
-  nativeBuildInputs = [
-    meson
-    ninja
-    pkg-config
-    perl
-    python3
-    gettext
-    libxslt
-    docbook_xsl
-  ] ++ lib.optionals buildDocs [
-    gtk-doc
-    docbook_xml_dtd_45
-    libxml2
-  ];
+  nativeBuildInputs =
+    [ meson ninja pkg-config perl python3 gettext libxslt docbook_xsl ]
+    ++ lib.optionals buildDocs [ gtk-doc docbook_xml_dtd_45 libxml2 ];
 
   propagatedBuildInputs = [ zlib libffi gettext libiconv ];
 
@@ -152,14 +133,10 @@ stdenv.mkDerivation (finalAttrs: {
     "-Dgtk_doc=${lib.boolToString buildDocs}"
     "-Dnls=enabled"
     "-Ddevbindir=${placeholder "dev"}/bin"
-  ] ++ lib.optionals (!lib.meta.availableOn stdenv.hostPlatform elfutils) [
-    "-Dlibelf=disabled"
-  ] ++ lib.optionals (!stdenv.isDarwin) [
-    "-Dman=true"                # broken on Darwin
-  ] ++ lib.optionals stdenv.isFreeBSD [
-    "-Db_lundef=false"
-    "-Dxattr=false"
-  ];
+  ] ++ lib.optionals (!lib.meta.availableOn stdenv.hostPlatform elfutils)
+    [ "-Dlibelf=disabled" ] ++ lib.optionals (!stdenv.isDarwin) [
+      "-Dman=true" # broken on Darwin
+    ] ++ lib.optionals stdenv.isFreeBSD [ "-Db_lundef=false" "-Dxattr=false" ];
 
   env.NIX_CFLAGS_COMPILE = toString [
     "-Wno-error=nonnull"
@@ -227,17 +204,18 @@ stdenv.mkDerivation (finalAttrs: {
 
   nativeCheckInputs = [ tzdata desktop-file-utils shared-mime-info ];
 
-  preCheck = lib.optionalString finalAttrs.finalPackage.doCheck or config.doCheckByDefault or false ''
-    export LD_LIBRARY_PATH="$NIX_BUILD_TOP/glib-${finalAttrs.version}/glib/.libs''${LD_LIBRARY_PATH:+:}$LD_LIBRARY_PATH"
-    export TZDIR="${tzdata}/share/zoneinfo"
-    export XDG_CACHE_HOME="$TMP"
-    export XDG_RUNTIME_HOME="$TMP"
-    export HOME="$TMP"
-    export XDG_DATA_DIRS="${desktop-file-utils}/share:${shared-mime-info}/share"
-    export G_TEST_DBUS_DAEMON="${dbus}/bin/dbus-daemon"
-    export PATH="$PATH:$(pwd)/gobject"
-    echo "PATH=$PATH"
-  '';
+  preCheck = lib.optionalString
+    finalAttrs.finalPackage.doCheck or config.doCheckByDefault or false ''
+      export LD_LIBRARY_PATH="$NIX_BUILD_TOP/glib-${finalAttrs.version}/glib/.libs''${LD_LIBRARY_PATH:+:}$LD_LIBRARY_PATH"
+      export TZDIR="${tzdata}/share/zoneinfo"
+      export XDG_CACHE_HOME="$TMP"
+      export XDG_RUNTIME_HOME="$TMP"
+      export HOME="$TMP"
+      export XDG_DATA_DIRS="${desktop-file-utils}/share:${shared-mime-info}/share"
+      export G_TEST_DBUS_DAEMON="${dbus}/bin/dbus-daemon"
+      export PATH="$PATH:$(pwd)/gobject"
+      echo "PATH=$PATH"
+    '';
 
   separateDebugInfo = stdenv.isLinux;
 
@@ -245,12 +223,14 @@ stdenv.mkDerivation (finalAttrs: {
     gioModuleDir = "lib/gio/modules";
 
     makeSchemaDataDirPath = dir: name: "${dir}/share/gsettings-schemas/${name}";
-    makeSchemaPath = dir: name: "${makeSchemaDataDirPath dir name}/glib-2.0/schemas";
+    makeSchemaPath = dir: name:
+      "${makeSchemaDataDirPath dir name}/glib-2.0/schemas";
     getSchemaPath = pkg: makeSchemaPath pkg pkg.name;
     getSchemaDataDirPath = pkg: makeSchemaDataDirPath pkg pkg.name;
 
     tests = {
-      withChecks = finalAttrs.finalPackage.overrideAttrs (_: { doCheck = true; });
+      withChecks =
+        finalAttrs.finalPackage.overrideAttrs (_: { doCheck = true; });
       pkg-config = testers.testMetaPkgConfig finalAttrs.finalPackage;
     };
 
@@ -275,15 +255,11 @@ stdenv.mkDerivation (finalAttrs: {
 
   meta = with lib; {
     description = "C library of programming buildings blocks";
-    homepage    = "https://gitlab.gnome.org/GNOME/glib";
-    license     = licenses.lgpl21Plus;
+    homepage = "https://gitlab.gnome.org/GNOME/glib";
+    license = licenses.lgpl21Plus;
     # maintainers = teams.gnome.members ++ (with maintainers; [ lovek323 raskin ]);
-    pkgConfigModules = [
-      "gio-2.0"
-      "gobject-2.0"
-      "gthread-2.0"
-    ];
-    platforms   = platforms.unix ++ platforms.windows;
+    pkgConfigModules = [ "gio-2.0" "gobject-2.0" "gthread-2.0" ];
+    platforms = platforms.unix ++ platforms.windows;
 
     longDescription = ''
       GLib provides the core application building blocks for libraries

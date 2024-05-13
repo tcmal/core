@@ -1,19 +1,11 @@
-{ lib
-, stdenv
-, fetchFromGitLab
+{ lib, stdenv, fetchFromGitLab
 # , nix-update-script
 
-, autoreconfHook
-, pkg-config
-, sphinx
+, autoreconfHook, pkg-config, sphinx
 
-, lerc
-, libdeflate
-, libjpeg
-, xz
-, zlib
+, lerc, libdeflate, libjpeg, xz, zlib
 
-  # for passthru.tests
+# for passthru.tests
 # , libgeotiff
 # , python3Packages
 # , imagemagick
@@ -60,17 +52,10 @@ stdenv.mkDerivation (finalAttrs: {
   # sure cross-compilation works first!
   nativeBuildInputs = [ autoreconfHook pkg-config sphinx ];
 
-  buildInputs = [
-    lerc
-  ];
+  buildInputs = [ lerc ];
 
   # TODO: opengl support (bogus configure detection)
-  propagatedBuildInputs = [
-    libdeflate
-    libjpeg
-    xz
-    zlib
-  ];
+  propagatedBuildInputs = [ libdeflate libjpeg xz zlib ];
 
   enableParallelBuilding = true;
 
@@ -88,12 +73,14 @@ stdenv.mkDerivation (finalAttrs: {
   # };
 
   meta = with lib; {
-    description = "Library and utilities for working with the TIFF image file format";
+    description =
+      "Library and utilities for working with the TIFF image file format";
     homepage = "https://libtiff.gitlab.io/libtiff";
-    changelog = "https://libtiff.gitlab.io/libtiff/releases/v${finalAttrs.version}.html";
+    changelog =
+      "https://libtiff.gitlab.io/libtiff/releases/v${finalAttrs.version}.html";
     license = licenses.libtiff;
     platforms = platforms.unix ++ platforms.windows;
     pkgConfigModules = [ "libtiff-4" ];
-    maintainers = [];
+    maintainers = [ ];
   };
 })

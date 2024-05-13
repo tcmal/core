@@ -1,15 +1,14 @@
-{ lib, stdenv, buildPackages, fetchzip, fetchFromGitHub
-, appleDerivation', xnu, Libc, Libm, libdispatch, Libinfo
-, dyld, Csu, architecture, libclosure, CarbonHeaders, ncurses, CommonCrypto
-, copyfile, removefile, libresolvHeaders, libresolv, Libnotify, libmalloc, libplatform, libpthread
-, mDNSResponder, launchd, libutilHeaders, hfsHeaders, darwin-stubs
-, headersOnly ? false
-, withLibresolv ? !headersOnly
-}:
+{ lib, stdenv, buildPackages, fetchzip, fetchFromGitHub, appleDerivation', xnu
+, Libc, Libm, libdispatch, Libinfo, dyld, Csu, architecture, libclosure
+, CarbonHeaders, ncurses, CommonCrypto, copyfile, removefile, libresolvHeaders
+, libresolv, Libnotify, libmalloc, libplatform, libpthread, mDNSResponder
+, launchd, libutilHeaders, hfsHeaders, darwin-stubs, headersOnly ? false
+, withLibresolv ? !headersOnly }:
 
 let
   darling.src = fetchzip {
-    url = "https://github.com/darlinghq/darling/archive/d2cc5fa748003aaa70ad4180fff0a9a85dc65e9b.tar.gz";
+    url =
+      "https://github.com/darlinghq/darling/archive/d2cc5fa748003aaa70ad4180fff0a9a85dc65e9b.tar.gz";
     hash = "sha256-/YynrKJdi26Xj4lvp5wsN+TAhZjonOrNNHuk4L5tC7s=";
     postFetch = ''
       # The archive contains both `src/opendirectory` and `src/OpenDirectory`.
@@ -28,8 +27,7 @@ let
     rev = "syslog-349.50.5";
     hash = "sha256-tXLW/TNsluhO1X9Rv3FANyzyOe5TE/hZz0gVo7JGvHA=";
   };
-in
-appleDerivation' stdenv {
+in appleDerivation' stdenv {
   dontBuild = true;
   dontFixup = true;
 
@@ -169,7 +167,7 @@ appleDerivation' stdenv {
   meta = with lib; {
     description = "The Mac OS libc/libSystem (tapi library with pure headers)";
     maintainers = with maintainers; [ copumpkin gridaphobe ];
-    platforms   = platforms.darwin;
-    license     = licenses.apple-psl20;
+    platforms = platforms.darwin;
+    license = licenses.apple-psl20;
   };
 }

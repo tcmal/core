@@ -1,15 +1,14 @@
 { ... }:
 res: pkgs: super:
 
-with pkgs;
-{
+with pkgs; {
   # Default libGL implementation, should provide headers and
   # libGL.so/libEGL.so/... to link agains them. Android NDK provides
   # an OpenGL implementation, we can just use that.
-  libGL = if stdenv.hostPlatform.useAndroidPrebuilt then stdenv
-          else callPackage ./stubs.nix {
-            inherit (darwin.apple_sdk.frameworks) OpenGL;
-          };
+  libGL = if stdenv.hostPlatform.useAndroidPrebuilt then
+    stdenv
+  else
+    callPackage ./stubs.nix { inherit (darwin.apple_sdk.frameworks) OpenGL; };
 
   # Default libGLU
   libGLU = mesa_glu;

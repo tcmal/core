@@ -1,10 +1,5 @@
-{ lib
-, buildPythonPackage
-, fetchPypi
-, flit-core
-, jinja2
-, sphinxcontrib-serializinghtml
-}:
+{ lib, buildPythonPackage, fetchPypi, flit-core, jinja2
+, sphinxcontrib-serializinghtml }:
 
 buildPythonPackage rec {
   pname = "sphinxcontrib-websupport";
@@ -17,14 +12,9 @@ buildPythonPackage rec {
     hash = "sha256-4yKALr/V/nk2jv2GSuuHsGNWauYZEdzLJxTiikXtdWE=";
   };
 
-  nativeBuildInputs = [
-    flit-core
-  ];
+  nativeBuildInputs = [ flit-core ];
 
-  propagatedBuildInputs = [
-    jinja2
-    sphinxcontrib-serializinghtml
-  ];
+  propagatedBuildInputs = [ jinja2 sphinxcontrib-serializinghtml ];
 
   # circular dependency on sphinx
   dontCheckRuntimeDeps = true;

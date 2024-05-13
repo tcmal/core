@@ -25,15 +25,15 @@ stdenv.mkDerivation rec {
   doCheck = !stdenv.isDarwin;
 
   passthru = {
-    updateScript = unstableGitUpdater {
-      url = "https://github.com/NixOS/patchelf.git";
-    };
+    updateScript =
+      unstableGitUpdater { url = "https://github.com/NixOS/patchelf.git"; };
   };
 
   meta = with lib; {
     homepage = "https://github.com/NixOS/patchelf";
     license = licenses.gpl3;
-    description = "A small utility to modify the dynamic linker and RPATH of ELF executables";
+    description =
+      "A small utility to modify the dynamic linker and RPATH of ELF executables";
     mainProgram = "patchelf";
     maintainers = [ maintainers.eelco ];
     platforms = platforms.all;

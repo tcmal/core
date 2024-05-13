@@ -1,10 +1,4 @@
-{ lib
-, stdenv
-, fetchFromGitHub
-, cmake
-, openssl
-, nix
-}:
+{ lib, stdenv, fetchFromGitHub, cmake, openssl, nix }:
 
 stdenv.mkDerivation rec {
   pname = "s2n-tls";
@@ -31,7 +25,8 @@ stdenv.mkDerivation rec {
     "-DS2N_NO_PQ=ON"
   ];
 
-  propagatedBuildInputs = [ openssl ]; # s2n-config has find_dependency(LibCrypto).
+  propagatedBuildInputs =
+    [ openssl ]; # s2n-config has find_dependency(LibCrypto).
 
   postInstall = ''
     # Glob for 'shared' or 'static' subdir
@@ -41,9 +36,7 @@ stdenv.mkDerivation rec {
     done
   '';
 
-  passthru.tests = {
-    inherit nix;
-  };
+  passthru.tests = { inherit nix; };
 
   meta = with lib; {
     description = "C99 implementation of the TLS/SSL protocols";

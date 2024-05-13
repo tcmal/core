@@ -1,8 +1,7 @@
 { ... }:
 res: pkgs: super:
 
-with pkgs;
-{
+with pkgs; {
   w3m = callPackage ./. { };
 
   # Should always be the version with the most features

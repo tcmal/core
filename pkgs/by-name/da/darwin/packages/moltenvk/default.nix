@@ -1,32 +1,14 @@
-{
-  lib,
-  stdenv,
-  fetchFromGitHub,
-  gitUpdater,
-  cereal,
-  libcxx,
-  glslang,
-  simd,
-  spirv-cross,
-  spirv-headers,
-  spirv-tools,
-  vulkan-headers,
-  xcbuild,
-  AppKit,
-  Foundation,
-  Metal,
-  QuartzCore,
-  # MoltenVK supports using private APIs to implement some Vulkan functionality.
-  # Applications that use private APIs can’t be distributed on the App Store,
-  # but that’s not really a concern for nixpkgs, so use them by default.
-  # See: https://github.com/KhronosGroup/MoltenVK/blob/main/README.md#metal_private_api
-  enablePrivateAPIUsage ? true,
-}:
+{ lib, stdenv, fetchFromGitHub, gitUpdater, cereal, libcxx, glslang, simd
+, spirv-cross, spirv-headers, spirv-tools, vulkan-headers, xcbuild, AppKit
+, Foundation, Metal, QuartzCore,
+# MoltenVK supports using private APIs to implement some Vulkan functionality.
+# Applications that use private APIs can’t be distributed on the App Store,
+# but that’s not really a concern for nixpkgs, so use them by default.
+# See: https://github.com/KhronosGroup/MoltenVK/blob/main/README.md#metal_private_api
+enablePrivateAPIUsage ? true, }:
 
-let
-  inherit (stdenv.hostPlatform) isStatic;
-in
-stdenv.mkDerivation (finalAttrs: {
+let inherit (stdenv.hostPlatform) isStatic;
+in stdenv.mkDerivation (finalAttrs: {
   pname = "MoltenVK";
   version = "1.2.8";
 
@@ -46,11 +28,7 @@ stdenv.mkDerivation (finalAttrs: {
 
   nativeBuildInputs = [ xcbuild ];
 
-  outputs = [
-    "out"
-    "bin"
-    "dev"
-  ];
+  outputs = [ "out" "bin" "dev" ];
 
   src = fetchFromGitHub {
     owner = "KhronosGroup";
@@ -99,14 +77,11 @@ stdenv.mkDerivation (finalAttrs: {
     ln -s "${glslang.src}" "build/include/glslang"
   '';
 
-  env.NIX_CFLAGS_COMPILE = toString (
-    [
-      "-isystem ${lib.getDev libcxx}/include/c++/v1"
-      "-I${lib.getDev spirv-cross}/include/spirv_cross"
-      "-I${lib.getDev spirv-headers}/include/spirv/unified1"
-    ]
-    ++ lib.optional enablePrivateAPIUsage "-DMVK_USE_METAL_PRIVATE_API=1"
-  );
+  env.NIX_CFLAGS_COMPILE = toString ([
+    "-isystem ${lib.getDev libcxx}/include/c++/v1"
+    "-I${lib.getDev spirv-cross}/include/spirv_cross"
+    "-I${lib.getDev spirv-headers}/include/spirv/unified1"
+  ] ++ lib.optional enablePrivateAPIUsage "-DMVK_USE_METAL_PRIVATE_API=1");
 
   env.NIX_LDFLAGS = toString [
     "-lMachineIndependent"
@@ -141,35 +116,31 @@ stdenv.mkDerivation (finalAttrs: {
     runHook postBuild
   '';
 
-  postBuild =
-    if isStatic then
-      ''
-        mkdir -p Package/Release/MoltenVK/static
-        cp Products/Release/libMoltenVK.a Package/Release/MoltenVK/static
-      ''
-    else
-      ''
-        # MoltenVK’s Xcode project builds the dylib, but it doesn’t seem to work with
-        # xcbuild. This is based on the script versions prior to 1.2.8 used.
-        mkdir -p Package/Release/MoltenVK/dynamic/dylib
-        clang++ -Wl,-all_load -Wl,-w \
-          -dynamiclib \
-          -compatibility_version 1.0.0 -current_version 1.0.0 \
-          -LProducts/Release \
-          -framework AppKit \
-          -framework CoreGraphics \
-          -framework Foundation \
-          -framework IOKit \
-          -framework IOSurface \
-          -framework Metal \
-          -framework QuartzCore \
-          -lobjc \
-          -lMoltenVKShaderConverter \
-          -lspirv-cross-reflect \
-          -install_name "$out/lib/libMoltenVK.dylib" \
-          -o Package/Release/MoltenVK/dynamic/dylib/libMoltenVK.dylib \
-          -force_load Products/Release/libMoltenVK.a
-      '';
+  postBuild = if isStatic then ''
+    mkdir -p Package/Release/MoltenVK/static
+    cp Products/Release/libMoltenVK.a Package/Release/MoltenVK/static
+  '' else ''
+    # MoltenVK’s Xcode project builds the dylib, but it doesn’t seem to work with
+    # xcbuild. This is based on the script versions prior to 1.2.8 used.
+    mkdir -p Package/Release/MoltenVK/dynamic/dylib
+    clang++ -Wl,-all_load -Wl,-w \
+      -dynamiclib \
+      -compatibility_version 1.0.0 -current_version 1.0.0 \
+      -LProducts/Release \
+      -framework AppKit \
+      -framework CoreGraphics \
+      -framework Foundation \
+      -framework IOKit \
+      -framework IOSurface \
+      -framework Metal \
+      -framework QuartzCore \
+      -lobjc \
+      -lMoltenVKShaderConverter \
+      -lspirv-cross-reflect \
+      -install_name "$out/lib/libMoltenVK.dylib" \
+      -o Package/Release/MoltenVK/dynamic/dylib/libMoltenVK.dylib \
+      -force_load Products/Release/libMoltenVK.a
+  '';
 
   installPhase = ''
     runHook preInstall
@@ -198,7 +169,8 @@ stdenv.mkDerivation (finalAttrs: {
   };
 
   meta = {
-    description = "A Vulkan Portability implementation built on top of Apple’s Metal API";
+    description =
+      "A Vulkan Portability implementation built on top of Apple’s Metal API";
     homepage = "https://github.com/KhronosGroup/MoltenVK";
     changelog = "https://github.com/KhronosGroup/MoltenVK/releases";
     maintainers = [ lib.maintainers.reckenrode ];

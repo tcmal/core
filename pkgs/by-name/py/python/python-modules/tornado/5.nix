@@ -1,11 +1,5 @@
-{ lib
-, unittestCheckHook
-, buildPythonPackage
-, fetchPypi
-, fetchpatch
-, isPy27
-, pythonAtLeast
-}:
+{ lib, unittestCheckHook, buildPythonPackage, fetchPypi, fetchpatch, isPy27
+, pythonAtLeast }:
 
 buildPythonPackage rec {
   pname = "tornado";
@@ -20,7 +14,8 @@ buildPythonPackage rec {
   patches = [
     (fetchpatch {
       name = "CVE-2023-28370.patch";
-      url = "https://github.com/tornadoweb/tornado/commit/32ad07c54e607839273b4e1819c347f5c8976b2f.patch";
+      url =
+        "https://github.com/tornadoweb/tornado/commit/32ad07c54e607839273b4e1819c347f5c8976b2f.patch";
       hash = "sha256-2dpPHkNThOaZD8T2g1vb/I5WYZ/vy/t690539uprJyc=";
     })
   ];

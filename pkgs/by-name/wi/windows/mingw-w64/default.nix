@@ -1,12 +1,6 @@
-{ lib
-, stdenv
-, windows
-, fetchurl
-, autoreconfHook
-}:
+{ lib, stdenv, windows, fetchurl, autoreconfHook }:
 
-let
-  version = "11.0.1";
+let version = "11.0.1";
 in stdenv.mkDerivation {
   pname = "mingw-w64";
   inherit version;
@@ -18,12 +12,9 @@ in stdenv.mkDerivation {
 
   outputs = [ "out" "dev" ];
 
-  configureFlags = [
-    "--enable-idl"
-    "--enable-secure-api"
-  ] ++ lib.optionals (stdenv.targetPlatform.libc == "ucrt") [
-    "--with-default-msvcrt=ucrt"
-  ];
+  configureFlags = [ "--enable-idl" "--enable-secure-api" ]
+    ++ lib.optionals (stdenv.targetPlatform.libc == "ucrt")
+    [ "--with-default-msvcrt=ucrt" ];
 
   enableParallelBuilding = true;
 
@@ -31,7 +22,5 @@ in stdenv.mkDerivation {
   buildInputs = [ windows.mingw_w64_headers ];
   hardeningDisable = [ "stackprotector" "fortify" ];
 
-  meta = {
-    platforms = lib.platforms.windows;
-  };
+  meta = { platforms = lib.platforms.windows; };
 }

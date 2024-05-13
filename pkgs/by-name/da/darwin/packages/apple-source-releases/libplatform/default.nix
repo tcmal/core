@@ -28,12 +28,10 @@ appleDerivation' stdenvNoCC (finalAttrs: {
     platform/introspection_private.h
     platform/string.h
     setjmp.h
-  '' + (
-    if lib.versionAtLeast finalAttrs.version "254.40.4" then ''
-      string_x86.h
-      ucontext.h
-    '' else ''
-      ucontext.h
-    ''
-  );
+  '' + (if lib.versionAtLeast finalAttrs.version "254.40.4" then ''
+    string_x86.h
+    ucontext.h
+  '' else ''
+    ucontext.h
+  '');
 })

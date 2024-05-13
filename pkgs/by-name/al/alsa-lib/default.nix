@@ -1,10 +1,4 @@
-{ lib
-, stdenv
-, fetchurl
-, alsa-topology-conf
-, alsa-ucm-conf
-, testers
-}:
+{ lib, stdenv, fetchurl, alsa-topology-conf, alsa-ucm-conf, testers }:
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "alsa-lib";

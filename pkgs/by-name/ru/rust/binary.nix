@@ -1,10 +1,5 @@
 { lib, stdenv, makeWrapper, wrapRustc, bash, curl, darwin, zlib
-, autoPatchelfHook, gcc
-, version
-, src
-, platform
-, versionType
-}:
+, autoPatchelfHook, gcc, version, src, platform, versionType }:
 
 let
   inherit (lib) optionalString;
@@ -12,13 +7,10 @@ let
 
   bootstrapping = versionType == "bootstrap";
 
-  installComponents
-    = "rustc,rust-std-${platform}"
-    + (optionalString bootstrapping ",cargo")
-    ;
-in
+  installComponents = "rustc,rust-std-${platform}"
+    + (optionalString bootstrapping ",cargo");
 
-rec {
+in rec {
   rustc-unwrapped = stdenv.mkDerivation {
     pname = "rustc-${versionType}";
 
@@ -80,8 +72,7 @@ rec {
 
     nativeBuildInputs = [ makeWrapper ]
       ++ lib.optional (!stdenv.isDarwin) autoPatchelfHook;
-    buildInputs = [ bash ]
-      ++ lib.optional (!stdenv.isDarwin) gcc.cc.lib
+    buildInputs = [ bash ] ++ lib.optional (!stdenv.isDarwin) gcc.cc.lib
       ++ lib.optional stdenv.isDarwin Security;
 
     postPatch = ''

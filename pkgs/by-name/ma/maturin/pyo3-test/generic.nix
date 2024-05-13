@@ -1,17 +1,11 @@
 # Derivation prototype, used by maturin and setuptools-rust
 # passthrough tests.
 
-{ lib
-, fetchFromGitHub
-, python
-, rustPlatform
+{ lib, fetchFromGitHub, python, rustPlatform
 
 , nativeBuildInputs
 
-, buildAndTestSubdir ? null
-, format ? "pyproject"
-, preConfigure ? ""
-}:
+, buildAndTestSubdir ? null, format ? "pyproject", preConfigure ? "" }:
 
 python.pkgs.buildPythonPackage rec {
   pname = "word-count";
@@ -24,9 +18,7 @@ python.pkgs.buildPythonPackage rec {
     hash = "sha256-NOMrrfo8WjlPhtGxWUOPJS/UDDdbLQRCXR++Zd6JmIA=";
   };
 
-  cargoDeps = rustPlatform.importCargoLock {
-    lockFile = ./Cargo.lock;
-  };
+  cargoDeps = rustPlatform.importCargoLock { lockFile = ./Cargo.lock; };
 
   postPatch = ''
     ln -s ${./Cargo.lock} Cargo.lock

@@ -1,20 +1,6 @@
-{ lib
-, buildPythonPackage
-, fetchFromGitHub
-, fetchpatch2
-, pytest-asyncio
-, pytest-httpserver
-, pytestCheckHook
-, pythonOlder
-, pyyaml
-, requests
-, setuptools
-, tomli
-, tomli-w
-, types-pyyaml
-, types-toml
-, urllib3
-}:
+{ lib, buildPythonPackage, fetchFromGitHub, fetchpatch2, pytest-asyncio
+, pytest-httpserver, pytestCheckHook, pythonOlder, pyyaml, requests, setuptools
+, tomli, tomli-w, types-pyyaml, types-toml, urllib3 }:
 
 buildPythonPackage rec {
   pname = "responses";
@@ -35,40 +21,27 @@ buildPythonPackage rec {
   patches = [
     (fetchpatch2 {
       # adds missing pytest asyncio markers
-      url = "https://github.com/getsentry/responses/commit/d5e7402f1782692d04742562370abaca8d54a972.patch";
+      url =
+        "https://github.com/getsentry/responses/commit/d5e7402f1782692d04742562370abaca8d54a972.patch";
       hash = "sha256-A/DYSKvuangolkcQX4k/uom//AQ9in7BsTmVtlCqmXQ=";
     })
   ];
 
-  nativeBuildInputs = [
-    setuptools
-  ];
+  nativeBuildInputs = [ setuptools ];
 
-  propagatedBuildInputs = [
-    pyyaml
-    requests
-    types-pyyaml
-    types-toml
-    urllib3
-  ];
+  propagatedBuildInputs = [ pyyaml requests types-pyyaml types-toml urllib3 ];
 
-  nativeCheckInputs = [
-    pytest-asyncio
-    pytest-httpserver
-    pytestCheckHook
-    tomli-w
-  ] ++ lib.optionals (pythonOlder "3.11") [
-    tomli
-  ];
+  nativeCheckInputs =
+    [ pytest-asyncio pytest-httpserver pytestCheckHook tomli-w ]
+    ++ lib.optionals (pythonOlder "3.11") [ tomli ];
 
-  pythonImportsCheck = [
-    "responses"
-  ];
+  pythonImportsCheck = [ "responses" ];
 
   meta = with lib; {
     description = "Python module for mocking out the requests Python library";
     homepage = "https://github.com/getsentry/responses";
-    changelog = "https://github.com/getsentry/responses/blob/${version}/CHANGES";
+    changelog =
+      "https://github.com/getsentry/responses/blob/${version}/CHANGES";
     license = licenses.asl20;
     maintainers = with maintainers; [ fab ];
   };

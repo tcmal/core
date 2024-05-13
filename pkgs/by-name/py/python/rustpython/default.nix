@@ -1,10 +1,4 @@
-{ lib
-, stdenv
-, rustPlatform
-, fetchFromGitHub
-, SystemConfiguration
-, python3
-}:
+{ lib, stdenv, rustPlatform, fetchFromGitHub, SystemConfiguration, python3 }:
 
 rustPlatform.buildRustPackage rec {
   pname = "rustpython";
@@ -20,9 +14,12 @@ rustPlatform.buildRustPackage rec {
   cargoLock = {
     lockFile = ./Cargo.lock;
     outputHashes = {
-      "rustpython-ast-0.3.0" = "sha256-5IR/G6Y9OE0+gTvU1iTob0TxfiV3O9elA/0BUy2GA8g=";
-      "rustpython-doc-0.3.0" = "sha256-34ERuLFKzUD9Xmf1zlafe42GLWZfUlw17ejf/NN6yH4=";
-      "unicode_names2-0.6.0" = "sha256-eWg9+ISm/vztB0KIdjhq5il2ZnwGJQCleCYfznCI3Wg=";
+      "rustpython-ast-0.3.0" =
+        "sha256-5IR/G6Y9OE0+gTvU1iTob0TxfiV3O9elA/0BUy2GA8g=";
+      "rustpython-doc-0.3.0" =
+        "sha256-34ERuLFKzUD9Xmf1zlafe42GLWZfUlw17ejf/NN6yH4=";
+      "unicode_names2-0.6.0" =
+        "sha256-eWg9+ISm/vztB0KIdjhq5il2ZnwGJQCleCYfznCI3Wg=";
     };
   };
 

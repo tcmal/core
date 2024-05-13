@@ -1,7 +1,4 @@
-{ lib
-, buildPythonPackage
-, flit
-}:
+{ lib, buildPythonPackage, flit }:
 
 buildPythonPackage rec {
   pname = "flit-core";
@@ -20,7 +17,8 @@ buildPythonPackage rec {
   # };
 
   meta = with lib; {
-    description = "Distribution-building parts of Flit. See flit package for more information";
+    description =
+      "Distribution-building parts of Flit. See flit package for more information";
     homepage = "https://github.com/pypa/flit";
     changelog = "https://github.com/pypa/flit/blob/${src.rev}/doc/history.rst";
     license = licenses.bsd3;

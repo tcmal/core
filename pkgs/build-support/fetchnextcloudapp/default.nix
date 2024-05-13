@@ -1,14 +1,6 @@
 { stdenv, fetchzip, applyPatches, lib, ... }:
-{ url
-, hash ? ""
-, sha256 ? ""
-, appName ? null
-, appVersion ? null
-, license
-, patches ? [ ]
-, description ? null
-, homepage ? null
-}:
+{ url, hash ? "", sha256 ? "", appName ? null, appVersion ? null, license
+, patches ? [ ], description ? null, homepage ? null }:
 applyPatches ({
   inherit patches;
   src = fetchzip {
@@ -27,9 +19,7 @@ applyPatches ({
       inherit homepage;
     } // lib.optionalAttrs (description != null) {
       longDescription = description;
-    } // lib.optionalAttrs (homepage != null) {
-      inherit homepage;
-    };
+    } // lib.optionalAttrs (homepage != null) { inherit homepage; };
   };
 } // lib.optionalAttrs (appName != null && appVersion != null) {
   name = "nextcloud-app-${appName}-${appVersion}";

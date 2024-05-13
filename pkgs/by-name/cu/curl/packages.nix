@@ -1,8 +1,7 @@
 { ... }:
 res: pkgs: super:
 
-with pkgs;
-{
+with pkgs; {
   curlFull = curl.override {
     ldapSupport = true;
     gsaslSupport = true;
@@ -26,5 +25,8 @@ with pkgs;
 
   curlMinimal = callPackage ./. { };
 
-  curlWithGnuTls = curl.override { gnutlsSupport = true; opensslSupport = false; };
+  curlWithGnuTls = curl.override {
+    gnutlsSupport = true;
+    opensslSupport = false;
+  };
 }

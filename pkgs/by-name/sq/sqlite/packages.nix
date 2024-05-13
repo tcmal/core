@@ -1,13 +1,13 @@
 { ... }:
 res: pkgs: super:
 
-with pkgs;
-{
+with pkgs; {
   sqlite = lowPrio (callPackage ./. { });
 
   inherit (callPackage ./tools.nix {
     inherit (darwin.apple_sdk.frameworks) Foundation;
-  }) sqlite-analyzer sqldiff;
+  })
+    sqlite-analyzer sqldiff;
 
   sqlar = callPackage ./sqlar.nix { };
 

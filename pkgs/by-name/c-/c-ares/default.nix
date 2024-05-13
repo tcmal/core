@@ -1,5 +1,4 @@
-{ lib, stdenv, fetchurl, writeTextDir
-, withCMake ? true, cmake
+{ lib, stdenv, fetchurl, writeTextDir, withCMake ? true, cmake
 
 # sensitive downstream packages
 # for passthru.tests
@@ -25,7 +24,7 @@ stdenv.mkDerivation rec {
 
   nativeBuildInputs = lib.optionals withCMake [ cmake ];
 
-  cmakeFlags = [] ++ lib.optionals stdenv.hostPlatform.isStatic [
+  cmakeFlags = [ ] ++ lib.optionals stdenv.hostPlatform.isStatic [
     "-DCARES_SHARED=OFF"
     "-DCARES_STATIC=ON"
   ];
@@ -40,7 +39,9 @@ stdenv.mkDerivation rec {
   meta = with lib; {
     description = "A C library for asynchronous DNS requests";
     homepage = "https://c-ares.haxx.se";
-    changelog = "https://c-ares.org/changelog.html#${lib.replaceStrings [ "." ] [ "_" ] version}";
+    changelog = "https://c-ares.org/changelog.html#${
+        lib.replaceStrings [ "." ] [ "_" ] version
+      }";
     license = licenses.mit;
     platforms = platforms.all;
   };

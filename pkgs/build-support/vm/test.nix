@@ -1,24 +1,12 @@
 let
   pkgs = import ../../.. { };
 
-  inherit (pkgs)
-    hello
-    patchelf
-    pcmanfm
-    stdenv
-    ;
+  inherit (pkgs) hello patchelf pcmanfm stdenv;
 
   inherit (pkgs.vmTools)
-    buildRPM
-    diskImages
-    makeImageTestScript
-    runInLinuxImage
-    runInLinuxVM
-    ;
-in
+    buildRPM diskImages makeImageTestScript runInLinuxImage runInLinuxVM;
 
-{
-
+in {
 
   # Run the PatchELF derivation in a VM.
   buildPatchelfInVM = runInLinuxVM patchelf;
@@ -32,7 +20,6 @@ in
 
   testRPMImage = makeImageTestScript diskImages.fedora27x86_64;
 
-
   buildPatchelfRPM = buildRPM {
     name = "patchelf-rpm";
     src = patchelf.src;
@@ -40,9 +27,7 @@ in
     diskImageFormat = "qcow2";
   };
 
-
   testUbuntuImage = makeImageTestScript diskImages.ubuntu1804i386;
-
 
   buildInDebian = runInLinuxImage (stdenv.mkDerivation {
     name = "deb-compile";

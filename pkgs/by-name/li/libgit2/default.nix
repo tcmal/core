@@ -1,21 +1,10 @@
-{ lib
-, stdenv
-, fetchFromGitHub
-, cmake
-, pkg-config
-, python3
-, zlib
-, libssh2
-, openssl
-, pcre
-, http-parser
-, libiconv
-, Security
-, staticBuild ? stdenv.hostPlatform.isStatic
-# for passthru.tests
-# , libgit2-glib
-# , python3Packages
-# , gitstatus
+{ lib, stdenv, fetchFromGitHub, cmake, pkg-config, python3, zlib, libssh2
+, openssl, pcre, http-parser, libiconv, Security, staticBuild ?
+  stdenv.hostPlatform.isStatic
+  # for passthru.tests
+  # , libgit2-glib
+  # , python3Packages
+  # , gitstatus
 }:
 
 stdenv.mkDerivation rec {
@@ -23,7 +12,7 @@ stdenv.mkDerivation rec {
   version = "1.7.2";
   # also check the following packages for updates: python3Packages.pygit2 and libgit2-glib
 
-  outputs = ["lib" "dev" "out"];
+  outputs = [ "lib" "dev" "out" ];
 
   src = fetchFromGitHub {
     owner = "libgit2";
@@ -73,7 +62,8 @@ stdenv.mkDerivation rec {
   # };
 
   meta = with lib; {
-    description = "Linkable library implementation of Git that you can use in your application";
+    description =
+      "Linkable library implementation of Git that you can use in your application";
     mainProgram = "git2";
     homepage = "https://libgit2.org/";
     license = licenses.gpl2Plus;

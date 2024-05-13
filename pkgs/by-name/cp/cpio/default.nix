@@ -1,7 +1,4 @@
-{ lib
-, stdenv
-, fetchurl
-, autoreconfHook
+{ lib, stdenv, fetchurl, autoreconfHook
 
 # for passthru.tests
 # , git

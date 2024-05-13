@@ -1,12 +1,5 @@
-{ lib
-, buildPythonPackage
-, isPyPy
-, fetchPypi
-, hatchling
-, hatch-vcs
-, gevent
-, pytestCheckHook
-}:
+{ lib, buildPythonPackage, isPyPy, fetchPypi, hatchling, hatch-vcs, gevent
+, pytestCheckHook }:
 
 buildPythonPackage rec {
   pname = "execnet";
@@ -28,18 +21,12 @@ buildPythonPackage rec {
     rm testing/test_multi.py
   '';
 
-  nativeBuildInputs = [
-    hatchling
-    hatch-vcs
-  ];
+  nativeBuildInputs = [ hatchling hatch-vcs ];
 
   # sometimes crashes with: OSError: [Errno 9] Bad file descriptor
   doCheck = !isPyPy;
 
-  nativeCheckInputs = [
-    gevent
-    pytestCheckHook
-  ];
+  nativeCheckInputs = [ gevent pytestCheckHook ];
 
   disabledTests = [
     # gets stuck
@@ -50,14 +37,13 @@ buildPythonPackage rec {
 
   pytestFlagsArray = [ "-vvv" ];
 
-  pythonImportsCheck = [
-    "execnet"
-  ];
+  pythonImportsCheck = [ "execnet" ];
 
   __darwinAllowLocalNetworking = true;
 
   meta = with lib; {
-    changelog = "https://github.com/pytest-dev/execnet/blob/v${version}/CHANGELOG.rst";
+    changelog =
+      "https://github.com/pytest-dev/execnet/blob/v${version}/CHANGELOG.rst";
     description = "Distributed Python deployment and communication";
     homepage = "https://execnet.readthedocs.io/";
     license = licenses.mit;

@@ -1,45 +1,8 @@
-{ lib
-, stdenv
-, fetchurl
-, pkg-config
-, autoreconfHook
-, makeWrapper
-, libxcrypt
-, ncurses
-, cpio
-, gperf
-, cdrkit
-, flex
-, bison
-, qemu
-, pcre2
-, augeas
-, libxml2
-, acl
-, libcap
-, libcap_ng
-, libconfig
-, systemd
-, fuse
-, yajl
-, libvirt
-, hivex
-, db
-, gmp
-, readline
-, file
-, numactl
-, libapparmor
-, jansson
-, getopt
-, perlPackages
-, ocamlPackages
-, libtirpc
-, appliance ? null
-, javaSupport ? false
-, jdk
-, zstd
-}:
+{ lib, stdenv, fetchurl, pkg-config, autoreconfHook, makeWrapper, libxcrypt
+, ncurses, cpio, gperf, cdrkit, flex, bison, qemu, pcre2, augeas, libxml2, acl
+, libcap, libcap_ng, libconfig, systemd, fuse, yajl, libvirt, hivex, db, gmp
+, readline, file, numactl, libapparmor, jansson, getopt, perlPackages
+, ocamlPackages, libtirpc, appliance ? null, javaSupport ? false, jdk, zstd }:
 
 assert appliance == null || lib.isDerivation appliance;
 
@@ -48,7 +11,9 @@ stdenv.mkDerivation rec {
   version = "1.50.1";
 
   src = fetchurl {
-    url = "https://libguestfs.org/download/${lib.versions.majorMinor version}-stable/${pname}-${version}.tar.gz";
+    url = "https://libguestfs.org/download/${
+        lib.versions.majorMinor version
+      }-stable/${pname}-${version}.tar.gz";
     sha256 = "sha256-Xmhx6I+C5SHjHUQt5qELZJcCN8t5VumdEXsSO1hWWm8=";
   };
 
@@ -66,7 +31,7 @@ stdenv.mkDerivation rec {
     qemu
     zstd
   ] ++ (with perlPackages; [ perl libintl-perl GetoptLong ModuleBuild ])
-  ++ (with ocamlPackages; [ ocaml findlib ]);
+    ++ (with ocamlPackages; [ ocaml findlib ]);
   buildInputs = [
     libxcrypt
     ncurses
@@ -92,7 +57,7 @@ stdenv.mkDerivation rec {
     perlPackages.ModuleBuild
     libtirpc
   ] ++ (with ocamlPackages; [ ocamlbuild ocaml_libvirt gettext-stub ounit ])
-  ++ lib.optional javaSupport jdk;
+    ++ lib.optional javaSupport jdk;
 
   prePatch = ''
     # build-time scripts
@@ -112,9 +77,7 @@ stdenv.mkDerivation rec {
     "--with-distro=NixOS"
     "--with-guestfs-path=${placeholder "out"}/lib/guestfs"
   ] ++ lib.optionals (!javaSupport) [ "--without-java" ];
-  patches = [
-    ./libguestfs-syms.patch
-  ];
+  patches = [ ./libguestfs-syms.patch ];
 
   createFindlibDestdir = true;
 
@@ -157,12 +120,16 @@ stdenv.mkDerivation rec {
   '';
 
   meta = with lib; {
-    description = "Tools for accessing and modifying virtual machine disk images";
+    description =
+      "Tools for accessing and modifying virtual machine disk images";
     license = with licenses; [ gpl2Plus lgpl21Plus ];
     homepage = "https://libguestfs.org/";
     maintainers = with maintainers; [ offline ];
     platforms = platforms.linux;
     # this is to avoid "output size exceeded"
-    hydraPlatforms = if appliance != null then appliance.meta.hydraPlatforms else platforms.linux;
+    hydraPlatforms = if appliance != null then
+      appliance.meta.hydraPlatforms
+    else
+      platforms.linux;
   };
 }

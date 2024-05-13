@@ -1,18 +1,10 @@
-{ stdenv
-, lib
-, buildPythonPackage
-, fetchFromGitHub
+{ stdenv, lib, buildPythonPackage, fetchFromGitHub
 
 # build-system
-, cython
-, setuptools
+, cython, setuptools
 
 # native dependencies
-, libxml2
-, libxslt
-, zlib
-, xcodebuild
-}:
+, libxml2, libxslt, zlib, xcodebuild }:
 
 buildPythonPackage rec {
   pname = "lxml";
@@ -27,19 +19,9 @@ buildPythonPackage rec {
   };
 
   # setuptoolsBuildPhase needs dependencies to be passed through nativeBuildInputs
-  nativeBuildInputs = [
-    libxml2.dev
-    libxslt.dev
-    cython
-    setuptools
-   ] ++ lib.optionals stdenv.isDarwin [
-    xcodebuild
-  ];
-  buildInputs = [
-    libxml2
-    libxslt
-    zlib
-  ];
+  nativeBuildInputs = [ libxml2.dev libxslt.dev cython setuptools ]
+    ++ lib.optionals stdenv.isDarwin [ xcodebuild ];
+  buildInputs = [ libxml2 libxslt zlib ];
 
   env = lib.optionalAttrs stdenv.cc.isClang {
     NIX_CFLAGS_COMPILE = "-Wno-error=incompatible-function-pointer-types";
@@ -48,10 +30,7 @@ buildPythonPackage rec {
   # tests are meant to be ran "in-place" in the same directory as src
   doCheck = false;
 
-  pythonImportsCheck = [
-    "lxml"
-    "lxml.etree"
-  ];
+  pythonImportsCheck = [ "lxml" "lxml.etree" ];
 
   meta = with lib; {
     changelog = "https://github.com/lxml/lxml/blob/lxml-${version}/CHANGES.txt";

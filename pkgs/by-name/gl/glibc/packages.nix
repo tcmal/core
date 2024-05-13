@@ -1,17 +1,14 @@
 { ... }:
 res: pkgs: super:
 
-with pkgs;
-{
+with pkgs; {
   glibc = callPackage ./. {
     stdenv = gccStdenv; # doesn't compile without gcc
   };
 
   mtrace = callPackage ./mtrace.nix { };
 
-  glibc_memusage = callPackage ./. {
-    withGd = true;
-  };
+  glibc_memusage = callPackage ./. { withGd = true; };
 
   # Being redundant to avoid cycles on boot. TODO: find a better way
   glibcCross = callPackage ./. {
@@ -26,13 +23,15 @@ with pkgs;
 
   # Only supported on Linux and only on glibc
   glibcLocales =
-    if stdenv.hostPlatform.isLinux && stdenv.hostPlatform.isGnu
-    then callPackage ./locales.nix { }
-    else null;
+    if stdenv.hostPlatform.isLinux && stdenv.hostPlatform.isGnu then
+      callPackage ./locales.nix { }
+    else
+      null;
   glibcLocalesUtf8 =
-    if stdenv.hostPlatform.isLinux && stdenv.hostPlatform.isGnu
-    then callPackage ./locales.nix { allLocales = false; }
-    else null;
+    if stdenv.hostPlatform.isLinux && stdenv.hostPlatform.isGnu then
+      callPackage ./locales.nix { allLocales = false; }
+    else
+      null;
 
   glibcInfo = callPackage ./info.nix { };
 

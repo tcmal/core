@@ -1,7 +1,4 @@
-{ lib
-, buildPythonPackage
-, fetchPypi
-, pythonOlder
+{ lib, buildPythonPackage, fetchPypi, pythonOlder
 
 # build-system
 , setuptools
@@ -29,17 +26,11 @@ buildPythonPackage rec {
     hash = "sha256-0oPTeokLpMGuc/+t+ARkNcdue8Ike7tjwAvRpwnGVEs=";
   };
 
-  nativeBuildInputs = [
-    setuptools
-  ];
+  nativeBuildInputs = [ setuptools ];
 
-  nativeCheckInputs = [
-    pytestCheckHook
-  ];
+  nativeCheckInputs = [ pytestCheckHook ];
 
-  pythonImportsCheck = [
-    "markupsafe"
-  ];
+  pythonImportsCheck = [ "markupsafe" ];
 
   # passthru.tests = {
   #   inherit
@@ -51,7 +42,9 @@ buildPythonPackage rec {
   # };
 
   meta = with lib; {
-    changelog = "https://markupsafe.palletsprojects.com/en/${versions.majorMinor version}.x/changes/#version-${replaceStrings [ "." ] [ "-" ] version}";
+    changelog = "https://markupsafe.palletsprojects.com/en/${
+        versions.majorMinor version
+      }.x/changes/#version-${replaceStrings [ "." ] [ "-" ] version}";
     description = "Implements a XML/HTML/XHTML Markup safe string";
     homepage = "https://palletsprojects.com/p/markupsafe/";
     license = licenses.bsd3;

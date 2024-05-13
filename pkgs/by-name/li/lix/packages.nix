@@ -1,8 +1,7 @@
 { ... }:
 res: pkgs: super:
 
-with pkgs;
-{
+with pkgs; {
   lixVersions = recurseIntoAttrs (callPackage ./. {
     storeDir = config.nix.storeDir or "/nix/store";
     stateDir = config.nix.stateDir or "/nix/var";

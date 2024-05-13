@@ -1,6 +1,4 @@
-{ lib
-, stdenv
-, fetchurl
+{ lib, stdenv, fetchurl
 # for passthru.tests
 # , python3
 # , perlPackages
@@ -17,14 +15,14 @@
 
 let
   version = "2.6.2";
-  tag = "R_${lib.replaceStrings ["."] ["_"] version}";
-in
-stdenv.mkDerivation (finalAttrs: {
+  tag = "R_${lib.replaceStrings [ "." ] [ "_" ] version}";
+in stdenv.mkDerivation (finalAttrs: {
   pname = "expat";
   inherit version;
 
   src = fetchurl {
-    url = with finalAttrs; "https://github.com/libexpat/libexpat/releases/download/${tag}/${pname}-${version}.tar.xz";
+    url = with finalAttrs;
+      "https://github.com/libexpat/libexpat/releases/download/${tag}/${pname}-${version}.tar.xz";
     hash = "sha256-7hS0xdiQixvsN62TdgfqsYPU2YBqCK3uRyw8MSHSc2Q=";
   };
 
@@ -65,7 +63,8 @@ stdenv.mkDerivation (finalAttrs: {
   # };
 
   meta = with lib; {
-    changelog = "https://github.com/libexpat/libexpat/blob/${tag}/expat/Changes";
+    changelog =
+      "https://github.com/libexpat/libexpat/blob/${tag}/expat/Changes";
     homepage = "https://libexpat.github.io/";
     description = "A stream-oriented XML parser library written in C";
     mainProgram = "xmlwf";

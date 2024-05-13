@@ -1,8 +1,7 @@
 { ... }:
 res: pkgs: super:
 
-with pkgs;
-{
+with pkgs; {
   # Make bdb5 the default as it is the last release under the custom
   # bsd-like license
   db = db5;

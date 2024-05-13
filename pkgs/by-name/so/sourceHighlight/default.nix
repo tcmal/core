@@ -14,7 +14,8 @@ stdenv.mkDerivation rec {
   patches = [
     # gcc-11 compat upstream patch
     (fetchpatch {
-      url = "https://git.savannah.gnu.org/cgit/src-highlite.git/patch/?id=904949c9026cb772dc93fbe0947a252ef47127f4";
+      url =
+        "https://git.savannah.gnu.org/cgit/src-highlite.git/patch/?id=904949c9026cb772dc93fbe0947a252ef47127f4";
       hash = "sha256-h9DyD+pmlQT5dmKjWI9t0gCIYHe7pYkP55LnOqsE0vI=";
       excludes = [ "ChangeLog" ];
     })
@@ -22,14 +23,16 @@ stdenv.mkDerivation rec {
     # Upstream fix for clang-13 and gcc-12 test support
     (fetchpatch {
       name = "gcc-12.patch";
-      url = "https://git.savannah.gnu.org/cgit/src-highlite.git/patch/?id=ab9fe5cb9b85c5afab94f2a7f4b6d7d473c14ee9";
+      url =
+        "https://git.savannah.gnu.org/cgit/src-highlite.git/patch/?id=ab9fe5cb9b85c5afab94f2a7f4b6d7d473c14ee9";
       hash = "sha256-wmSLgLnLuFE+IC6AjxzZp/HEnaOCS1VfY2cac0T7Y+w=";
     })
   ] ++ lib.optionals stdenv.cc.isClang [
     # Adds compatibility with C++17 by removing the `register` storage class specifier.
     (fetchpatch {
       name = "remove-register-keyword";
-      url = "https://git.savannah.gnu.org/cgit/src-highlite.git/patch/?id=416b39758dba2c74515584514a959ad1b0ad50d1";
+      url =
+        "https://git.savannah.gnu.org/cgit/src-highlite.git/patch/?id=416b39758dba2c74515584514a959ad1b0ad50d1";
       hash = "sha256-R5A7IGHhU82EqceMCsuNBanhRz4dFVqiaH8637dr7jw=";
       includes = [ "lib/*" ];
     })
@@ -38,16 +41,19 @@ stdenv.mkDerivation rec {
   # source-highlight uses it's own binary to generate documentation.
   # During cross-compilation, that binary was built for the target
   # platform architecture, so it can't run on the build host.
-  postPatch = lib.optionalString (stdenv.hostPlatform != stdenv.buildPlatform) ''
-    substituteInPlace Makefile.in --replace "src doc tests" "src tests"
-  '';
+  postPatch =
+    lib.optionalString (stdenv.hostPlatform != stdenv.buildPlatform) ''
+      substituteInPlace Makefile.in --replace "src doc tests" "src tests"
+    '';
 
   strictDeps = true;
   buildInputs = [ boost ];
 
   configureFlags = [
     "--with-boost=${boost.out}"
-    "--with-bash-completion=${placeholder "out"}/share/bash-completion/completions"
+    "--with-bash-completion=${
+      placeholder "out"
+    }/share/bash-completion/completions"
   ];
 
   doCheck = true;

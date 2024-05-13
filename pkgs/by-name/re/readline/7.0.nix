@@ -1,5 +1,4 @@
-{ fetchurl, lib, stdenv, ncurses
-}:
+{ fetchurl, lib, stdenv, ncurses }:
 
 stdenv.mkDerivation rec {
   pname = "readline";
@@ -17,20 +16,16 @@ stdenv.mkDerivation rec {
 
   patchFlags = [ "-p0" ];
 
-  upstreamPatches =
-    (let
-       patch = nr: sha256:
-         fetchurl {
-           url = "mirror://gnu/readline/readline-${meta.branch}-patches/readline70-${nr}";
-           inherit sha256;
-         };
-     in
-       import ./readline-7.0-patches.nix patch);
+  upstreamPatches = (let
+    patch = nr: sha256:
+      fetchurl {
+        url =
+          "mirror://gnu/readline/readline-${meta.branch}-patches/readline70-${nr}";
+        inherit sha256;
+      };
+  in import ./readline-7.0-patches.nix patch);
 
-  patches =
-    [ ./link-against-ncurses.patch
-      ./no-arch_only-6.3.patch
-    ]
+  patches = [ ./link-against-ncurses.patch ./no-arch_only-6.3.patch ]
     ++ upstreamPatches;
 
   meta = with lib; {

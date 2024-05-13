@@ -1,14 +1,6 @@
-{ lib, buildPythonPackage, fetchFromGitHub
-, pythonAtLeast
-, pythonOlder
-, python
-, substituteAll
-, importlib-resources
-, tzdata
-, hypothesis
-, pytestCheckHook
-, fetchpatch
-}:
+{ lib, buildPythonPackage, fetchFromGitHub, pythonAtLeast, pythonOlder, python
+, substituteAll, importlib-resources, tzdata, hypothesis, pytestCheckHook
+, fetchpatch }:
 
 buildPythonPackage rec {
   pname = "backports-zoneinfo";
@@ -34,12 +26,14 @@ buildPythonPackage rec {
     # https://github.com/pganssle/zoneinfo/pull/115
     (fetchpatch {
       name = "backports-zoneinfo-2022a-update-test-data1.patch";
-      url = "https://github.com/pganssle/zoneinfo/pull/115/commits/837e2a0f9f1a1332e4233f83e3648fa564a9ec9e.patch";
+      url =
+        "https://github.com/pganssle/zoneinfo/pull/115/commits/837e2a0f9f1a1332e4233f83e3648fa564a9ec9e.patch";
       sha256 = "196knwa212mr0b7zsh8papzr3f5mii87gcjjjx1r9zzvmk3g3ri0";
     })
     (fetchpatch {
       name = "backports-zoneinfo-2022a-update-test-data2.patch";
-      url = "https://github.com/pganssle/zoneinfo/pull/115/commits/9fd330265b177916d6182249439bb40d5691eb58.patch";
+      url =
+        "https://github.com/pganssle/zoneinfo/pull/115/commits/9fd330265b177916d6182249439bb40d5691eb58.patch";
       sha256 = "1zxa5bkwi8hbnh4c0qv72wv6vdp5jlxqizfjsc05ymzvwa99cf75";
     })
 
@@ -50,18 +44,12 @@ buildPythonPackage rec {
     })
   ];
 
-  propagatedBuildInputs = [
-    tzdata
-  ] ++ lib.optionals (pythonOlder "3.7") [
-    importlib-resources
-  ];
+  propagatedBuildInputs = [ tzdata ]
+    ++ lib.optionals (pythonOlder "3.7") [ importlib-resources ];
 
   pythonImportsCheck = [ "backports.zoneinfo" ];
 
-  nativeCheckInputs = [
-    hypothesis
-    pytestCheckHook
-  ];
+  nativeCheckInputs = [ hypothesis pytestCheckHook ];
 
   disabledTests = [
     # AssertionError: 'AEDT' != 'AEST'

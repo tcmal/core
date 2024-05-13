@@ -1,10 +1,9 @@
 { ... }:
 res: pkgs: super:
 
-with pkgs;
-{
+with pkgs; {
   libpkgconf = callPackage ./. { };
-  
+
   pkgconf-unwrapped = libpkgconf;
 
   pkgconf = callPackage (path + "/pkgs/build-support/pkg-config-wrapper") {

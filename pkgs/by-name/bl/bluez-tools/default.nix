@@ -1,12 +1,5 @@
-{ lib
-, stdenv
-, autoreconfHook
-, fetchFromGitHub
-, glib
-, pkg-config
-, readline
-, unstableGitUpdater
-}:
+{ lib, stdenv, autoreconfHook, fetchFromGitHub, glib, pkg-config, readline
+, unstableGitUpdater }:
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "bluez-tools";
@@ -19,15 +12,9 @@ stdenv.mkDerivation (finalAttrs: {
     hash = "sha256-GNtuMqMv/87bp3GX9Lh+CK/VKPluNVeWZRRVOD5NY3Y=";
   };
 
-  nativeBuildInputs = [
-    autoreconfHook
-    pkg-config
-  ];
+  nativeBuildInputs = [ autoreconfHook pkg-config ];
 
-  buildInputs = [
-    glib
-    readline
-  ];
+  buildInputs = [ glib readline ];
 
   strictDeps = true;
 

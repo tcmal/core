@@ -1,11 +1,7 @@
-{ lib, stdenv, pkgsBuildHost, pkgsHostHost
-, file, curl, pkg-config, python3, openssl, cmake, zlib
-, installShellFiles, makeWrapper, rustPlatform, rustc
-, CoreFoundation, Security
-, auditable ? !cargo-auditable.meta.broken
-, cargo-auditable
-, pkgsBuildBuild
-}:
+{ lib, stdenv, pkgsBuildHost, pkgsHostHost, file, curl, pkg-config, python3
+, openssl, cmake, zlib, installShellFiles, makeWrapper, rustPlatform, rustc
+, CoreFoundation, Security, auditable ? !cargo-auditable.meta.broken
+, cargo-auditable, pkgsBuildBuild }:
 
 rustPlatform.buildRustPackage.override {
   cargo-auditable = cargo-auditable.bootstrap;
@@ -28,7 +24,10 @@ rustPlatform.buildRustPackage.override {
   dontUpdateAutotoolsGnuConfigScripts = true;
 
   nativeBuildInputs = [
-    pkg-config cmake installShellFiles makeWrapper
+    pkg-config
+    cmake
+    installShellFiles
+    makeWrapper
     (lib.getDev pkgsHostHost.curl)
     zlib
   ];
@@ -71,15 +70,17 @@ rustPlatform.buildRustPackage.override {
 
   meta = with lib; {
     homepage = "https://crates.io";
-    description = "Downloads your Rust project's dependencies and builds your project";
+    description =
+      "Downloads your Rust project's dependencies and builds your project";
     mainProgram = "cargo";
     # maintainers = teams.rust.members;
     license = [ licenses.mit licenses.asl20 ];
     platforms = platforms.unix;
     # https://github.com/alexcrichton/nghttp2-rs/issues/2
-    broken = stdenv.hostPlatform.isx86 && stdenv.buildPlatform != stdenv.hostPlatform;
+    broken = stdenv.hostPlatform.isx86 && stdenv.buildPlatform
+      != stdenv.hostPlatform;
   };
-}
-// lib.optionalAttrs (stdenv.buildPlatform.rust.rustcTarget != stdenv.hostPlatform.rust.rustcTarget) {
-  HOST_PKG_CONFIG_PATH="${pkgsBuildBuild.pkg-config}/bin/pkg-config";
-})
+} // lib.optionalAttrs (stdenv.buildPlatform.rust.rustcTarget
+  != stdenv.hostPlatform.rust.rustcTarget) {
+    HOST_PKG_CONFIG_PATH = "${pkgsBuildBuild.pkg-config}/bin/pkg-config";
+  })

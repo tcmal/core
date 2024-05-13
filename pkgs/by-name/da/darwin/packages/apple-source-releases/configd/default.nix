@@ -1,4 +1,5 @@
-{ lib, stdenv, runCommand, appleDerivation', launchd, bootstrap_cmds, swift-corelibs-foundation, xnu, xpc, ppp, IOKit, eap8021x, Security
+{ lib, stdenv, runCommand, appleDerivation', launchd, bootstrap_cmds
+, swift-corelibs-foundation, xnu, xpc, ppp, IOKit, eap8021x, Security
 , headersOnly ? false }:
 
 let
@@ -8,12 +9,18 @@ let
     cp ${swift-corelibs-foundation}/Library/Frameworks/CoreFoundation.framework/PrivateHeaders/* \
       $out/include/CoreFoundation
   '';
-in
-appleDerivation' stdenv {
+in appleDerivation' stdenv {
   meta.broken = stdenv.cc.nativeLibc;
 
   nativeBuildInputs = lib.optionals (!headersOnly) [ bootstrap_cmds ];
-  buildInputs = lib.optionals (!headersOnly) [ privateHeaders launchd ppp xpc IOKit eap8021x ];
+  buildInputs = lib.optionals (!headersOnly) [
+    privateHeaders
+    launchd
+    ppp
+    xpc
+    IOKit
+    eap8021x
+  ];
 
   propagatedBuildInputs = lib.optionals (!headersOnly) [ Security ];
 
@@ -29,7 +36,7 @@ appleDerivation' stdenv {
       --replace '#include <xpc/private.h>' ""
 
     substituteInPlace SystemConfiguration.fproj/SCNetworkReachability.c \
-      --replace ''$'#define\tHAVE_VPN_STATUS' ""
+      --replace $'#define\tHAVE_VPN_STATUS' ""
   '';
 
   dontBuild = headersOnly;

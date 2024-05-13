@@ -1,8 +1,4 @@
-{ lib
-, stdenv
-, fetchFromGitHub
-, cmake
-}:
+{ lib, stdenv, fetchFromGitHub, cmake }:
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "json-c";
@@ -28,7 +24,8 @@ stdenv.mkDerivation (finalAttrs: {
       objects.
     '';
     homepage = "https://github.com/json-c/json-c/wiki";
-    changelog = "https://github.com/json-c/json-c/blob/${finalAttrs.src.rev}/ChangeLog";
+    changelog =
+      "https://github.com/json-c/json-c/blob/${finalAttrs.src.rev}/ChangeLog";
     maintainers = with maintainers; [ lovek323 ];
     platforms = platforms.unix;
     license = licenses.mit;

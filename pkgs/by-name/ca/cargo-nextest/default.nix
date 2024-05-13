@@ -13,9 +13,8 @@ rustPlatform.buildRustPackage rec {
 
   cargoHash = "sha256-FH9ODkK84bPPYyHP4kKcHKWpJ3FV1NC8S/NQFvV63Gw=";
 
-  buildInputs = lib.optionals stdenv.isDarwin [
-    darwin.apple_sdk.frameworks.SystemConfiguration
-  ];
+  buildInputs = lib.optionals stdenv.isDarwin
+    [ darwin.apple_sdk.frameworks.SystemConfiguration ];
 
   cargoBuildFlags = [ "-p" "cargo-nextest" ];
   cargoTestFlags = [ "-p" "cargo-nextest" ];

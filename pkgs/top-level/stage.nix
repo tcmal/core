@@ -6,7 +6,8 @@
 
    Default arguments are only provided for bootstrapping
    arguments. Normal users should not import this directly but instead
-   import `pkgs/default.nix` or `default.nix`. */
+   import `pkgs/default.nix` or `default.nix`.
+*/
 
 let
   # An overlay to auto-call packages in ../by-name.
@@ -14,63 +15,62 @@ let
   # this value gets reused even if this file is imported multiple times,
   # thanks to Nix's import-value cache.
   # autoCalledPackages = import ./by-name-overlay.nix ../by-name;
-in
 
-{
-  ## Misc parameters kept the same for all stages
-  ##
+in {
+## Misc parameters kept the same for all stages
+##
 
-  # Utility functions, could just import but passing in for efficiency
-  lib
+# Utility functions, could just import but passing in for efficiency
+lib
 
 , # Use to reevaluate Nixpkgs
-  nixpkgsFun
+nixpkgsFun
 
-  ## Other parameters
-  ##
+## Other parameters
+##
 
 , # Either null or an object in the form:
-  #
-  #   {
-  #     pkgsBuildBuild = ...;
-  #     pkgsBuildHost = ...;
-  #     pkgsBuildTarget = ...;
-  #     pkgsHostHost = ...;
-  #     # pkgsHostTarget skipped on purpose.
-  #     pkgsTargetTarget ...;
-  #   }
-  #
-  # These are references to adjacent bootstrapping stages. The more familiar
-  # `buildPackages` and `targetPackages` are defined in terms of them. If null,
-  # they are instead defined internally as the current stage. This allows us to
-  # avoid expensive splicing. `pkgsHostTarget` is skipped because it is always
-  # defined as the current stage.
-  adjacentPackages
+#
+#   {
+#     pkgsBuildBuild = ...;
+#     pkgsBuildHost = ...;
+#     pkgsBuildTarget = ...;
+#     pkgsHostHost = ...;
+#     # pkgsHostTarget skipped on purpose.
+#     pkgsTargetTarget ...;
+#   }
+#
+# These are references to adjacent bootstrapping stages. The more familiar
+# `buildPackages` and `targetPackages` are defined in terms of them. If null,
+# they are instead defined internally as the current stage. This allows us to
+# avoid expensive splicing. `pkgsHostTarget` is skipped because it is always
+# defined as the current stage.
+adjacentPackages
 
 , # The standard environment to use for building packages.
-  stdenv
+stdenv
 
 , # This is used because stdenv replacement and the stdenvCross do benefit from
-  # the overridden configuration provided by the user, as opposed to the normal
-  # bootstrapping stdenvs.
-  allowCustomOverrides
+# the overridden configuration provided by the user, as opposed to the normal
+# bootstrapping stdenvs.
+allowCustomOverrides
 
 , # Non-GNU/Linux OSes are currently "impure" platforms, with their libc
-  # outside of the store.  Thus, GCC, GFortran, & co. must always look for files
-  # in standard system directories (/usr/include, etc.)
-  noSysDirs ? stdenv.buildPlatform.system != "x86_64-freebsd"
-    && stdenv.buildPlatform.system != "i686-freebsd"
-    && stdenv.buildPlatform.system != "x86_64-solaris"
-    && stdenv.buildPlatform.system != "x86_64-kfreebsd-gnu"
+# outside of the store.  Thus, GCC, GFortran, & co. must always look for files
+# in standard system directories (/usr/include, etc.)
+noSysDirs ? stdenv.buildPlatform.system != "x86_64-freebsd"
+  && stdenv.buildPlatform.system != "i686-freebsd"
+  && stdenv.buildPlatform.system != "x86_64-solaris"
+  && stdenv.buildPlatform.system != "x86_64-kfreebsd-gnu"
 
 , # The configuration attribute set
-  config
+config
 
 , # A list of overlays (Additional `self: super: { .. }` customization
-  # functions) to be fixed together in the produced package set
-  overlays
+# functions) to be fixed together in the produced package set
+overlays
 
-} @args:
+}@args:
 
 let
   # This is a function from parsed platforms (like
@@ -94,10 +94,8 @@ let
         musleabihf = lib.systems.parse.abis.musleabihf;
         muslabin32 = lib.systems.parse.abis.muslabin32;
         muslabi64 = lib.systems.parse.abis.muslabi64;
-      }.${parsed.abi.name}
-        or lib.systems.parse.abis.musl;
+      }.${parsed.abi.name} or lib.systems.parse.abis.musl;
     });
-
 
   stdenvAdapters = self: super:
     let
@@ -105,10 +103,7 @@ let
         inherit lib config;
         pkgs = self;
       };
-    in
-    res // {
-      stdenvAdapters = res;
-    };
+    in res // { stdenvAdapters = res; };
 
   trivialBuilders = self: super:
     import ../build-support/trivial-builders {
@@ -122,10 +117,10 @@ let
   stdenvBootstappingAndPlatforms = self: super:
     let
       withFallback = thisPkgs:
-        (if adjacentPackages == null then self else thisPkgs)
-        // { recurseForDerivations = false; };
-    in
-    {
+        (if adjacentPackages == null then self else thisPkgs) // {
+          recurseForDerivations = false;
+        };
+    in {
       # Here are package sets of from related stages. They are all in the form
       # `pkgs{theirHost}{theirTarget}`. For example, `pkgsBuildHost` means their
       # host platform is our build platform, and their target platform is our host
@@ -137,7 +132,9 @@ let
       pkgsBuildHost = withFallback adjacentPackages.pkgsBuildHost;
       pkgsBuildTarget = withFallback adjacentPackages.pkgsBuildTarget;
       pkgsHostHost = withFallback adjacentPackages.pkgsHostHost;
-      pkgsHostTarget = self // { recurseForDerivations = false; }; # always `self`
+      pkgsHostTarget = self // {
+        recurseForDerivations = false;
+      }; # always `self`
       pkgsTargetTarget = withFallback adjacentPackages.pkgsTargetTarget;
 
       # Older names for package sets. Use these when only the host platform of the
@@ -155,33 +152,24 @@ let
 
   basePackages = self: super:
     let
-      res = import ./base-packages.nix
-        { inherit lib noSysDirs config overlays; }
-        res
-        self
-        super;
-    in
-    res;
+      res =
+        import ./base-packages.nix { inherit lib noSysDirs config overlays; }
+        res self super;
+    in res;
 
   commonUpdaterPackages = self: super:
     let
-      res = import ../common-updater/packages.nix
-        { inherit lib noSysDirs config overlays; }
-        res
-        self
-        super;
-    in
-    res;
+      res = import ../common-updater/packages.nix {
+        inherit lib noSysDirs config overlays;
+      } res self super;
+    in res;
 
   buildSupportPackages = self: super:
     let
-      res = import ../build-support/packages.nix
-        { inherit lib noSysDirs config overlays; }
-        res
-        self
-        super;
-    in
-    res;
+      res = import ../build-support/packages.nix {
+        inherit lib noSysDirs config overlays;
+      } res self super;
+    in res;
 
   # aliases = self: super: lib.optionalAttrs config.allowAliases (import ./aliases.nix lib self super);
 
@@ -195,31 +183,35 @@ let
         if type != "directory" then
           { }
         else
-          mapAttrs
-            (name: _: baseDirectory + "/${shard}/${name}/default.nix")
-            (lib.filterAttrs (name: _: !(lib.hasAttr "packages.nix" (readDir (baseDirectory + "/${shard}/${name}")))) (readDir (baseDirectory + "/${shard}")));
+          mapAttrs (name: _: baseDirectory + "/${shard}/${name}/default.nix")
+          (lib.filterAttrs (name: _:
+            !(lib.hasAttr "packages.nix"
+              (readDir (baseDirectory + "/${shard}/${name}"))))
+            (readDir (baseDirectory + "/${shard}")));
 
       namesForShardGroups = shard: type:
         if type != "directory" then
           { }
         else
-          mapAttrs
-            (name: _: baseDirectory + "/${shard}/${name}")
-            (lib.filterAttrs (name: _: lib.hasAttr "packages.nix" (readDir (baseDirectory + "/${shard}/${name}"))) (readDir (baseDirectory + "/${shard}")));
+          mapAttrs (name: _: baseDirectory + "/${shard}/${name}")
+          (lib.filterAttrs (name: _:
+            lib.hasAttr "packages.nix"
+            (readDir (baseDirectory + "/${shard}/${name}")))
+            (readDir (baseDirectory + "/${shard}")));
 
-      packageFiles = mergeAttrsList (mapAttrsToList namesForShard (readDir baseDirectory));
-      packageGroupFiles = lib.attrValues (mergeAttrsList (mapAttrsToList namesForShardGroups (readDir baseDirectory)));
+      packageFiles =
+        mergeAttrsList (mapAttrsToList namesForShard (readDir baseDirectory));
+      packageGroupFiles = lib.attrValues (mergeAttrsList
+        (mapAttrsToList namesForShardGroups (readDir baseDirectory)));
 
-      res =
-        {
-          _internalCallByNamePackageFile = file: self.callPackage file { };
-        } //
-        (mapAttrs
-          (name: self._internalCallByNamePackageFile)
-          packageFiles) //
-        lib.foldl (acc: path: (import "${path}/packages.nix" { inherit lib noSysDirs config overlays; } res self super) // acc) { } packageGroupFiles;
-    in
-    res;
+      res = {
+        _internalCallByNamePackageFile = file: self.callPackage file { };
+      } // (mapAttrs (name: self._internalCallByNamePackageFile) packageFiles)
+        // lib.foldl (acc: path:
+          (import "${path}/packages.nix" {
+            inherit lib noSysDirs config overlays;
+          } res self super) // acc) { } packageGroupFiles;
+    in res;
 
   # stdenvOverrides is used to avoid having multiple of versions
   # of certain dependencies that were used in bootstrapping the
@@ -236,7 +228,7 @@ let
   # ... pkgs.foo ...").
   configOverrides = self: super:
     lib.optionalAttrs allowCustomOverrides
-      ((config.packageOverrides or (super: { })) super);
+    ((config.packageOverrides or (super: { })) super);
 
   # Convenience attributes for instantitating package sets. Each of
   # these will instantiate a new version of allPackages. Currently the
@@ -251,17 +243,12 @@ let
     # that target system. For instance, pkgsCross.raspberryPi.hello,
     # will refer to the "hello" package built for the ARM6-based
     # Raspberry Pi.
-    pkgsCross = lib.mapAttrs
-      (n: crossSystem:
-        nixpkgsFun { inherit crossSystem; })
+    pkgsCross =
+      lib.mapAttrs (n: crossSystem: nixpkgsFun { inherit crossSystem; })
       lib.systems.examples;
 
     pkgsLLVM = nixpkgsFun {
-      overlays = [
-        (self': super': {
-          pkgsLLVM = super';
-        })
-      ] ++ overlays;
+      overlays = [ (self': super': { pkgsLLVM = super'; }) ] ++ overlays;
       # Bootstrap a cross stdenv using the LLVM toolchain.
       # This is currently not possible when compiling natively,
       # so we don't need to check hostPlatform != buildPlatform.
@@ -276,73 +263,74 @@ let
     # supported. 32-bit is also not supported.
     pkgsMusl =
       if stdenv.hostPlatform.isLinux && stdenv.buildPlatform.is64bit then
-        nixpkgsFun
-          {
-            overlays = [
-              (self': super': {
-                pkgsMusl = super';
-              })
-            ] ++ overlays;
-            ${if stdenv.hostPlatform == stdenv.buildPlatform
-            then "localSystem" else "crossSystem"} = {
-              parsed = makeMuslParsedPlatform stdenv.hostPlatform.parsed;
-            };
-          } else throw "Musl libc only supports 64-bit Linux systems.";
+        nixpkgsFun {
+          overlays = [ (self': super': { pkgsMusl = super'; }) ] ++ overlays;
+          ${
+            if stdenv.hostPlatform == stdenv.buildPlatform then
+              "localSystem"
+            else
+              "crossSystem"
+          } = {
+            parsed = makeMuslParsedPlatform stdenv.hostPlatform.parsed;
+          };
+        }
+      else
+        throw "Musl libc only supports 64-bit Linux systems.";
 
     # All packages built for i686 Linux.
     # Used by wine, firefox with debugging version of Flash, ...
     pkgsi686Linux =
       if stdenv.hostPlatform.isLinux && stdenv.hostPlatform.isx86 then
-        nixpkgsFun
-          {
-            overlays = [
-              (self': super': {
-                pkgsi686Linux = super';
-              })
-            ] ++ overlays;
-            ${if stdenv.hostPlatform == stdenv.buildPlatform
-            then "localSystem" else "crossSystem"} = {
-              parsed = stdenv.hostPlatform.parsed // {
-                cpu = lib.systems.parse.cpuTypes.i686;
-              };
+        nixpkgsFun {
+          overlays = [ (self': super': { pkgsi686Linux = super'; }) ]
+            ++ overlays;
+          ${
+            if stdenv.hostPlatform == stdenv.buildPlatform then
+              "localSystem"
+            else
+              "crossSystem"
+          } = {
+            parsed = stdenv.hostPlatform.parsed // {
+              cpu = lib.systems.parse.cpuTypes.i686;
             };
-          } else throw "i686 Linux package set can only be used with the x86 family.";
+          };
+        }
+      else
+        throw "i686 Linux package set can only be used with the x86 family.";
 
     # x86_64-darwin packages for aarch64-darwin users to use with Rosetta for incompatible packages
-    pkgsx86_64Darwin =
-      if stdenv.hostPlatform.isDarwin then
-        nixpkgsFun
-          {
-            overlays = [
-              (self': super': {
-                pkgsx86_64Darwin = super';
-              })
-            ] ++ overlays;
-            localSystem = {
-              parsed = stdenv.hostPlatform.parsed // {
-                cpu = lib.systems.parse.cpuTypes.x86_64;
-              };
-            };
-          } else throw "x86_64 Darwin package set can only be used on Darwin systems.";
+    pkgsx86_64Darwin = if stdenv.hostPlatform.isDarwin then
+      nixpkgsFun {
+        overlays = [ (self': super': { pkgsx86_64Darwin = super'; }) ]
+          ++ overlays;
+        localSystem = {
+          parsed = stdenv.hostPlatform.parsed // {
+            cpu = lib.systems.parse.cpuTypes.x86_64;
+          };
+        };
+      }
+    else
+      throw "x86_64 Darwin package set can only be used on Darwin systems.";
 
     # If already linux: the same package set unaltered
     # Otherwise, return a natively built linux package set for the current cpu architecture string.
     # (ABI and other details will be set to the default for the cpu/os pair)
-    pkgsLinux =
-      if stdenv.hostPlatform.isLinux
-      then self
-      else
-        nixpkgsFun {
-          localSystem = lib.systems.elaborate "${stdenv.hostPlatform.parsed.cpu.name}-linux";
-        };
+    pkgsLinux = if stdenv.hostPlatform.isLinux then
+      self
+    else
+      nixpkgsFun {
+        localSystem =
+          lib.systems.elaborate "${stdenv.hostPlatform.parsed.cpu.name}-linux";
+      };
 
     # Extend the package set with zero or more overlays. This preserves
     # preexisting overlays. Prefer to initialize with the right overlays
     # in one go when calling Nixpkgs, for performance and simplicity.
     appendOverlays = extraOverlays:
-      if extraOverlays == [ ]
-      then self
-      else nixpkgsFun { overlays = args.overlays ++ extraOverlays; };
+      if extraOverlays == [ ] then
+        self
+      else
+        nixpkgsFun { overlays = args.overlays ++ extraOverlays; };
 
     # NOTE: each call to extend causes a full nixpkgs rebuild, adding ~130MB
     #       of allocations. DO NOT USE THIS IN NIXPKGS.
@@ -356,17 +344,13 @@ let
     # Fully static packages.
     # Currently uses Musl on Linux (couldn’t get static glibc to work).
     pkgsStatic = nixpkgsFun ({
-      overlays = [
-        (self': super': {
-          pkgsStatic = super';
-        })
-      ] ++ overlays;
+      overlays = [ (self': super': { pkgsStatic = super'; }) ] ++ overlays;
       crossSystem = {
         isStatic = true;
-        parsed =
-          if stdenv.isLinux
-          then makeMuslParsedPlatform stdenv.hostPlatform.parsed
-          else stdenv.hostPlatform.parsed;
+        parsed = if stdenv.isLinux then
+          makeMuslParsedPlatform stdenv.hostPlatform.parsed
+        else
+          stdenv.hostPlatform.parsed;
       } // lib.optionalAttrs (stdenv.hostPlatform.system == "powerpc64-linux") {
         gcc.abi = "elfv2";
       };
@@ -377,13 +361,8 @@ let
         (self': super': {
           pkgsExtraHardening = super';
           stdenv = super'.withDefaultHardeningFlags
-            (
-              super'.stdenv.cc.defaultHardeningFlags ++ [
-                "zerocallusedregs"
-                "trivialautovarinit"
-              ]
-            )
-            super'.stdenv;
+            (super'.stdenv.cc.defaultHardeningFlags
+              ++ [ "zerocallusedregs" "trivialautovarinit" ]) super'.stdenv;
         })
       ] ++ overlays;
     };
@@ -404,10 +383,7 @@ let
     otherPackageSets
     # aliases
     configOverrides
-  ] ++ overlays ++ [
-    stdenvOverrides
-  ]);
+  ] ++ overlays ++ [ stdenvOverrides ]);
 
-in
-# Return the complete set of packages.
-lib.fix toFix
+  # Return the complete set of packages.
+in lib.fix toFix

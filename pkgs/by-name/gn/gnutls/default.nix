@@ -1,36 +1,13 @@
-{ lib
-, stdenv
-, fetchurl
-, fetchpatch2
-, zlib
-, lzo
-, libtasn1
-, nettle
-, pkg-config
-, lzip
-, perl
-, gmp
-, autoconf
-, automake
-, libidn2
-, libiconv
-, texinfo
-, unbound
-, dns-root-data
-, gettext
-, util-linux
+{ lib, stdenv, fetchurl, fetchpatch2, zlib, lzo, libtasn1, nettle, pkg-config
+, lzip, perl, gmp, autoconf, automake, libidn2, libiconv, texinfo, unbound
+, dns-root-data, gettext, util-linux
 , cxxBindings ? !stdenv.hostPlatform.isStatic # tries to link libstdc++.so
-, tpmSupport ? false
-, trousers
-, which
-, nettools
-, libunistring
-, withP11-kit ? !stdenv.hostPlatform.isStatic
-, p11-kit
-, Security  # darwin Security.framework
-  # certificate compression - only zlib now, more possible: zstd, brotli
+, tpmSupport ? false, trousers, which, nettools, libunistring
+, withP11-kit ? !stdenv.hostPlatform.isStatic, p11-kit
+, Security # darwin Security.framework
+# certificate compression - only zlib now, more possible: zstd, brotli
 
-  # for passthru.tests
+# for passthru.tests
 # , curlWithGnuTls
 # , emacs
 # , ffmpeg
@@ -50,18 +27,19 @@ let
 
   # XXX: Gnulib's `test-select' fails on FreeBSD:
   # https://hydra.nixos.org/build/2962084/nixlog/1/raw .
-  doCheck = !stdenv.isFreeBSD && !stdenv.isDarwin
-    && stdenv.buildPlatform == stdenv.hostPlatform;
+  doCheck = !stdenv.isFreeBSD && !stdenv.isDarwin && stdenv.buildPlatform
+    == stdenv.hostPlatform;
 
   inherit (stdenv.hostPlatform) isDarwin;
-in
 
-stdenv.mkDerivation rec {
+in stdenv.mkDerivation rec {
   pname = "gnutls";
   version = "3.8.4";
 
   src = fetchurl {
-    url = "mirror://gnupg/gnutls/v${lib.versions.majorMinor version}/gnutls-${version}.tar.xz";
+    url = "mirror://gnupg/gnutls/v${
+        lib.versions.majorMinor version
+      }/gnutls-${version}.tar.xz";
     hash = "sha256-K+pOFUeU8/ABgPoqXFH+iwBax6Mc1YvUTN+n8268Ops=";
   };
 
@@ -79,7 +57,8 @@ stdenv.mkDerivation rec {
     # Without getting the libs into RPATH they won't be found.
     (fetchpatch2 {
       name = "revert-dlopen-compression.patch";
-      url = "https://gitlab.com/gnutls/gnutls/-/commit/8584908d6b679cd4e7676de437117a793e18347c.diff";
+      url =
+        "https://gitlab.com/gnutls/gnutls/-/commit/8584908d6b679cd4e7676de437117a793e18347c.diff";
       revert = true;
       hash = "sha256-r/+Gmwqy0Yc1LHL/PdPLXlErUBC5JxquLzCBAN3LuRM=";
     })
@@ -95,8 +74,9 @@ stdenv.mkDerivation rec {
     sed '2iexit 77' -i tests/{pkgconfig,fastopen}.sh
     sed '/^void doit(void)/,/^{/ s/{/{ exit(77);/' -i tests/{trust-store,psk-file}.c
     sed 's:/usr/lib64/pkcs11/ /usr/lib/pkcs11/ /usr/lib/x86_64-linux-gnu/pkcs11/:`pkg-config --variable=p11_module_path p11-kit-1`:' -i tests/p11-kit-trust.sh
-  '' + lib.optionalString stdenv.hostPlatform.isMusl '' # See https://gitlab.com/gnutls/gnutls/-/issues/945
-    sed '2iecho "certtool tests skipped in musl build"\nexit 0' -i tests/cert-tests/certtool.sh
+  '' + lib.optionalString stdenv.hostPlatform.isMusl ''
+    # See https://gitlab.com/gnutls/gnutls/-/issues/945
+       sed '2iecho "certtool tests skipped in musl build"\nexit 0' -i tests/cert-tests/certtool.sh
   '' + lib.optionalString stdenv.hostPlatform.isStatic ''
     # Adapted from https://gitlab.com/gnutls/gnutls/-/commit/d214cd4570fb1559a20e941bb7ceac7df52e96d3
     # Can be removed with 3.8.5+.
@@ -106,33 +86,33 @@ stdenv.mkDerivation rec {
   '';
 
   preConfigure = "patchShebangs .";
-  configureFlags =
-    lib.optionals withP11-kit [
-      "--with-default-trust-store-file=/etc/ssl/certs/ca-certificates.crt"
-      "--with-default-trust-store-pkcs11=pkcs11:"
-    ] ++ [
-      "--disable-dependency-tracking"
-      "--enable-fast-install"
-      "--with-unbound-root-key-file=${dns-root-data}/root.key"
-      (lib.withFeature withP11-kit "p11-kit")
-      (lib.enableFeature cxxBindings "cxx")
-    ] ++ lib.optionals (stdenv.hostPlatform.isMinGW) [
-      "--disable-doc"
-    ];
+  configureFlags = lib.optionals withP11-kit [
+    "--with-default-trust-store-file=/etc/ssl/certs/ca-certificates.crt"
+    "--with-default-trust-store-pkcs11=pkcs11:"
+  ] ++ [
+    "--disable-dependency-tracking"
+    "--enable-fast-install"
+    "--with-unbound-root-key-file=${dns-root-data}/root.key"
+    (lib.withFeature withP11-kit "p11-kit")
+    (lib.enableFeature cxxBindings "cxx")
+  ] ++ lib.optionals (stdenv.hostPlatform.isMinGW) [ "--disable-doc" ];
 
   enableParallelBuilding = true;
 
   hardeningDisable = [ "trivialautovarinit" ];
 
-  buildInputs = [ lzo lzip libtasn1 libidn2 zlib gmp libunistring unbound gettext libiconv ]
+  buildInputs =
+    [ lzo lzip libtasn1 libidn2 zlib gmp libunistring unbound gettext libiconv ]
     ++ lib.optional (withP11-kit) p11-kit
     ++ lib.optional (tpmSupport && stdenv.isLinux) trousers;
 
   nativeBuildInputs = [ perl pkg-config texinfo ] ++ [ autoconf automake ]
     ++ lib.optionals doCheck [ which nettools util-linux ];
 
-  propagatedBuildInputs = [ nettle ]
-    # Builds dynamically linking against gnutls seem to need the framework now.
+  propagatedBuildInputs = [
+    nettle
+  ]
+  # Builds dynamically linking against gnutls seem to need the framework now.
     ++ lib.optional isDarwin Security;
 
   inherit doCheck;
@@ -142,7 +122,9 @@ stdenv.mkDerivation rec {
 
   # Fixup broken libtool and pkg-config files
   preFixup = lib.optionalString (!isDarwin) ''
-    sed ${lib.optionalString tpmSupport "-e 's,-ltspi,-L${trousers}/lib -ltspi,'"} \
+    sed ${
+      lib.optionalString tpmSupport "-e 's,-ltspi,-L${trousers}/lib -ltspi,'"
+    } \
         -e 's,-lz,-L${zlib.out}/lib -lz,' \
         -e 's,-L${gmp.dev}/lib,-L${gmp.out}/lib,' \
         -e 's,-lgmp,-L${gmp.out}/lib -lgmp,' \

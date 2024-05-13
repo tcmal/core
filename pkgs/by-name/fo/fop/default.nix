@@ -1,28 +1,16 @@
-{ lib
-, stdenv
-, fetchurl
-, ant
-, jdk
-, jre
-, makeWrapper
-, stripJavaArchivesHook
-}:
+{ lib, stdenv, fetchurl, ant, jdk, jre, makeWrapper, stripJavaArchivesHook }:
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "fop";
   version = "2.8";
 
   src = fetchurl {
-    url = "mirror://apache/xmlgraphics/fop/fop-${finalAttrs.version}-src.tar.gz";
+    url =
+      "mirror://apache/xmlgraphics/fop/fop-${finalAttrs.version}-src.tar.gz";
     hash = "sha256-b7Av17wu6Ar/npKOiwYqzlvBFSIuXTpqTacM1sxtBvc=";
   };
 
-  nativeBuildInputs = [
-    ant
-    jdk
-    makeWrapper
-    stripJavaArchivesHook
-  ];
+  nativeBuildInputs = [ ant jdk makeWrapper stripJavaArchivesHook ];
 
   # Note: not sure if this is needed anymore
   env.JAVA_TOOL_OPTIONS = "-Dfile.encoding=UTF8";

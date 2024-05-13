@@ -1,12 +1,5 @@
-{ lib
-, stdenv
-, buildPythonPackage
-, fetchFromGitHub
-, flit-core
-, packaging
-, pythonOlder
-, pyproject-hooks
-, tomli
+{ lib, stdenv, buildPythonPackage, fetchFromGitHub, flit-core, packaging
+, pythonOlder, pyproject-hooks, tomli
 # for passthru.tests
 # , filelock
 # , pytest-mock
@@ -36,16 +29,10 @@ buildPythonPackage rec {
     sed -i '/importlib-metadata >= 4.6/d' pyproject.toml
   '';
 
-  nativeBuildInputs = [
-    flit-core
-  ];
+  nativeBuildInputs = [ flit-core ];
 
-  propagatedBuildInputs = [
-    packaging
-    pyproject-hooks
-  ] ++ lib.optionals (pythonOlder "3.11") [
-    tomli
-  ];
+  propagatedBuildInputs = [ packaging pyproject-hooks ]
+    ++ lib.optionals (pythonOlder "3.11") [ tomli ];
 
   # We need to disable tests because this package is part of the bootstrap chain
   # and its test dependencies cannot be built yet when this is being built.
@@ -94,9 +81,7 @@ buildPythonPackage rec {
   #   };
   # };
 
-  pythonImportsCheck = [
-    "build"
-  ];
+  pythonImportsCheck = [ "build" ];
 
   meta = with lib; {
     mainProgram = "pyproject-build";

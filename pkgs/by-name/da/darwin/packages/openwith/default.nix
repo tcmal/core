@@ -1,9 +1,8 @@
-{ lib, stdenv, fetchFromGitHub, swift, AppKit, Foundation, UniformTypeIdentifiers }:
+{ lib, stdenv, fetchFromGitHub, swift, AppKit, Foundation
+, UniformTypeIdentifiers }:
 
-let
-  arch = if stdenv.isAarch64 then "arm64" else "x86_64";
-in
-stdenv.mkDerivation rec {
+let arch = if stdenv.isAarch64 then "arm64" else "x86_64";
+in stdenv.mkDerivation rec {
   pname = "openwith";
   version = "unstable-2022-10-28";
 
@@ -27,7 +26,8 @@ stdenv.mkDerivation rec {
   '';
 
   meta = with lib; {
-    description = "Utility to specify which application bundle should open specific file extensions";
+    description =
+      "Utility to specify which application bundle should open specific file extensions";
     homepage = "https://github.com/jdek/openwith";
     license = licenses.unlicense;
     maintainers = with maintainers; [ zowoq ];

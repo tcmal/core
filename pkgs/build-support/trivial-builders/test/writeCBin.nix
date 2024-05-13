@@ -1,5 +1,4 @@
-/*
-  Run with:
+/* Run with:
 
       cd nixpkgs
       nix-build -A tests.trivial-builders.writeCBin
@@ -15,29 +14,28 @@ let
       return 0;
     }
   '';
-in
-  assert pkg.meta.mainProgram == "test-script";
-  runCommand "test-writeCBin" { } ''
+in assert pkg.meta.mainProgram == "test-script";
+runCommand "test-writeCBin" { } ''
 
-    echo Testing with getExe...
+  echo Testing with getExe...
 
-    target=${lib.getExe pkg}
-    expected=${lib.escapeShellArg output}
-    got=$("$target")
-    if [[ "$got" != "$expected" ]]; then
-      echo "wrong output: expected $expected, got $got"
-      exit 1
-    fi
+  target=${lib.getExe pkg}
+  expected=${lib.escapeShellArg output}
+  got=$("$target")
+  if [[ "$got" != "$expected" ]]; then
+    echo "wrong output: expected $expected, got $got"
+    exit 1
+  fi
 
-    echo Testing with makeBinPath...
+  echo Testing with makeBinPath...
 
-    PATH="${lib.makeBinPath [ pkg ]}:$PATH"
-    got=$(test-script)
-    if [[ "$got" != "$expected" ]]; then
-      echo "wrong output: expected $expected, got $got"
-      exit 1
-    fi
+  PATH="${lib.makeBinPath [ pkg ]}:$PATH"
+  got=$(test-script)
+  if [[ "$got" != "$expected" ]]; then
+    echo "wrong output: expected $expected, got $got"
+    exit 1
+  fi
 
-    touch $out
-  ''
+  touch $out
+''
 

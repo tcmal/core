@@ -1,9 +1,7 @@
-{ lib, stdenv, fetchurl, fetchpatch, pkg-config, musl-fts
-, musl-obstack, m4, zlib, zstd, bzip2, bison, flex, gettext, xz, setupDebugInfoDirs
-, argp-standalone
-, enableDebuginfod ? true, sqlite, curl, libmicrohttpd, libarchive
-, gitUpdater
-}:
+{ lib, stdenv, fetchurl, fetchpatch, pkg-config, musl-fts, musl-obstack, m4
+, zlib, zstd, bzip2, bison, flex, gettext, xz, setupDebugInfoDirs
+, argp-standalone, enableDebuginfod ? true, sqlite, curl, libmicrohttpd
+, libarchive, gitUpdater }:
 
 # TODO: Look at the hardcoded paths to kernel, modules etc.
 stdenv.mkDerivation rec {
@@ -11,7 +9,8 @@ stdenv.mkDerivation rec {
   version = "0.191";
 
   src = fetchurl {
-    url = "https://sourceware.org/elfutils/ftp/${version}/${pname}-${version}.tar.bz2";
+    url =
+      "https://sourceware.org/elfutils/ftp/${version}/${pname}-${version}.tar.bz2";
     hash = "sha256-33bbcTZtHXCDZfx6bGDKSDmPFDZ+sriVTvyIlxR62HE=";
   };
 
@@ -19,22 +18,26 @@ stdenv.mkDerivation rec {
     ./debug-info-from-env.patch
     (fetchpatch {
       name = "fix-aarch64_fregs.patch";
-      url = "https://git.alpinelinux.org/aports/plain/main/elfutils/fix-aarch64_fregs.patch?id=2e3d4976eeffb4704cf83e2cc3306293b7c7b2e9";
+      url =
+        "https://git.alpinelinux.org/aports/plain/main/elfutils/fix-aarch64_fregs.patch?id=2e3d4976eeffb4704cf83e2cc3306293b7c7b2e9";
       sha256 = "zvncoRkQx3AwPx52ehjA2vcFroF+yDC2MQR5uS6DATs=";
     })
     (fetchpatch {
       name = "musl-asm-ptrace-h.patch";
-      url = "https://git.alpinelinux.org/aports/plain/main/elfutils/musl-asm-ptrace-h.patch?id=2e3d4976eeffb4704cf83e2cc3306293b7c7b2e9";
+      url =
+        "https://git.alpinelinux.org/aports/plain/main/elfutils/musl-asm-ptrace-h.patch?id=2e3d4976eeffb4704cf83e2cc3306293b7c7b2e9";
       sha256 = "8D1wPcdgAkE/TNBOgsHaeTZYhd9l+9TrZg8d5C7kG6k=";
     })
     (fetchpatch {
       name = "musl-macros.patch";
-      url = "https://git.alpinelinux.org/aports/plain/main/elfutils/musl-macros.patch?id=2e3d4976eeffb4704cf83e2cc3306293b7c7b2e9";
+      url =
+        "https://git.alpinelinux.org/aports/plain/main/elfutils/musl-macros.patch?id=2e3d4976eeffb4704cf83e2cc3306293b7c7b2e9";
       sha256 = "tp6O1TRsTAMsFe8vw3LMENT/vAu6OmyA8+pzgThHeA8=";
     })
     (fetchpatch {
       name = "musl-strndupa.patch";
-      url = "https://git.alpinelinux.org/aports/plain/main/elfutils/musl-strndupa.patch?id=2e3d4976eeffb4704cf83e2cc3306293b7c7b2e9";
+      url =
+        "https://git.alpinelinux.org/aports/plain/main/elfutils/musl-strndupa.patch?id=2e3d4976eeffb4704cf83e2cc3306293b7c7b2e9";
       sha256 = "sha256-7daehJj1t0wPtQzTv+/Rpuqqs5Ng/EYnZzrcf2o/Lb0=";
     })
   ] ++ lib.optionals stdenv.hostPlatform.isMusl [ ./musl-error_h.patch ];
@@ -56,15 +59,11 @@ stdenv.mkDerivation rec {
     ++ lib.optional enableDebuginfod pkg-config;
   buildInputs = [ zlib zstd bzip2 xz ]
     ++ lib.optionals stdenv.hostPlatform.isMusl [
-    argp-standalone
-    musl-fts
-    musl-obstack
-  ] ++ lib.optionals enableDebuginfod [
-    sqlite
-    curl
-    libmicrohttpd
-    libarchive
-  ];
+      argp-standalone
+      musl-fts
+      musl-obstack
+    ]
+    ++ lib.optionals enableDebuginfod [ sqlite curl libmicrohttpd libarchive ];
 
   propagatedNativeBuildInputs = [ setupDebugInfoDirs ];
 
@@ -76,7 +75,6 @@ stdenv.mkDerivation rec {
   ];
 
   enableParallelBuilding = true;
-
 
   doCheck =
     # Backtrace unwinding tests rely on glibc-internal symbol names.

@@ -1,14 +1,5 @@
-{ lib
-, buildPerlPackage
-, fetchFromGitHub
-, fetchpatch
-, GD
-, IPCShareLite
-, JSON
-, LWP
-, mapnik
-, nix-update-script
-}:
+{ lib, buildPerlPackage, fetchFromGitHub, fetchpatch, GD, IPCShareLite, JSON
+, LWP, mapnik, nix-update-script }:
 
 buildPerlPackage rec {
   pname = "Tirex";
@@ -24,18 +15,13 @@ buildPerlPackage rec {
   patches = [
     # https://github.com/openstreetmap/tirex/pull/54
     (fetchpatch {
-      url = "https://github.com/openstreetmap/tirex/commit/da0c5db926bc0939c53dd902a969b689ccf9edde.patch";
+      url =
+        "https://github.com/openstreetmap/tirex/commit/da0c5db926bc0939c53dd902a969b689ccf9edde.patch";
       hash = "sha256-bnL1ZGy8ZNSZuCRbZn59qRVLg3TL0GjFYnhRKroeVO0=";
     })
   ];
 
-  buildInputs = [
-    GD
-    IPCShareLite
-    JSON
-    LWP
-    mapnik
-  ] ++ mapnik.buildInputs;
+  buildInputs = [ GD IPCShareLite JSON LWP mapnik ] ++ mapnik.buildInputs;
 
   installPhase = ''
     install -m 755 -d $out/usr/libexec

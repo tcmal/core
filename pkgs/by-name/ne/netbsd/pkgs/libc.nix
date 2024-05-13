@@ -1,15 +1,7 @@
-{ lib
-, mkDerivation
-, defaultMakeFlags
-, _mainLibcExtraPaths
-, fetchNetBSD
-, bsdSetupHook, netbsdSetupHook
-, makeMinimal
-, install, mandoc, groff, flex
-, byacc, genassym, gencat, lorder, tsort, statHook, rsync, rpcgen
-, csu, headers
-, librt
-}:
+{ lib, mkDerivation, defaultMakeFlags, _mainLibcExtraPaths, fetchNetBSD
+, bsdSetupHook, netbsdSetupHook, makeMinimal, install, mandoc, groff, flex
+, byacc, genassym, gencat, lorder, tsort, statHook, rsync, rpcgen, csu, headers
+, librt }:
 
 mkDerivation {
   path = "lib/libc";
@@ -18,13 +10,25 @@ mkDerivation {
   USE_FORT = "yes";
   MKPROFILE = "no";
   extraPaths = _mainLibcExtraPaths ++ [
-    (fetchNetBSD "external/bsd/jemalloc" "9.2" "0cq704swa0h2yxv4gc79z2lwxibk9k7pxh3q5qfs7axx3jx3n8kb")
+    (fetchNetBSD "external/bsd/jemalloc" "9.2"
+      "0cq704swa0h2yxv4gc79z2lwxibk9k7pxh3q5qfs7axx3jx3n8kb")
   ];
   nativeBuildInputs = [
-    bsdSetupHook netbsdSetupHook
+    bsdSetupHook
+    netbsdSetupHook
     makeMinimal
-    install mandoc groff flex
-    byacc genassym gencat lorder tsort statHook rsync rpcgen
+    install
+    mandoc
+    groff
+    flex
+    byacc
+    genassym
+    gencat
+    lorder
+    tsort
+    statHook
+    rsync
+    rpcgen
   ];
   buildInputs = [ headers csu ];
   env.NIX_CFLAGS_COMPILE = "-B${csu}/lib -fcommon";
@@ -32,7 +36,7 @@ mkDerivation {
   SHLIBINSTALLDIR = "$(out)/lib";
   MKPICINSTALL = "yes";
   NLSDIR = "$(out)/share/nls";
-  makeFlags = defaultMakeFlags ++ [ "FILESDIR=$(out)/var/db"];
+  makeFlags = defaultMakeFlags ++ [ "FILESDIR=$(out)/var/db" ];
   postInstall = ''
     pushd ${headers}
     find . -type d -exec mkdir -p $out/\{} \;

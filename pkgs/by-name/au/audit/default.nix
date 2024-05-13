@@ -1,27 +1,18 @@
-{ lib
-, stdenv
-, fetchurl
-, fetchpatch
-, autoreconfHook
-, bash
-, buildPackages
-, libtool
-, linuxHeaders
-, python3
-, swig
+{ lib, stdenv, fetchurl, fetchpatch, autoreconfHook, bash, buildPackages
+, libtool, linuxHeaders, python3, swig
 
 # Enabling python support while cross compiling would be possible, but the
 # configure script tries executing python to gather info instead of relying on
 # python3-config exclusively
-, enablePython ? stdenv.hostPlatform == stdenv.buildPlatform,
-}:
+, enablePython ? stdenv.hostPlatform == stdenv.buildPlatform, }:
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "audit";
   version = "3.1.2";
 
   src = fetchurl {
-    url = "https://people.redhat.com/sgrubb/audit/audit-${finalAttrs.version}.tar.gz";
+    url =
+      "https://people.redhat.com/sgrubb/audit/audit-${finalAttrs.version}.tar.gz";
     hash = "sha256-wLF5LR8KiMbxgocQUJy7mHBZ/GhxLJdmnKkOrhA9KH0=";
   };
 
@@ -35,21 +26,12 @@ stdenv.mkDerivation (finalAttrs: {
 
   strictDeps = true;
 
-  depsBuildBuild = [
-    buildPackages.stdenv.cc
-  ];
+  depsBuildBuild = [ buildPackages.stdenv.cc ];
 
-  nativeBuildInputs = [
-    autoreconfHook
-  ]
-  ++ lib.optionals enablePython [
-    python3
-    swig
-  ];
+  nativeBuildInputs = [ autoreconfHook ]
+    ++ lib.optionals enablePython [ python3 swig ];
 
-  buildInputs = [
-    bash
-  ];
+  buildInputs = [ bash ];
 
   configureFlags = [
     # z/OS plugin is not useful on Linux, and pulls in an extra openldap
@@ -65,7 +47,8 @@ stdenv.mkDerivation (finalAttrs: {
   meta = {
     homepage = "https://people.redhat.com/sgrubb/audit/";
     description = "Audit Library";
-    changelog = "https://github.com/linux-audit/audit-userspace/releases/tag/v${finalAttrs.version}";
+    changelog =
+      "https://github.com/linux-audit/audit-userspace/releases/tag/v${finalAttrs.version}";
     license = lib.licenses.gpl2Plus;
     maintainers = with lib.maintainers; [ AndersonTorres ];
     platforms = lib.platforms.linux;

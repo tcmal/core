@@ -1,21 +1,10 @@
-{ lib
-, stdenv
-, fetchurl
-, autoreconfHook
-, buildPackages
-, libiconv
-, perl
-, texinfo
-, xz
-, gmpSupport ? true, gmp
-, aclSupport ? stdenv.isLinux, acl
-, attrSupport ? stdenv.isLinux, attr
-, selinuxSupport ? false, libselinux, libsepol
+{ lib, stdenv, fetchurl, autoreconfHook, buildPackages, libiconv, perl, texinfo
+, xz, gmpSupport ? true, gmp, aclSupport ? stdenv.isLinux, acl
+, attrSupport ? stdenv.isLinux, attr, selinuxSupport ? false, libselinux
+, libsepol
 # No openssl in default version, so openssl-induced rebuilds aren't too big.
 # It makes *sum functions significantly faster.
-, minimal ? true
-, withOpenssl ? !minimal, openssl
-, withPrefix ? false
+, minimal ? true, withOpenssl ? !minimal, openssl, withPrefix ? false
 , singleBinary ? "symlinks" # you can also pass "shebangs" or false
 }:
 
@@ -29,8 +18,7 @@ assert selinuxSupport -> libselinux != null && libsepol != null;
 let
   inherit (lib) concatStringsSep isString optional optionals optionalString;
   isCross = (stdenv.hostPlatform != stdenv.buildPlatform);
-in
-stdenv.mkDerivation rec {
+in stdenv.mkDerivation rec {
   pname = "coreutils" + (optionalString (!minimal) "-full");
   version = "9.5";
 
@@ -82,15 +70,14 @@ stdenv.mkDerivation rec {
 
     # intermittent failures on builders, unknown reason
     sed '2i echo Skipping du basic test && exit 77' -i ./tests/du/basic.sh
-  '' + (optionalString (stdenv.hostPlatform.libc == "musl") (concatStringsSep "\n" [
-    ''
+  '' + (optionalString (stdenv.hostPlatform.libc == "musl")
+    (concatStringsSep "\n" [''
       echo "int main() { return 77; }" > gnulib-tests/test-parse-datetime.c
       echo "int main() { return 77; }" > gnulib-tests/test-getlogin.c
-    ''
-  ])) + (optionalString stdenv.isAarch64 ''
-    # Sometimes fails: https://github.com/NixOS/nixpkgs/pull/143097#issuecomment-954462584
-    sed '2i echo Skipping cut huge range test && exit 77' -i ./tests/cut/cut-huge-range.sh
-  '');
+    ''])) + (optionalString stdenv.isAarch64 ''
+      # Sometimes fails: https://github.com/NixOS/nixpkgs/pull/143097#issuecomment-954462584
+      sed '2i echo Skipping cut huge range test && exit 77' -i ./tests/cut/cut-huge-range.sh
+    '');
 
   outputs = [ "out" "info" ];
   separateDebugInfo = true;
@@ -100,26 +87,25 @@ stdenv.mkDerivation rec {
     autoreconfHook
     perl
     xz.bin
-  ]
-  ++ optionals stdenv.hostPlatform.isCygwin [
+  ] ++ optionals stdenv.hostPlatform.isCygwin [
     # due to patch
     texinfo
   ];
 
-  buildInputs = [ ]
-    ++ optional aclSupport acl
-    ++ optional attrSupport attr
-    ++ optional gmpSupport gmp
-    ++ optional withOpenssl openssl
-    ++ optionals selinuxSupport [ libselinux libsepol ]
+  buildInputs = [ ] ++ optional aclSupport acl ++ optional attrSupport attr
+    ++ optional gmpSupport gmp ++ optional withOpenssl openssl
+    ++ optionals selinuxSupport [
+      libselinux
+      libsepol
+    ]
     # TODO(@Ericson2314): Investigate whether Darwin could benefit too
     ++ optional (isCross && stdenv.hostPlatform.libc != "glibc") libiconv;
 
   hardeningDisable = [ "trivialautovarinit" ];
 
   configureFlags = [ "--with-packager=https://nixos.org" ]
-    ++ optional (singleBinary != false)
-      ("--enable-single-binary" + optionalString (isString singleBinary) "=${singleBinary}")
+    ++ optional (singleBinary != false) ("--enable-single-binary"
+      + optionalString (isString singleBinary) "=${singleBinary}")
     ++ optional withOpenssl "--with-openssl"
     ++ optional stdenv.hostPlatform.isSunOS "ac_cv_func_inotify_init=no"
     ++ optional withPrefix "--program-prefix=g"
@@ -142,9 +128,8 @@ stdenv.mkDerivation rec {
   # Darwin (http://article.gmane.org/gmane.comp.gnu.core-utils.bugs/19351),
   # and {Open,Free}BSD.
   # With non-standard storeDir: https://github.com/NixOS/nix/issues/512
-  doCheck = (!isCross)
-    && (stdenv.hostPlatform.libc == "glibc" || stdenv.hostPlatform.libc == "musl")
-    && !stdenv.isAarch32;
+  doCheck = (!isCross) && (stdenv.hostPlatform.libc == "glibc"
+    || stdenv.hostPlatform.libc == "musl") && !stdenv.isAarch32;
 
   # Prevents attempts of running 'help2man' on cross-built binaries.
   PERL = if isCross then "missing" else null;
@@ -153,7 +138,7 @@ stdenv.mkDerivation rec {
 
   NIX_LDFLAGS = optionalString selinuxSupport "-lsepol";
   FORCE_UNSAFE_CONFIGURE = optionalString stdenv.hostPlatform.isSunOS "1";
-  env.NIX_CFLAGS_COMPILE = toString ([]
+  env.NIX_CFLAGS_COMPILE = toString ([ ]
     # Work around a bogus warning in conjunction with musl.
     ++ optional stdenv.hostPlatform.isMusl "-Wno-error"
     ++ optional stdenv.hostPlatform.isAndroid "-D__USE_FORTIFY_LEVEL=0");
@@ -168,10 +153,10 @@ stdenv.mkDerivation rec {
     rm $out/share/man/man1/*
     cp ${buildPackages.coreutils-full}/share/man/man1/* $out/share/man/man1
   ''
-  # du: 8.7 M locale + 0.4 M man pages
-  + optionalString minimal ''
-    rm -r "$out/share"
-  '';
+    # du: 8.7 M locale + 0.4 M man pages
+    + optionalString minimal ''
+      rm -r "$out/share"
+    '';
 
   meta = with lib; {
     homepage = "https://www.gnu.org/software/coreutils/";

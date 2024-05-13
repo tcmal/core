@@ -1,15 +1,7 @@
-{ lib
-, stdenv
-, fetchurl
+{ lib, stdenv, fetchurl
 
 # dependencies
-, cyrus_sasl
-, groff
-, libsodium
-, libtool
-, openssl
-, systemdMinimal
-, libxcrypt
+, cyrus_sasl, groff, libsodium, libtool, openssl, systemdMinimal, libxcrypt
 
 # for passthru.tests
 # , nixosTests
@@ -20,41 +12,31 @@ stdenv.mkDerivation rec {
   version = "2.6.7";
 
   src = fetchurl {
-    url = "https://www.openldap.org/software/download/OpenLDAP/openldap-release/${pname}-${version}.tgz";
+    url =
+      "https://www.openldap.org/software/download/OpenLDAP/openldap-release/${pname}-${version}.tgz";
     hash = "sha256-zXdfYlyUTteKPaGKA7A7CO6nPIqryXtBuzNumhCVSTA=";
   };
 
   # TODO: separate "out" and "bin"
-  outputs = [
-    "out"
-    "dev"
-    "man"
-    "devdoc"
-  ];
+  outputs = [ "out" "dev" "man" "devdoc" ];
 
   __darwinAllowLocalNetworking = true;
 
   enableParallelBuilding = true;
 
-  nativeBuildInputs = [
-    groff
-  ];
+  nativeBuildInputs = [ groff ];
 
-  buildInputs = [
-    (cyrus_sasl.override {
-      inherit openssl;
-    })
-    libsodium
-    libtool
-    openssl
-  ] ++ lib.optionals (stdenv.isLinux) [
-    libxcrypt # causes linking issues on *-darwin
-    systemdMinimal
-  ];
+  buildInputs =
+    [ (cyrus_sasl.override { inherit openssl; }) libsodium libtool openssl ]
+    ++ lib.optionals (stdenv.isLinux) [
+      libxcrypt # causes linking issues on *-darwin
+      systemdMinimal
+    ];
 
-  preConfigure = lib.optionalString (lib.versionAtLeast stdenv.hostPlatform.darwinMinVersion "11") ''
-    MACOSX_DEPLOYMENT_TARGET=10.16
-  '';
+  preConfigure = lib.optionalString
+    (lib.versionAtLeast stdenv.hostPlatform.darwinMinVersion "11") ''
+      MACOSX_DEPLOYMENT_TARGET=10.16
+    '';
 
   configureFlags = [
     "--enable-argon2"
@@ -66,11 +48,11 @@ stdenv.mkDerivation rec {
     "ac_cv_func_memcmp_working=yes"
   ] ++ lib.optional stdenv.isFreeBSD "--with-pic";
 
-  env.NIX_CFLAGS_COMPILE = toString [ "-DLDAPI_SOCK=\"/run/openldap/ldapi\"" ];
+  env.NIX_CFLAGS_COMPILE = toString [ ''-DLDAPI_SOCK="/run/openldap/ldapi"'' ];
 
-  makeFlags= [
+  makeFlags = [
     "CC=${stdenv.cc.targetPrefix}cc"
-    "STRIP="  # Disable install stripping as it breaks cross-compiling. We strip binaries anyway in fixupPhase.
+    "STRIP=" # Disable install stripping as it breaks cross-compiling. We strip binaries anyway in fixupPhase.
     "STRIP_OPTS="
     "prefix=${placeholder "out"}"
     "sysconfdir=/etc"
@@ -133,7 +115,8 @@ stdenv.mkDerivation rec {
 
   meta = with lib; {
     homepage = "https://www.openldap.org/";
-    description = "An open source implementation of the Lightweight Directory Access Protocol";
+    description =
+      "An open source implementation of the Lightweight Directory Access Protocol";
     license = licenses.openldap;
     # maintainers = with maintainers; [ hexa ] ++ teams.helsinki-systems.members;
     platforms = platforms.unix;

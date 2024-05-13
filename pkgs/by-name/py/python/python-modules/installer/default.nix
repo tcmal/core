@@ -1,8 +1,4 @@
-{ lib
-, buildPythonPackage
-, pythonAtLeast
-, fetchFromGitHub
-, flit-core
+{ lib, buildPythonPackage, pythonAtLeast, fetchFromGitHub, flit-core
 # for passthru.tests
 # , installer
 # , mock
@@ -51,9 +47,11 @@ buildPythonPackage rec {
   # };
 
   meta = with lib; {
-    description = "A low-level library for installing a Python package from a wheel distribution";
+    description =
+      "A low-level library for installing a Python package from a wheel distribution";
     homepage = "https://github.com/pypa/installer";
-    changelog = "https://github.com/pypa/installer/blob/${src.rev}/docs/changelog.md";
+    changelog =
+      "https://github.com/pypa/installer/blob/${src.rev}/docs/changelog.md";
     license = licenses.mit;
     # maintainers = teams.python.members ++ [ ];
   };

@@ -1,9 +1,9 @@
-{ stdenv, lib, fetchurl, ghostscript, gyre-fonts, texinfo, imagemagick, texi2html, guile
-, python3, gettext, flex, perl, bison, pkg-config, autoreconfHook, dblatex
-, fontconfig, freetype, pango, fontforge, help2man, zip, netpbm, groff
-, freefont_ttf, makeFontsConf
-, makeWrapper, t1utils, boehmgc, rsync, coreutils
-, texliveSmall, tex ? texliveSmall.withPackages (ps: with ps; [ lh metafont epsf fontinst ])
+{ stdenv, lib, fetchurl, ghostscript, gyre-fonts, texinfo, imagemagick
+, texi2html, guile, python3, gettext, flex, perl, bison, pkg-config
+, autoreconfHook, dblatex, fontconfig, freetype, pango, fontforge, help2man, zip
+, netpbm, groff, freefont_ttf, makeFontsConf, makeWrapper, t1utils, boehmgc
+, rsync, coreutils, texliveSmall
+, tex ? texliveSmall.withPackages (ps: with ps; [ lh metafont epsf fontinst ])
 }:
 
 stdenv.mkDerivation rec {
@@ -11,7 +11,9 @@ stdenv.mkDerivation rec {
   version = "2.24.3";
 
   src = fetchurl {
-    url = "http://lilypond.org/download/sources/v${lib.versions.majorMinor version}/lilypond-${version}.tar.gz";
+    url = "http://lilypond.org/download/sources/v${
+        lib.versions.majorMinor version
+      }/lilypond-${version}.tar.gz";
     sha256 = "sha256-3wBfdu969aTNdKEPjnEVJ4t/p58UAYk3tlwQlJjsRL4=";
   };
 
@@ -21,14 +23,16 @@ stdenv.mkDerivation rec {
         # its Scheme libraries.
         wrapProgram "$f" \
           --set GUILE_AUTO_COMPILE 0 \
-          --set PATH "${lib.makeBinPath [ ghostscript coreutils (placeholder "out") ]}" \
+          --set PATH "${
+            lib.makeBinPath [ ghostscript coreutils (placeholder "out") ]
+          }" \
           --argv0 "$f"
     done
   '';
 
   configureFlags = [
     "--disable-documentation"
-     # FIXME: these URW fonts are not OTF, configure reports "URW++ OTF files... no".
+    # FIXME: these URW fonts are not OTF, configure reports "URW++ OTF files... no".
     "--with-urwotf-dir=${ghostscript}/share/ghostscript/fonts"
     "--with-texgyre-dir=${gyre-fonts}/share/fonts/truetype/"
   ];
@@ -40,11 +44,29 @@ stdenv.mkDerivation rec {
 
   nativeBuildInputs = [ autoreconfHook bison flex makeWrapper pkg-config ];
 
-  buildInputs =
-    [ ghostscript texinfo imagemagick texi2html guile dblatex tex zip netpbm
-      python3 gettext perl fontconfig freetype pango
-      fontforge help2man groff t1utils boehmgc rsync
-    ];
+  buildInputs = [
+    ghostscript
+    texinfo
+    imagemagick
+    texi2html
+    guile
+    dblatex
+    tex
+    zip
+    netpbm
+    python3
+    gettext
+    perl
+    fontconfig
+    freetype
+    pango
+    fontforge
+    help2man
+    groff
+    t1utils
+    boehmgc
+    rsync
+  ];
 
   autoreconfPhase = "NOCONFIGURE=1 sh autogen.sh";
 
@@ -63,7 +85,6 @@ stdenv.mkDerivation rec {
     platforms = platforms.all;
   };
 
-  FONTCONFIG_FILE = lib.optional stdenv.isDarwin (makeFontsConf {
-    fontDirectories = [ freefont_ttf ];
-  });
+  FONTCONFIG_FILE = lib.optional stdenv.isDarwin
+    (makeFontsConf { fontDirectories = [ freefont_ttf ]; });
 }

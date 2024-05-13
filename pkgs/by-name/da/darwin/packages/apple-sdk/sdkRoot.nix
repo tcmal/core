@@ -1,9 +1,4 @@
-{
-  lib,
-  runCommand,
-  writeText,
-  sdkVersion,
-}:
+{ lib, runCommand, writeText, sdkVersion, }:
 
 let
   sdkName = "MacOSX${sdkVersion}";
@@ -21,25 +16,30 @@ let
     isBaseSDK = "YES";
   };
 
-  SystemVersion =
-    lib.optionalAttrs (productBuildVer != null) { ProductBuildVersion = productBuildVer; }
-    // {
-      ProductName = "macOS";
-      ProductVersion = sdkVersion;
-    };
-in
-runCommand "sdkroot-${sdkVersion}" { } ''
+  SystemVersion = lib.optionalAttrs (productBuildVer != null) {
+    ProductBuildVersion = productBuildVer;
+  } // {
+    ProductName = "macOS";
+    ProductVersion = sdkVersion;
+  };
+in runCommand "sdkroot-${sdkVersion}" { } ''
   sdk="$out/${sdkName}.sdk"
 
-  install -D ${writeText "SDKSettings.plist" (toPlist { } SDKSettings)} "$sdk/SDKSettings.plist"
-  install -D ${writeText "SDKSettings.json" (toJSON { } SDKSettings)} "$sdk/SDKSettings.json"
+  install -D ${
+    writeText "SDKSettings.plist" (toPlist { } SDKSettings)
+  } "$sdk/SDKSettings.plist"
+  install -D ${
+    writeText "SDKSettings.json" (toJSON { } SDKSettings)
+  } "$sdk/SDKSettings.json"
   install -D ${
     writeText "SystemVersion.plist" (toPlist { } SystemVersion)
   } "$sdk/System/Library/CoreServices/SystemVersion.plist"
 
   ln -s "$sdk" "$sdk/usr"
 
-  install -D '${../../../build-support/setup-hooks/role.bash}' "$out/nix-support/setup-hook"
+  install -D '${
+    ../../../build-support/setup-hooks/role.bash
+  }' "$out/nix-support/setup-hook"
   cat >> "$out/nix-support/setup-hook" <<-hook
   #
   # See comments in cc-wrapper's setup hook. This works exactly the same way.

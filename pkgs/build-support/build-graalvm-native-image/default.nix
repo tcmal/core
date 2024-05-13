@@ -1,30 +1,21 @@
-{ lib
-, stdenv
-, glibcLocales
-  # The GraalVM derivation to use
-, graalvmDrv
-, removeReferencesTo
-, executable ? args.pname
+{ lib, stdenv, glibcLocales
+# The GraalVM derivation to use
+, graalvmDrv, removeReferencesTo, executable ? args.pname
   # JAR used as input for GraalVM derivation, defaults to src
-, jar ? args.src
-, dontUnpack ? (jar == args.src)
-  # Default native-image arguments. You probably don't want to set this,
-  # except in special cases. In most cases, use extraNativeBuildArgs instead
+, jar ? args.src, dontUnpack ? (jar == args.src)
+# Default native-image arguments. You probably don't want to set this,
+# except in special cases. In most cases, use extraNativeBuildArgs instead
 , nativeImageBuildArgs ? [
-    (lib.optionalString stdenv.isDarwin "-H:-CheckToolchain")
-    (lib.optionalString (stdenv.isLinux && stdenv.isAarch64) "-H:PageSize=64K")
-    "-H:Name=${executable}"
-    "-march=compatibility"
-    "--verbose"
-  ]
-  # Extra arguments to be passed to the native-image
+  (lib.optionalString stdenv.isDarwin "-H:-CheckToolchain")
+  (lib.optionalString (stdenv.isLinux && stdenv.isAarch64) "-H:PageSize=64K")
+  "-H:Name=${executable}"
+  "-march=compatibility"
+  "--verbose"
+]
+# Extra arguments to be passed to the native-image
 , extraNativeImageBuildArgs ? [ ]
   # XMX size of GraalVM during build
-, graalvmXmx ? "-J-Xmx6g"
-, meta ? { }
-, LC_ALL ? "en_US.UTF-8"
-, ...
-} @ args:
+, graalvmXmx ? "-J-Xmx6g", meta ? { }, LC_ALL ? "en_US.UTF-8", ... }@args:
 
 let
   extraArgs = builtins.removeAttrs args [
@@ -40,15 +31,16 @@ let
     "installPhase"
     "postInstall"
   ];
-in
-stdenv.mkDerivation ({
+in stdenv.mkDerivation ({
   inherit dontUnpack jar;
 
   env = { inherit LC_ALL; };
 
-  nativeBuildInputs = (args.nativeBuildInputs or [ ]) ++ [ graalvmDrv glibcLocales removeReferencesTo ];
+  nativeBuildInputs = (args.nativeBuildInputs or [ ])
+    ++ [ graalvmDrv glibcLocales removeReferencesTo ];
 
-  nativeImageBuildArgs = nativeImageBuildArgs ++ extraNativeImageBuildArgs ++ [ graalvmXmx ];
+  nativeImageBuildArgs = nativeImageBuildArgs ++ extraNativeImageBuildArgs
+    ++ [ graalvmXmx ];
 
   buildPhase = args.buildPhase or ''
     runHook preBuild

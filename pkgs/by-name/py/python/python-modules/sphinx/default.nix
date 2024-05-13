@@ -1,38 +1,16 @@
-{ lib
-, buildPythonPackage
-, pythonAtLeast
-, pythonOlder
-, fetchFromGitHub
-, isPyPy
+{ lib, buildPythonPackage, pythonAtLeast, pythonOlder, fetchFromGitHub, isPyPy
 
 # nativeBuildInputs
 , flit-core
 
 # propagatedBuildInputs
-, babel
-, alabaster
-, docutils
-, imagesize
-, importlib-metadata
-, jinja2
-, packaging
-, pygments
-, requests
-, snowballstemmer
-, sphinxcontrib-applehelp
-, sphinxcontrib-devhelp
-, sphinxcontrib-htmlhelp
-, sphinxcontrib-jsmath
-, sphinxcontrib-qthelp
-, sphinxcontrib-serializinghtml
-, sphinxcontrib-websupport
+, babel, alabaster, docutils, imagesize, importlib-metadata, jinja2, packaging
+, pygments, requests, snowballstemmer, sphinxcontrib-applehelp
+, sphinxcontrib-devhelp, sphinxcontrib-htmlhelp, sphinxcontrib-jsmath
+, sphinxcontrib-qthelp, sphinxcontrib-serializinghtml, sphinxcontrib-websupport
 
 # check phase
-, filelock
-, html5lib
-, pytestCheckHook
-, pytest-xdist
-}:
+, filelock, html5lib, pytestCheckHook, pytest-xdist }:
 
 buildPythonPackage rec {
   pname = "sphinx";
@@ -54,9 +32,7 @@ buildPythonPackage rec {
     hash = "sha256-IjpRGeGpGfzrEvwIKtuu2l1S74w8W+AbqDOGnWwtRck=";
   };
 
-  nativeBuildInputs = [
-    flit-core
-  ];
+  nativeBuildInputs = [ flit-core ];
 
   propagatedBuildInputs = [
     alabaster
@@ -76,18 +52,11 @@ buildPythonPackage rec {
     sphinxcontrib-serializinghtml
     # extra[docs]
     sphinxcontrib-websupport
-  ] ++ lib.optionals (pythonOlder "3.10") [
-    importlib-metadata
-  ];
+  ] ++ lib.optionals (pythonOlder "3.10") [ importlib-metadata ];
 
   __darwinAllowLocalNetworking = true;
 
-  nativeCheckInputs = [
-    filelock
-    html5lib
-    pytestCheckHook
-    pytest-xdist
-  ];
+  nativeCheckInputs = [ filelock html5lib pytestCheckHook pytest-xdist ];
 
   preCheck = ''
     export HOME=$TMPDIR

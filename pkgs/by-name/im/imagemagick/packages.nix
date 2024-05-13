@@ -1,8 +1,7 @@
 { ... }:
 res: pkgs: super:
 
-with pkgs;
-{
+with pkgs; {
   imagemagick6_light = imagemagick6.override {
     bzip2Support = false;
     zlibSupport = false;
@@ -30,9 +29,7 @@ with pkgs;
     inherit (darwin.apple_sdk.frameworks) ApplicationServices Foundation;
   };
 
-  imagemagick6Big = imagemagick6.override {
-    ghostscriptSupport = true;
-  };
+  imagemagick6Big = imagemagick6.override { ghostscriptSupport = true; };
 
   imagemagick_light = lowPrio (imagemagick.override {
     bzip2Support = false;
@@ -60,7 +57,6 @@ with pkgs;
     inherit (darwin.apple_sdk.frameworks) ApplicationServices Foundation;
   });
 
-  imagemagickBig = lowPrio (imagemagick.override {
-    ghostscriptSupport = true;
-  });
+  imagemagickBig =
+    lowPrio (imagemagick.override { ghostscriptSupport = true; });
 }

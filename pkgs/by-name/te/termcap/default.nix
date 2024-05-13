@@ -1,11 +1,6 @@
-{ lib
-, stdenv
-, fetchurl
-, fetchpatch
-, autoreconfHook
+{ lib, stdenv, fetchurl, fetchpatch, autoreconfHook
 , enableStatic ? stdenv.hostPlatform.isStatic
-, enableShared ? !stdenv.hostPlatform.isStatic
-}:
+, enableShared ? !stdenv.hostPlatform.isStatic }:
 
 stdenv.mkDerivation rec {
   pname = "termcap";
@@ -19,7 +14,8 @@ stdenv.mkDerivation rec {
   patches = [
     (fetchpatch {
       name = "0001-tparam-replace-write-with-fprintf.patch";
-      url = "https://github.com/msys2/MINGW-packages/raw/c6691ad1bd9d4c6823a18068ca0683c3e32ea005/mingw-w64-termcap/0001-tparam-replace-write-with-fprintf.patch";
+      url =
+        "https://github.com/msys2/MINGW-packages/raw/c6691ad1bd9d4c6823a18068ca0683c3e32ea005/mingw-w64-termcap/0001-tparam-replace-write-with-fprintf.patch";
       hash = "sha256-R9XaLfa8fzQBt+M+uA1AFTvKYCeOWLUD/7GViazXwto=";
     })
   ];
@@ -32,15 +28,11 @@ stdenv.mkDerivation rec {
 
   nativeBuildInputs = [ autoreconfHook ];
 
-  makeFlags = [
-    "AR=${stdenv.cc.targetPrefix}ar"
-  ];
+  makeFlags = [ "AR=${stdenv.cc.targetPrefix}ar" ];
 
-  env.NIX_CFLAGS_COMPILE = toString ([
-    "-DSTDC_HEADERS"
-  ] ++ lib.optionals stdenv.cc.isClang [
-    "-Wno-implicit-function-declaration"
-  ]);
+  env.NIX_CFLAGS_COMPILE = toString ([ "-DSTDC_HEADERS" ]
+    ++ lib.optionals stdenv.cc.isClang
+    [ "-Wno-implicit-function-declaration" ]);
 
   # Library only statically links by default
   postInstall = lib.optionalString (!enableStatic) ''

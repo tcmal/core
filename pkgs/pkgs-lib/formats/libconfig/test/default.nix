@@ -1,4 +1,1 @@
-{ pkgs, ... }:
-{
-  comprehensive = pkgs.callPackage ./comprehensive { };
-}
+{ pkgs, ... }: { comprehensive = pkgs.callPackage ./comprehensive { }; }

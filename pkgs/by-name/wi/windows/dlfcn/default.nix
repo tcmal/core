@@ -15,7 +15,8 @@ stdenv.mkDerivation rec {
 
   meta = with lib; {
     homepage = "https://github.com/dlfcn-win32/dlfcn-win32";
-    description = "Set of functions that allows runtime dynamic library loading";
+    description =
+      "Set of functions that allows runtime dynamic library loading";
     license = licenses.mit;
     platforms = platforms.windows;
     maintainers = with maintainers; [ marius851000 ];

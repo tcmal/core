@@ -1,8 +1,7 @@
 { ... }:
 res: pkgs: super:
 
-with pkgs;
-{
+with pkgs; {
   isl = isl_0_20;
   isl_0_11 = callPackage ./0.11.1.nix { };
   isl_0_14 = callPackage ./0.14.1.nix { };

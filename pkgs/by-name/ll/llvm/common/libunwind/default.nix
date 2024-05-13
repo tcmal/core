@@ -1,22 +1,10 @@
-{ lib
-, stdenv
-, release_version
-, patches ? []
-, src ? null
-, llvm_meta
-, version
-, monorepoSrc ? null
-, runCommand
-, cmake
-, ninja
-, python3
-, libcxx
-, enableShared ? !stdenv.hostPlatform.isStatic
-}:
+{ lib, stdenv, release_version, patches ? [ ], src ? null, llvm_meta, version
+, monorepoSrc ? null, runCommand, cmake, ninja, python3, libcxx
+, enableShared ? !stdenv.hostPlatform.isStatic }:
 let
   pname = "libunwind";
   src' = if monorepoSrc != null then
-    runCommand "${pname}-src-${version}" {} (''
+    runCommand "${pname}-src-${version}" { } (''
       mkdir -p "$out"
       cp -r ${monorepoSrc}/cmake "$out"
       cp -r ${monorepoSrc}/${pname} "$out"
@@ -28,46 +16,56 @@ let
     '' + lib.optionalString (lib.versionAtLeast release_version "15") ''
       cp -r ${monorepoSrc}/llvm/utils "$out/llvm"
       cp -r ${monorepoSrc}/runtimes "$out"
-    '') else src;
+    '')
+  else
+    src;
 
   hasPatches = builtins.length patches > 0;
 
-  postUnpack = lib.optionalString (lib.versions.major release_version == "12") ''
-    ln -s ${libcxx.src}/libcxx .
-    ln -s ${libcxx.src}/llvm .
-  '';
+  postUnpack =
+    lib.optionalString (lib.versions.major release_version == "12") ''
+      ln -s ${libcxx.src}/libcxx .
+      ln -s ${libcxx.src}/llvm .
+    '';
 
-  prePatch = lib.optionalString (lib.versionAtLeast release_version "15" && (hasPatches || lib.versionOlder release_version "18")) ''
-    cd ../${pname}
-    chmod -R u+w .
-  '';
+  prePatch = lib.optionalString (lib.versionAtLeast release_version "15"
+    && (hasPatches || lib.versionOlder release_version "18")) ''
+      cd ../${pname}
+      chmod -R u+w .
+    '';
 
-  postPatch = lib.optionalString (lib.versionAtLeast release_version "15" && (hasPatches || lib.versionOlder release_version "18")) ''
-    cd ../runtimes
-  '';
+  postPatch = lib.optionalString (lib.versionAtLeast release_version "15"
+    && (hasPatches || lib.versionOlder release_version "18")) ''
+      cd ../runtimes
+    '';
 
-  postInstall = lib.optionalString (enableShared && !stdenv.hostPlatform.isDarwin) ''
-    # libcxxabi wants to link to libunwind_shared.so (?).
-    ln -s $out/lib/libunwind.so $out/lib/libunwind_shared.so
-  '';
-in
-stdenv.mkDerivation (rec {
+  postInstall =
+    lib.optionalString (enableShared && !stdenv.hostPlatform.isDarwin) ''
+      # libcxxabi wants to link to libunwind_shared.so (?).
+      ln -s $out/lib/libunwind.so $out/lib/libunwind_shared.so
+    '';
+in stdenv.mkDerivation (rec {
   inherit pname version patches;
 
   src = src';
 
-  sourceRoot =
-    if lib.versionOlder release_version "13" then null
-    else if lib.versionAtLeast release_version "15" then "${src.name}/runtimes"
-    else "${src.name}/${pname}";
+  sourceRoot = if lib.versionOlder release_version "13" then
+    null
+  else if lib.versionAtLeast release_version "15" then
+    "${src.name}/runtimes"
+  else
+    "${src.name}/${pname}";
 
   outputs = [ "out" "dev" ];
 
-  nativeBuildInputs = [ cmake ] ++ lib.optionals (lib.versionAtLeast release_version "15") [
-    ninja python3
-  ];
+  nativeBuildInputs = [ cmake ]
+    ++ lib.optionals (lib.versionAtLeast release_version "15") [
+      ninja
+      python3
+    ];
 
-  cmakeFlags = lib.optional (lib.versionAtLeast release_version "15") "-DLLVM_ENABLE_RUNTIMES=libunwind"
+  cmakeFlags = lib.optional (lib.versionAtLeast release_version "15")
+    "-DLLVM_ENABLE_RUNTIMES=libunwind"
     ++ lib.optional (!enableShared) "-DLIBUNWIND_ENABLE_SHARED=OFF";
 
   meta = llvm_meta // {
@@ -81,7 +79,9 @@ stdenv.mkDerivation (rec {
       dependency of other runtimes.
     '';
   };
-} // (if postUnpack != "" then { inherit postUnpack; } else {})
-  // (if (lib.versionAtLeast release_version "15") then { inherit postInstall; } else {})
-  // (if prePatch != "" then { inherit prePatch; } else {})
-  // (if postPatch != "" then { inherit postPatch; } else {}))
+} // (if postUnpack != "" then { inherit postUnpack; } else { })
+  // (if (lib.versionAtLeast release_version "15") then {
+    inherit postInstall;
+  } else
+    { }) // (if prePatch != "" then { inherit prePatch; } else { })
+  // (if postPatch != "" then { inherit postPatch; } else { }))

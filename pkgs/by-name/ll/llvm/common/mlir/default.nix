@@ -1,20 +1,13 @@
-{ lib, stdenv, llvm_meta
-, buildLlvmTools
-, monorepoSrc, runCommand
-, cmake
-, ninja
-, libxml2
-, libllvm
-, version
-, doCheck ? (!stdenv.isx86_32 /* TODO: why */) && (!stdenv.hostPlatform.isMusl)
-}:
+{ lib, stdenv, llvm_meta, buildLlvmTools, monorepoSrc, runCommand, cmake, ninja
+, libxml2, libllvm, version, doCheck ? (!stdenv.isx86_32 # TODO: why
+) && (!stdenv.hostPlatform.isMusl) }:
 
 stdenv.mkDerivation rec {
   pname = "mlir";
   inherit version doCheck;
 
   # Blank llvm dir just so relative path works
-  src = runCommand "${pname}-src-${version}" {} ''
+  src = runCommand "${pname}-src-${version}" { } ''
     mkdir -p "$out"
     cp -r ${monorepoSrc}/cmake "$out"
     cp -r ${monorepoSrc}/mlir "$out"
@@ -25,19 +18,11 @@ stdenv.mkDerivation rec {
 
   sourceRoot = "${src.name}/mlir";
 
-  patches = [
-    ./gnu-install-dirs.patch
-  ];
+  patches = [ ./gnu-install-dirs.patch ];
 
-  nativeBuildInputs = [
-    cmake
-    ninja
-  ];
+  nativeBuildInputs = [ cmake ninja ];
 
-  buildInputs = [
-    libllvm
-    libxml2
-  ];
+  buildInputs = [ libllvm libxml2 ];
 
   cmakeFlags = [
     "-DLLVM_BUILD_TOOLS=ON"
@@ -56,10 +41,11 @@ stdenv.mkDerivation rec {
     "-DLLVM_ENABLE_PIC=OFF"
     "-DLLVM_BUILD_STATIC=ON"
     "-DLLVM_LINK_LLVM_DYLIB=OFF"
-  ] ++ lib.optionals ((stdenv.hostPlatform != stdenv.buildPlatform) && !(stdenv.buildPlatform.canExecute stdenv.hostPlatform)) [
-    "-DLLVM_TABLEGEN_EXE=${buildLlvmTools.llvm}/bin/llvm-tblgen"
-    "-DMLIR_TABLEGEN_EXE=${buildLlvmTools.mlir}/bin/mlir-tblgen"
-  ];
+  ] ++ lib.optionals ((stdenv.hostPlatform != stdenv.buildPlatform)
+    && !(stdenv.buildPlatform.canExecute stdenv.hostPlatform)) [
+      "-DLLVM_TABLEGEN_EXE=${buildLlvmTools.llvm}/bin/llvm-tblgen"
+      "-DMLIR_TABLEGEN_EXE=${buildLlvmTools.mlir}/bin/mlir-tblgen"
+    ];
 
   outputs = [ "out" "dev" ];
 

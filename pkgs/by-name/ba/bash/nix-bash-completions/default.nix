@@ -14,7 +14,8 @@ stdenv.mkDerivation rec {
   patches = [
     # Fix improper escaping: https://github.com/NixOS/nixpkgs/issues/284162
     (fetchpatch {
-      url = "https://github.com/hedning/nix-bash-completions/pull/28/commits/ef2055aa28754fa9e009bbfebc1491972e4f4e67.patch";
+      url =
+        "https://github.com/hedning/nix-bash-completions/pull/28/commits/ef2055aa28754fa9e009bbfebc1491972e4f4e67.patch";
       hash = "sha256-TRkHrk7bX7DX0COzzYR+1pgTqLy7J55BcejNjRwthII=";
     })
   ];

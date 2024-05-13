@@ -1,36 +1,21 @@
-{ stdenv
-, fetchurl
-, jq
-, strip-nondeterminism
-, unzip
-, writeScript
-, zip
-}:
+{ stdenv, fetchurl, jq, strip-nondeterminism, unzip, writeScript, zip }:
 
-{ name
-, url ? null
-, sha1 ? ""
-, sha256 ? ""
-, sha512 ? ""
-, fixedExtid ? null
-, hash ? ""
-, src ? ""
-}:
+{ name, url ? null, sha1 ? "", sha256 ? "", sha512 ? "", fixedExtid ? null
+, hash ? "", src ? "" }:
 
 let
   extid = if fixedExtid == null then "nixos@${name}" else fixedExtid;
-  source = if url == null then src else
-  fetchurl {
-    url = url;
-    inherit sha1 sha256 sha512 hash;
-  };
-in
-stdenv.mkDerivation {
+  source = if url == null then
+    src
+  else
+    fetchurl {
+      url = url;
+      inherit sha1 sha256 sha512 hash;
+    };
+in stdenv.mkDerivation {
   inherit name;
 
-  passthru = {
-    inherit extid;
-  };
+  passthru = { inherit extid; };
 
   builder = writeScript "xpibuilder" ''
     source $stdenv/setup
@@ -48,10 +33,5 @@ stdenv.mkDerivation {
     rm -r "$out/$UUID"
   '';
 
-  nativeBuildInputs = [
-    jq
-    strip-nondeterminism
-    unzip
-    zip
-  ];
+  nativeBuildInputs = [ jq strip-nondeterminism unzip zip ];
 }

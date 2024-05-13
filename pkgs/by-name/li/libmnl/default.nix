@@ -5,12 +5,14 @@ stdenv.mkDerivation rec {
   version = "1.0.5";
 
   src = fetchurl {
-    url = "https://netfilter.org/projects/libmnl/files/${pname}-${version}.tar.bz2";
+    url =
+      "https://netfilter.org/projects/libmnl/files/${pname}-${version}.tar.bz2";
     sha256 = "09851ns07399rbz0y8slrlmnw3fn1nakr8d37pxjn5gkks8rnjr7";
   };
 
   meta = {
-    description = "Minimalistic user-space library oriented to Netlink developers";
+    description =
+      "Minimalistic user-space library oriented to Netlink developers";
     longDescription = ''
       libmnl is a minimalistic user-space library oriented to Netlink developers.
       There are a lot of common tasks in parsing, validating, constructing of both the Netlink

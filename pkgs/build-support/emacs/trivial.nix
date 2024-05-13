@@ -25,4 +25,4 @@ callPackage ./generic.nix envargs ({
   '';
 }
 
-// args)
+  // args)

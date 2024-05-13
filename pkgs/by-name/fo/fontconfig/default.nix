@@ -1,15 +1,5 @@
-{ stdenv
-, lib
-, fetchurl
-, pkg-config
-, python3
-, freetype
-, expat
-, libxslt
-, gperf
-, dejavu_fonts
-, autoreconfHook
-, CoreFoundation
+{ stdenv, lib, fetchurl, pkg-config, python3, freetype, expat, libxslt, gperf
+, dejavu_fonts, autoreconfHook, CoreFoundation
 # for passthru.tests
 # , testers
 }:
@@ -21,25 +11,16 @@ stdenv.mkDerivation (finalAttrs: {
   outputs = [ "bin" "dev" "lib" "out" ]; # $out contains all the config
 
   src = fetchurl {
-    url = with finalAttrs; "https://www.freedesktop.org/software/fontconfig/release/${pname}-${version}.tar.xz";
+    url = with finalAttrs;
+      "https://www.freedesktop.org/software/fontconfig/release/${pname}-${version}.tar.xz";
     hash = "sha256-Y6BljQ4G4PqIYQZFK1jvBPIfWCAuoCqUw53g0zNdfA4=";
   };
 
-  nativeBuildInputs = [
-    autoreconfHook
-    gperf
-    libxslt
-    pkg-config
-    python3
-  ];
+  nativeBuildInputs = [ autoreconfHook gperf libxslt pkg-config python3 ];
 
-  buildInputs = [
-    expat
-  ] ++ lib.optional stdenv.isDarwin CoreFoundation;
+  buildInputs = [ expat ] ++ lib.optional stdenv.isDarwin CoreFoundation;
 
-  propagatedBuildInputs = [
-    freetype
-  ];
+  propagatedBuildInputs = [ freetype ];
 
   postPatch = ''
     # Requires networking.
@@ -52,9 +33,8 @@ stdenv.mkDerivation (finalAttrs: {
     "--with-cache-dir=/var/cache/fontconfig" # otherwise the fallback is in $out/
     # just <1MB; this is what you get when loading config fails for some reason
     "--with-default-fonts=${dejavu_fonts.minimal}"
-  ] ++ lib.optionals (stdenv.hostPlatform != stdenv.buildPlatform) [
-    "--with-arch=${stdenv.hostPlatform.parsed.cpu.name}"
-  ];
+  ] ++ lib.optionals (stdenv.hostPlatform != stdenv.buildPlatform)
+    [ "--with-arch=${stdenv.hostPlatform.parsed.cpu.name}" ];
 
   enableParallelBuilding = true;
 

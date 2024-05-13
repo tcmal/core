@@ -1,8 +1,7 @@
 { ... }:
 res: pkgs: super:
 
-with pkgs;
-{
+with pkgs; {
   util-linux = callPackage ./. { };
   util-linuxMinimal = util-linux.override {
     nlsSupport = false;
@@ -11,8 +10,5 @@ with pkgs;
     translateManpages = false;
   };
 
-  libuuid =
-    if stdenv.isLinux
-    then util-linuxMinimal
-    else null;
+  libuuid = if stdenv.isLinux then util-linuxMinimal else null;
 }

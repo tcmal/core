@@ -1,20 +1,20 @@
-{ lib, mkDerivation
-, bsdSetupHook, netbsdSetupHook
-, makeMinimal
-, install, mandoc, groff, rsync, nbperf, rpcgen
-, common
-, defaultMakeFlags
-, stdenv
-}:
+{ lib, mkDerivation, bsdSetupHook, netbsdSetupHook, makeMinimal, install, mandoc
+, groff, rsync, nbperf, rpcgen, common, defaultMakeFlags, stdenv }:
 
 mkDerivation {
   path = "include";
   version = "9.2";
   sha256 = "0nxnmj4c8s3hb9n3fpcmd0zl3l1nmhivqgi9a35sis943qvpgl9h";
   nativeBuildInputs = [
-    bsdSetupHook netbsdSetupHook
+    bsdSetupHook
+    netbsdSetupHook
     makeMinimal
-    install mandoc groff rsync nbperf rpcgen
+    install
+    mandoc
+    groff
+    rsync
+    nbperf
+    rpcgen
   ];
 
   # The makefiles define INCSDIR per subdirectory, so we have to set

@@ -1,21 +1,8 @@
-{ stdenv
-, lib
-, fetchurl
-, pkg-config
-, expat
+{ stdenv, lib, fetchurl, pkg-config, expat
 , enableSystemd ? lib.meta.availableOn stdenv.hostPlatform systemdMinimal
-, systemdMinimal
-, audit
-, libapparmor
-, dbus
-, docbook_xml_dtd_44
-, docbook-xsl-nons
-, xmlto
-, autoreconfHook
-, autoconf-archive
-, x11Support ? (stdenv.isLinux || stdenv.isDarwin)
-, xorg
-}:
+, systemdMinimal, audit, libapparmor, dbus, docbook_xml_dtd_44, docbook-xsl-nons
+, xmlto, autoreconfHook, autoconf-archive
+, x11Support ? (stdenv.isLinux || stdenv.isDarwin), xorg }:
 
 stdenv.mkDerivation rec {
   pname = "dbus";
@@ -35,12 +22,13 @@ stdenv.mkDerivation rec {
     substituteInPlace tools/Makefile.am \
       --replace 'install-data-local:' 'disabled:' \
       --replace 'installcheck-local:' 'disabled:'
-  '' + /* cleanup of runtime references */ ''
-    substituteInPlace ./dbus/dbus-sysdeps-unix.c \
-      --replace 'DBUS_BINDIR "/dbus-launch"' "\"$lib/bin/dbus-launch\""
-    substituteInPlace ./tools/dbus-launch.c \
-      --replace 'DBUS_DAEMONDIR"/dbus-daemon"' '"/run/current-system/sw/bin/dbus-daemon"'
-  '';
+  '' + # cleanup of runtime references
+    ''
+      substituteInPlace ./dbus/dbus-sysdeps-unix.c \
+        --replace 'DBUS_BINDIR "/dbus-launch"' "\"$lib/bin/dbus-launch\""
+      substituteInPlace ./tools/dbus-launch.c \
+        --replace 'DBUS_DAEMONDIR"/dbus-daemon"' '"/run/current-system/sw/bin/dbus-daemon"'
+    '';
 
   outputs = [ "out" "dev" "lib" "doc" "man" ];
   separateDebugInfo = true;
@@ -55,16 +43,10 @@ stdenv.mkDerivation rec {
     xmlto
   ];
 
-  propagatedBuildInputs = [
-    expat
-  ];
+  propagatedBuildInputs = [ expat ];
 
-  buildInputs =
-    lib.optionals x11Support (with xorg; [
-      libX11
-      libICE
-      libSM
-    ]) ++ lib.optional enableSystemd systemdMinimal
+  buildInputs = lib.optionals x11Support (with xorg; [ libX11 libICE libSM ])
+    ++ lib.optional enableSystemd systemdMinimal
     ++ lib.optionals stdenv.isLinux [ audit libapparmor ];
   # ToDo: optional selinux?
 
@@ -84,8 +66,9 @@ stdenv.mkDerivation rec {
     "--with-systemdsystemunitdir=${placeholder "out"}/etc/systemd/system"
     "--with-systemduserunitdir=${placeholder "out"}/etc/systemd/user"
   ] ++ lib.optional (!x11Support) "--without-x"
-  ++ lib.optionals stdenv.isLinux [ "--enable-apparmor" "--enable-libaudit" ]
-  ++ lib.optionals enableSystemd [ "SYSTEMCTL=${systemdMinimal}/bin/systemctl" ];
+    ++ lib.optionals stdenv.isLinux [ "--enable-apparmor" "--enable-libaudit" ]
+    ++ lib.optionals enableSystemd
+    [ "SYSTEMCTL=${systemdMinimal}/bin/systemctl" ];
 
   NIX_CFLAGS_LINK = lib.optionalString (!stdenv.isDarwin) "-Wl,--as-needed";
 
@@ -109,14 +92,13 @@ stdenv.mkDerivation rec {
     ln -s "$lib/bin/dbus-launch" "$out/bin/"
   '';
 
-  passthru = {
-    dbus-launch = "${dbus.lib}/bin/dbus-launch";
-  };
+  passthru = { dbus-launch = "${dbus.lib}/bin/dbus-launch"; };
 
   meta = with lib; {
     description = "Simple interprocess messaging system";
     homepage = "https://www.freedesktop.org/wiki/Software/dbus/";
-    changelog = "https://gitlab.freedesktop.org/dbus/dbus/-/blob/dbus-${version}/NEWS";
+    changelog =
+      "https://gitlab.freedesktop.org/dbus/dbus/-/blob/dbus-${version}/NEWS";
     license = licenses.gpl2Plus; # most is also under AFL-2.1
     # maintainers = teams.freedesktop.members ++ (with maintainers; [ ]);
     platforms = platforms.unix;

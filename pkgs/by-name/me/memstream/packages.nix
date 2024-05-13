@@ -1,8 +1,7 @@
 { ... }:
 res: pkgs: super:
 
-with pkgs;
-{
+with pkgs; {
   memstream = callPackage ./. { };
   memstreamHook = makeSetupHook {
     name = "memstream-hook";

@@ -9,8 +9,7 @@ let
     rev = version;
     hash = "sha256-ldus/9ghqAMB7A+NrHiCQm7saCdIpqzufGCLxWRhYKU=";
   };
-in
-python3.pkgs.buildPythonApplication {
+in python3.pkgs.buildPythonApplication {
   inherit pname version src;
 
   outputs = [ "out" "man" ];

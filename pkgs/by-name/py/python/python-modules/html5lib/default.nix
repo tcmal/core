@@ -1,13 +1,5 @@
-{ lib
-, buildPythonPackage
-, fetchPypi
-, fetchpatch
-, six
-, webencodings
-, mock
-, pytest-expect
-, pytestCheckHook
-}:
+{ lib, buildPythonPackage, fetchPypi, fetchpatch, six, webencodings, mock
+, pytest-expect, pytestCheckHook }:
 
 buildPythonPackage rec {
   pname = "html5lib";
@@ -23,23 +15,17 @@ buildPythonPackage rec {
     # Fix compatibility with pytest 6.
     # Will be included in the next release after 1.1.
     (fetchpatch {
-      url = "https://github.com/html5lib/html5lib-python/commit/2c19b9899ab3a3e8bd0ca35e5d78544334204169.patch";
+      url =
+        "https://github.com/html5lib/html5lib-python/commit/2c19b9899ab3a3e8bd0ca35e5d78544334204169.patch";
       hash = "sha256-VGCeB6o2QO/skeCZs8XLPfgEYVOSRL8cCpG7ajbZWEs=";
     })
   ];
 
-  propagatedBuildInputs = [
-    six
-    webencodings
-  ];
+  propagatedBuildInputs = [ six webencodings ];
 
   # latest release not compatible with pytest 6
   doCheck = false;
-  nativeCheckInputs = [
-    mock
-    pytest-expect
-    pytestCheckHook
-  ];
+  nativeCheckInputs = [ mock pytest-expect pytestCheckHook ];
 
   meta = {
     homepage = "https://github.com/html5lib/html5lib-python";

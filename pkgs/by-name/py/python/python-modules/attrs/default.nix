@@ -1,10 +1,4 @@
-{ lib
-, callPackage
-, buildPythonPackage
-, fetchPypi
-, pythonOlder
-, hatchling
-}:
+{ lib, callPackage, buildPythonPackage, fetchPypi, pythonOlder, hatchling }:
 
 buildPythonPackage rec {
   pname = "attrs";
@@ -26,14 +20,9 @@ buildPythonPackage rec {
     substituteAllInPlace pyproject.toml
   '';
 
-  nativeBuildInputs = [
-    hatchling
-  ];
+  nativeBuildInputs = [ hatchling ];
 
-  outputs = [
-    "out"
-    "testout"
-  ];
+  outputs = [ "out" "testout" ];
 
   postInstall = ''
     # Install tests as the tests output.
@@ -41,17 +30,13 @@ buildPythonPackage rec {
     cp -R conftest.py tests $testout
   '';
 
-  pythonImportsCheck = [
-    "attr"
-  ];
+  pythonImportsCheck = [ "attr" ];
 
   # pytest depends on attrs, so we can't do this out-of-the-box.
   # Instead, we do this as a passthru.tests test.
   doCheck = false;
 
-  passthru.tests = {
-    pytest = callPackage ./tests.nix { };
-  };
+  passthru.tests = { pytest = callPackage ./tests.nix { }; };
 
   meta = with lib; {
     description = "Python attributes without boilerplate";

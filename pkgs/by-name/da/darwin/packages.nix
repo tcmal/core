@@ -1,8 +1,7 @@
 { ... }:
 res: pkgs: super:
 
-with pkgs;
-{
+with pkgs; {
   # Darwin package set
   #
   # Even though this is a set of packages not single package, use `callPackage`

@@ -17,28 +17,32 @@ stdenv.mkDerivation rec {
   outputs = [ "out" "info" ];
 
   nativeBuildInputs = [ (lib.getBin xz) ];
-  /* If no explicit coreutils is given, use the one from stdenv. */
+  # If no explicit coreutils is given, use the one from stdenv.
   buildInputs = [ coreutils ];
 
   # Disable stack-related gnulib tests on x86_64-darwin because they have problems running under
   # Rosetta 2: test-c-stack hangs, test-sigsegv-catch-stackoverflow fails.
-  postPatch = if (stdenv.hostPlatform.isDarwin && stdenv.hostPlatform.isx86_64) then ''
-    sed -i -E 's:test-c-stack2?\.sh::g' gnulib-tests/Makefile.in
-    sed -i -E 's:test-sigsegv-catch-stackoverflow[12]::g' gnulib-tests/Makefile.in
-  '' else null;
+  postPatch =
+    if (stdenv.hostPlatform.isDarwin && stdenv.hostPlatform.isx86_64) then ''
+      sed -i -E 's:test-c-stack2?\.sh::g' gnulib-tests/Makefile.in
+      sed -i -E 's:test-sigsegv-catch-stackoverflow[12]::g' gnulib-tests/Makefile.in
+    '' else
+      null;
 
   configureFlags =
     # "pr" need not be on the PATH as a run-time dep, so we need to tell
     # configure where it is. Covers the cross and native case alike.
     lib.optional (coreutils != null) "PR_PROGRAM=${coreutils}/bin/pr"
-    ++ lib.optional (stdenv.buildPlatform != stdenv.hostPlatform) "gl_cv_func_getopt_gnu=yes";
+    ++ lib.optional (stdenv.buildPlatform != stdenv.hostPlatform)
+    "gl_cv_func_getopt_gnu=yes";
 
   # Test failure on QEMU only (#300550)
   doCheck = !stdenv.buildPlatform.isRiscV64;
 
   meta = with lib; {
     homepage = "https://www.gnu.org/software/diffutils/diffutils.html";
-    description = "Commands for showing the differences between files (diff, cmp, etc.)";
+    description =
+      "Commands for showing the differences between files (diff, cmp, etc.)";
     license = licenses.gpl3;
     platforms = platforms.unix;
     maintainers = with maintainers; [ das_j ];

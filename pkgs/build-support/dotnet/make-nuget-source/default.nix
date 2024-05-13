@@ -1,10 +1,6 @@
 { lib, python3, stdenvNoCC }:
 
-{ name
-, description ? ""
-, deps ? []
-, ...
-}@args:
+{ name, description ? "", deps ? [ ], ... }@args:
 
 stdenvNoCC.mkDerivation (lib.recursiveUpdate {
   inherit name;

@@ -1,8 +1,4 @@
-{ lib
-, buildPythonPackage
-, fetchPypi
-, zope-event
-}:
+{ lib, buildPythonPackage, fetchPypi, zope-event }:
 
 buildPythonPackage rec {
   pname = "zope.interface";

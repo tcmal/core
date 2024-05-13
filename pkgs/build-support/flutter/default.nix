@@ -1,26 +1,10 @@
-{ lib
-, callPackage
-, runCommand
-, makeWrapper
-, wrapGAppsHook
-, buildDartApplication
-, cacert
-, glib
-, flutter
-, pkg-config
-, jq
-, yq
-, moreutils
-}:
+{ lib, callPackage, runCommand, makeWrapper, wrapGAppsHook, buildDartApplication
+, cacert, glib, flutter, pkg-config, jq, yq, moreutils }:
 
 # absolutely no mac support for now
 
-{ pubGetScript ? "flutter pub get"
-, flutterBuildFlags ? [ ]
-, targetFlutterPlatform ? "linux"
-, extraWrapProgramArgs ? ""
-, ...
-}@args:
+{ pubGetScript ? "flutter pub get", flutterBuildFlags ? [ ]
+, targetFlutterPlatform ? "linux", extraWrapProgramArgs ? "", ... }@args:
 
 let
   builderArgs = rec {
@@ -40,11 +24,15 @@ let
         #
         # Instead, Flutter is patched to allow the path to the Dart binary used for
         # Pub commands to be overriden.
-        export NIX_FLUTTER_PUB_DART="${runCommand "dart-with-certs" { nativeBuildInputs = [ makeWrapper ]; } ''
-          mkdir -p "$out/bin"
-          makeWrapper ${flutter.dart}/bin/dart "$out/bin/dart" \
-            --add-flags "--root-certs-file=${cacert}/etc/ssl/certs/ca-bundle.crt"
-        ''}/bin/dart"
+        export NIX_FLUTTER_PUB_DART="${
+          runCommand "dart-with-certs" {
+            nativeBuildInputs = [ makeWrapper ];
+          } ''
+            mkdir -p "$out/bin"
+            makeWrapper ${flutter.dart}/bin/dart "$out/bin/dart" \
+              --add-flags "--root-certs-file=${cacert}/etc/ssl/certs/ca-bundle.crt"
+          ''
+        }/bin/dart"
 
         export HOME="$NIX_BUILD_TOP"
         flutter config --no-analytics &>/dev/null # mute first-run
@@ -55,19 +43,20 @@ let
 
       sdkSourceBuilders = {
         # https://github.com/dart-lang/pub/blob/68dc2f547d0a264955c1fa551fa0a0e158046494/lib/src/sdk/flutter.dart#L81
-        "flutter" = name: runCommand "flutter-sdk-${name}" { passthru.packageRoot = "."; } ''
-          for path in '${flutter}/packages/${name}' '${flutter}/bin/cache/pkg/${name}'; do
-            if [ -d "$path" ]; then
-              ln -s "$path" "$out"
-              break
-            fi
-          done
+        "flutter" = name:
+          runCommand "flutter-sdk-${name}" { passthru.packageRoot = "."; } ''
+            for path in '${flutter}/packages/${name}' '${flutter}/bin/cache/pkg/${name}'; do
+              if [ -d "$path" ]; then
+                ln -s "$path" "$out"
+                break
+              fi
+            done
 
-          if [ ! -e "$out" ]; then
-            echo 1>&2 'The Flutter SDK does not contain the requested package: ${name}!'
-            exit 1
-          fi
-        '';
+            if [ ! -e "$out" ]; then
+              echo 1>&2 'The Flutter SDK does not contain the requested package: ${name}!'
+              exit 1
+            fi
+          '';
       };
 
       extraPackageConfigSetup = ''
@@ -105,7 +94,10 @@ let
 
         mkdir -p build/flutter_assets/fonts
 
-        flutter build linux -v --release --split-debug-info="$debug" ${builtins.concatStringsSep " " (map (flag: "\"${flag}\"") flutterBuildFlags)}
+        flutter build linux -v --release --split-debug-info="$debug" ${
+          builtins.concatStringsSep " "
+          (map (flag: ''"${flag}"'') flutterBuildFlags)
+        }
 
         runHook postBuild
       '';
@@ -156,7 +148,10 @@ let
 
         mkdir -p build/flutter_assets/fonts
 
-        flutter build web -v --release ${builtins.concatStringsSep " " (map (flag: "\"${flag}\"") flutterBuildFlags)}
+        flutter build web -v --release ${
+          builtins.concatStringsSep " "
+          (map (flag: ''"${flag}"'') flutterBuildFlags)
+        }
 
         runHook postBuild
       '';
@@ -170,10 +165,16 @@ let
         runHook postInstall
       '';
     };
-  }.${targetFlutterPlatform} or (throw "Unsupported Flutter host platform: ${targetFlutterPlatform}");
+  }.${targetFlutterPlatform} or (throw
+    "Unsupported Flutter host platform: ${targetFlutterPlatform}");
 
-  minimalFlutter = flutter.override { supportedTargetFlutterPlatforms = [ "universal" targetFlutterPlatform ]; };
+  minimalFlutter = flutter.override {
+    supportedTargetFlutterPlatforms = [ "universal" targetFlutterPlatform ];
+  };
 
   buildAppWith = flutter: buildDartApplication.override { dart = flutter; };
-in
-buildAppWith minimalFlutter (builderArgs // { passthru = builderArgs.passthru or { } // { multiShell = buildAppWith flutter builderArgs; }; })
+in buildAppWith minimalFlutter (builderArgs // {
+  passthru = builderArgs.passthru or { } // {
+    multiShell = buildAppWith flutter builderArgs;
+  };
+})

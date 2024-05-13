@@ -1,8 +1,7 @@
 { ... }:
 res: pkgs: super:
 
-with pkgs;
-{
+with pkgs; {
   libguestfs-appliance = callPackage ./appliance.nix { };
   libguestfs = callPackage ./. {
     autoreconfHook = buildPackages.autoreconfHook264;

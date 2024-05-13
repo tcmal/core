@@ -1,55 +1,52 @@
-{ lib, stdenv, fetchFromGitHub, autoconf, automake, libtool, autoreconfHook, memstreamHook
-, installShellFiles
-, libuuid
-, libobjc ? null, maloader ? null
-, enableTapiSupport ? true, libtapi
-, fetchpatch
-}:
+{ lib, stdenv, fetchFromGitHub, autoconf, automake, libtool, autoreconfHook
+, memstreamHook, installShellFiles, libuuid, libobjc ? null, maloader ? null
+, enableTapiSupport ? true, libtapi, fetchpatch }:
 
 let
 
   # The targetPrefix prepended to binary names to allow multiple binuntils on the
   # PATH to both be usable.
-  targetPrefix = lib.optionalString
-    (stdenv.targetPlatform != stdenv.hostPlatform)
+  targetPrefix =
+    lib.optionalString (stdenv.targetPlatform != stdenv.hostPlatform)
     "${stdenv.targetPlatform.config}-";
-in
 
-# Non-Darwin alternatives
-assert (!stdenv.hostPlatform.isDarwin) -> maloader != null;
+  # Non-Darwin alternatives
+in assert (!stdenv.hostPlatform.isDarwin) -> maloader != null;
 
 stdenv.mkDerivation {
   pname = "${targetPrefix}cctools-port";
   version = "973.0.1";
 
   src = fetchFromGitHub {
-    owner  = "tpoechtrager";
-    repo   = "cctools-port";
+    owner = "tpoechtrager";
+    repo = "cctools-port";
     # This is the commit before: https://github.com/tpoechtrager/cctools-port/pull/114
     # That specific change causes trouble for us (see the PR discussion), but
     # is also currently the last commit on master at the time of writing, so we
     # can just go back one step.
-    rev    = "457dc6ddf5244ebf94f28e924e3a971f1566bd66";
+    rev = "457dc6ddf5244ebf94f28e924e3a971f1566bd66";
     sha256 = "0ns12q7vg9yand4dmdsps1917cavfbw67yl5q7bm6kb4ia5kkx13";
   };
 
   outputs = [ "out" "dev" "man" ];
 
-  nativeBuildInputs = [ autoconf automake libtool autoreconfHook installShellFiles ]
+  nativeBuildInputs =
+    [ autoconf automake libtool autoreconfHook installShellFiles ]
     ++ lib.optionals (stdenv.isDarwin && stdenv.isx86_64) [ memstreamHook ];
-  buildInputs = [ libuuid ]
-    ++ lib.optionals stdenv.isDarwin [ libobjc ]
+  buildInputs = [ libuuid ] ++ lib.optionals stdenv.isDarwin [ libobjc ]
     ++ lib.optional enableTapiSupport libtapi;
 
   patches = [
     ./ld-ignore-rpath-link.patch
     ./ld-rpath-nonfinal.patch
     (fetchpatch {
-      url = "https://github.com/tpoechtrager/cctools-port/commit/4a734070cd2838e49658464003de5b92271d8b9e.patch";
+      url =
+        "https://github.com/tpoechtrager/cctools-port/commit/4a734070cd2838e49658464003de5b92271d8b9e.patch";
       hash = "sha256-72KaJyu7CHXxJJ1GNq/fz+kW1RslO3UaKI91LhBtiXA=";
     })
     (fetchpatch {
-      url = "https://github.com/MercuryTechnologies/cctools-port/commit/025899b7b3593dedb0c681e689e57c0e7bbd9b80.patch";
+      url =
+        "https://github.com/MercuryTechnologies/cctools-port/commit/025899b7b3593dedb0c681e689e57c0e7bbd9b80.patch";
       hash = "sha256-SWVUzFaJHH2fu9y8RcU3Nx/QKx60hPE5zFx0odYDeQs=";
     })
     # Always use `open_memstream`. This is provided by memstream via hook on x86_64-darwin.
@@ -67,11 +64,10 @@ stdenv.mkDerivation {
   # TODO(@Ericson2314): Always pass "--target" and always targetPrefix.
   configurePlatforms = [ "build" "host" ]
     ++ lib.optional (stdenv.targetPlatform != stdenv.hostPlatform) "target";
-  configureFlags = [ "--disable-clang-as" ]
-    ++ lib.optionals enableTapiSupport [
-      "--enable-tapi-support"
-      "--with-libtapi=${libtapi}"
-    ];
+  configureFlags = [ "--disable-clang-as" ] ++ lib.optionals enableTapiSupport [
+    "--enable-tapi-support"
+    "--with-libtapi=${libtapi}"
+  ];
 
   postPatch = lib.optionalString stdenv.hostPlatform.isDarwin ''
     substituteInPlace cctools/Makefile.am --replace libobjc2 ""
@@ -178,9 +174,7 @@ stdenv.mkDerivation {
     popd
   '';
 
-  passthru = {
-    inherit targetPrefix;
-  };
+  passthru = { inherit targetPrefix; };
 
   meta = {
     broken = !stdenv.targetPlatform.isDarwin; # Only supports darwin targets

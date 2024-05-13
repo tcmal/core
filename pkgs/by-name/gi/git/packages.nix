@@ -1,8 +1,7 @@
 { ... }:
 res: pkgs: super:
 
-with pkgs;
-{
+with pkgs; {
   git = callPackage ./. {
     inherit (darwin.apple_sdk.frameworks) CoreServices Security;
     perlLibs = [ perlPackages.LWP perlPackages.URI perlPackages.TermReadKey ];
@@ -28,15 +27,13 @@ with pkgs;
   # Git with SVN support, but without GUI.
   gitSVN = lowPrio (git.override { svnSupport = true; });
 
-  git-doc = lib.addMetaAttrs
-    {
-      description = "Additional documentation for Git";
-      longDescription = ''
-        This package contains additional documentation (HTML and text files) that
-        is referenced in the man pages of Git.
-      '';
-    }
-    gitFull.doc;
+  git-doc = lib.addMetaAttrs {
+    description = "Additional documentation for Git";
+    longDescription = ''
+      This package contains additional documentation (HTML and text files) that
+      is referenced in the man pages of Git.
+    '';
+  } gitFull.doc;
 
   gitMinimal = git.override {
     withManual = false;

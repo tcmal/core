@@ -6,7 +6,7 @@ stdenv.mkDerivation {
   nativeCheckInputs = [ postgresql ];
   dontUnpack = true;
   doCheck = true;
-  passAsFile = ["sql"];
+  passAsFile = [ "sql" ];
   sql = ''
     CREATE TABLE hello (
       message text

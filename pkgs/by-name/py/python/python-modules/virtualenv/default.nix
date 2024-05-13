@@ -1,23 +1,7 @@
-{ lib
-, buildPythonPackage
-, pythonOlder
-, isPy27
-, isPyPy
-, cython
-, distlib
-, fetchPypi
-, filelock
-, flaky
-, hatch-vcs
-, hatchling
-, importlib-metadata
-, platformdirs
-, pytest-freezegun
-, pytest-mock
-, pytest-timeout
-, pytestCheckHook
-, time-machine
-}:
+{ lib, buildPythonPackage, pythonOlder, isPy27, isPyPy, cython, distlib
+, fetchPypi, filelock, flaky, hatch-vcs, hatchling, importlib-metadata
+, platformdirs, pytest-freezegun, pytest-mock, pytest-timeout, pytestCheckHook
+, time-machine }:
 
 buildPythonPackage rec {
   pname = "virtualenv";
@@ -31,29 +15,14 @@ buildPythonPackage rec {
     hash = "sha256-4I4T7NynoL1TeY81bVgxQ0r6Wwe5Pwq98Hl7egb/4Zc=";
   };
 
-  nativeBuildInputs = [
-    hatch-vcs
-    hatchling
-  ];
+  nativeBuildInputs = [ hatch-vcs hatchling ];
 
-  propagatedBuildInputs = [
-    distlib
-    filelock
-    platformdirs
-  ] ++ lib.optionals (pythonOlder "3.8") [
-    importlib-metadata
-  ];
+  propagatedBuildInputs = [ distlib filelock platformdirs ]
+    ++ lib.optionals (pythonOlder "3.8") [ importlib-metadata ];
 
-  nativeCheckInputs = [
-    cython
-    flaky
-    pytest-freezegun
-    pytest-mock
-    pytest-timeout
-    pytestCheckHook
-  ] ++ lib.optionals (!isPyPy) [
-    time-machine
-  ];
+  nativeCheckInputs =
+    [ cython flaky pytest-freezegun pytest-mock pytest-timeout pytestCheckHook ]
+    ++ lib.optionals (!isPyPy) [ time-machine ];
 
   preCheck = ''
     export HOME=$(mktemp -d)
@@ -71,26 +40,24 @@ buildPythonPackage rec {
     "test_seed_link_via_app_data"
     # Permission Error
     "test_bad_exe_py_info_no_raise"
-  ] ++ lib.optionals (pythonOlder "3.11") [
-    "test_help"
-  ] ++ lib.optionals (isPyPy) [
-    # encoding problems
-    "test_bash"
-    # permission error
-    "test_can_build_c_extensions"
-    # fails to detect pypy version
-    "test_discover_ok"
-  ];
+  ] ++ lib.optionals (pythonOlder "3.11") [ "test_help" ]
+    ++ lib.optionals (isPyPy) [
+      # encoding problems
+      "test_bash"
+      # permission error
+      "test_can_build_c_extensions"
+      # fails to detect pypy version
+      "test_discover_ok"
+    ];
 
-  pythonImportsCheck = [
-    "virtualenv"
-  ];
+  pythonImportsCheck = [ "virtualenv" ];
 
   meta = with lib; {
     description = "A tool to create isolated Python environments";
     mainProgram = "virtualenv";
     homepage = "http://www.virtualenv.org";
-    changelog = "https://github.com/pypa/virtualenv/blob/${version}/docs/changelog.rst";
+    changelog =
+      "https://github.com/pypa/virtualenv/blob/${version}/docs/changelog.rst";
     license = licenses.mit;
     maintainers = with maintainers; [ goibhniu ];
   };

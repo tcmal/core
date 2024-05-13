@@ -18,10 +18,8 @@ stdenv.mkDerivation rec {
 
   buildInputs = [ zlib ];
 
-  patches = [
-    ./debian-patches.patch
-    ./CVE-2017-11550-and-CVE-2017-11551.patch
-  ];
+  patches =
+    [ ./debian-patches.patch ./CVE-2017-11550-and-CVE-2017-11551.patch ];
 
   preConfigure = ''
     configureFlagsArray+=(

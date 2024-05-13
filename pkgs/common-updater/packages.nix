@@ -1,8 +1,7 @@
 { ... }:
 res: pkgs: super:
 
-with pkgs;
-{
+with pkgs; {
   common-updater-scripts = callPackage ./scripts.nix { };
 
   genericUpdater = callPackage ./generic-updater.nix { };

@@ -27,7 +27,8 @@ stdenv.mkDerivation {
   '';
 
   meta = {
-    description = "Internal tool used by the nixpkgs wrapper scripts for processing response files";
+    description =
+      "Internal tool used by the nixpkgs wrapper scripts for processing response files";
     longDescription = ''
       expand-response-params is a tool that allows for obtaining a full list of all
       arguments passed in a given compiler command line including those passed via

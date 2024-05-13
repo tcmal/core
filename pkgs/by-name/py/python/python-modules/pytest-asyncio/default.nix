@@ -1,11 +1,5 @@
-{ lib
-, buildPythonPackage
-, callPackage
-, fetchFromGitHub
-, pytest
-, pythonOlder
-, setuptools-scm
-}:
+{ lib, buildPythonPackage, callPackage, fetchFromGitHub, pytest, pythonOlder
+, setuptools-scm }:
 
 buildPythonPackage rec {
   pname = "pytest-asyncio";
@@ -21,18 +15,11 @@ buildPythonPackage rec {
     hash = "sha256-+kyKcVzW05kqtLeC81rk3fJpOtyW3xSYshgl5gqIddE=";
   };
 
-  outputs = [
-    "out"
-    "testout"
-  ];
+  outputs = [ "out" "testout" ];
 
-  nativeBuildInputs = [
-    setuptools-scm
-  ];
+  nativeBuildInputs = [ setuptools-scm ];
 
-  buildInputs = [
-    pytest
-  ];
+  buildInputs = [ pytest ];
 
   postInstall = ''
     mkdir $testout
@@ -40,16 +27,15 @@ buildPythonPackage rec {
   '';
 
   doCheck = false;
-  passthru.tests.pytest = callPackage ./tests.nix {};
+  passthru.tests.pytest = callPackage ./tests.nix { };
 
-  pythonImportsCheck = [
-    "pytest_asyncio"
-  ];
+  pythonImportsCheck = [ "pytest_asyncio" ];
 
   meta = with lib; {
     description = "Library for testing asyncio code with pytest";
     homepage = "https://github.com/pytest-dev/pytest-asyncio";
-    changelog = "https://github.com/pytest-dev/pytest-asyncio/blob/v${version}/docs/source/reference/changelog.rst";
+    changelog =
+      "https://github.com/pytest-dev/pytest-asyncio/blob/v${version}/docs/source/reference/changelog.rst";
     license = licenses.asl20;
     maintainers = with maintainers; [ dotlambda ];
   };

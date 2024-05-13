@@ -1,8 +1,7 @@
 { ... }:
 res: pkgs: super:
 
-with pkgs;
-{
+with pkgs; {
   systemd = callPackage ./. {
     # break some cyclic dependencies
     util-linux = util-linuxMinimal;
@@ -63,11 +62,10 @@ with pkgs;
   };
   # We do not want to include ukify in the normal systemd attribute as it
   # relies on Python at runtime.
-  systemdUkify = systemd.override {
-    withUkify = true;
-  };
+  systemdUkify = systemd.override { withUkify = true; };
 
-  udev =
-    if (with stdenv.hostPlatform; isLinux && isStatic) then libudev-zero
-    else systemdLibs;
+  udev = if (with stdenv.hostPlatform; isLinux && isStatic) then
+    libudev-zero
+  else
+    systemdLibs;
 }

@@ -23,13 +23,9 @@ stdenv.mkDerivation rec {
   strictDeps = true;
   nativeBuildInputs = [ m4 perl texinfo ];
   buildInputs = [ m4 ];
-  postBuild = "
-    make html
-  ";
+  postBuild = "\n    make html\n  ";
 
-  postInstall = "
-    make install-html
-  ";
+  postInstall = "\n    make install-html\n  ";
 
   # Work around a known issue in Cygwin.  See
   # http://thread.gmane.org/gmane.comp.sysutils.autoconf.bugs/6822 for
@@ -44,7 +40,7 @@ stdenv.mkDerivation rec {
   enableParallelBuilding = true;
 
   # Make the Autotest test suite run in parallel.
-  preCheck =''
+  preCheck = ''
     export TESTSUITEFLAGS="-j$NIX_BUILD_CORES"
   '';
 

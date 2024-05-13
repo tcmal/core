@@ -15,10 +15,13 @@ stdenv.mkDerivation rec {
 
   prePatch = ''
     patchShebangs .
-  '' + lib.optionalString (!stdenv.buildPlatform.canExecute stdenv.hostPlatform) ''
-    substituteInPlace GNUmakefile \
-      --replace './snowball' '${lib.getBin buildPackages.libstemmer}/bin/snowball'
-  '';
+  '' + lib.optionalString
+    (!stdenv.buildPlatform.canExecute stdenv.hostPlatform) ''
+      substituteInPlace GNUmakefile \
+        --replace './snowball' '${
+          lib.getBin buildPackages.libstemmer
+        }/bin/snowball'
+    '';
 
   makeTarget = "libstemmer.a";
 

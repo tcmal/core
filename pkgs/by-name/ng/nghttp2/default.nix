@@ -1,17 +1,10 @@
-{ lib
-, stdenv
-, fetchurl
-, installShellFiles
-, pkg-config
+{ lib, stdenv, fetchurl, installShellFiles, pkg-config
 
 # Optional dependencies
-, enableApp ? with stdenv.hostPlatform; !isWindows && !isStatic
-, c-aresMinimal, libev, openssl, zlib
-, enableGetAssets ? false, libxml2
-, enableHpack ? false, jansson
-, enableHttp3 ? false, ngtcp2, nghttp3, quictls
-, enableJemalloc ? false, jemalloc
-, enablePython ? false, python3, ncurses
+, enableApp ? with stdenv.hostPlatform; !isWindows && !isStatic, c-aresMinimal
+, libev, openssl, zlib, enableGetAssets ? false, libxml2, enableHpack ? false
+, jansson, enableHttp3 ? false, ngtcp2, nghttp3, quictls, enableJemalloc ? false
+, jemalloc, enablePython ? false, python3, ncurses
 
 # Unit tests ; we have to set TZDIR, which is a GNUism.
 , enableTests ? stdenv.hostPlatform.isGnu, cunit, tzdata
@@ -36,7 +29,8 @@ stdenv.mkDerivation rec {
   version = "1.61.0";
 
   src = fetchurl {
-    url = "https://github.com/${pname}/${pname}/releases/download/v${version}/${pname}-${version}.tar.bz2";
+    url =
+      "https://github.com/${pname}/${pname}/releases/download/v${version}/${pname}-${version}.tar.bz2";
     sha256 = "sha256-Toz37DLUxaQwlmJC1yA10lXNlHCodm1h7tegGQ3VRP0=";
   };
 

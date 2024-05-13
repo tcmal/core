@@ -1,15 +1,12 @@
-{ lib
-, stdenv
-, fetchurl
-, removeReferencesTo
-}:
+{ lib, stdenv, fetchurl, removeReferencesTo }:
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "pkgconf";
   version = "2.1.1";
 
   src = fetchurl {
-    url = "https://distfiles.dereferenced.org/pkgconf/pkgconf-${finalAttrs.version}.tar.xz";
+    url =
+      "https://distfiles.dereferenced.org/pkgconf/pkgconf-${finalAttrs.version}.tar.xz";
     hash = "sha256-OiJPKszwkbd6V4Exbie57juoLAg8wuU54IlAtopE/sU=";
   };
 
@@ -31,14 +28,14 @@ stdenv.mkDerivation (finalAttrs: {
       "${placeholder "lib"}"/lib/* \
       "${placeholder "out"}"/bin/*
   ''
-  # Move back share/aclocal. Yes, this normally goes in the dev output for good
-  # reason, but in this case the dev output is for the `libpkgconf` library,
-  # while the aclocal stuff is for the tool. The tool is already for use during
-  # development, so there is no reason to have separate "dev-bin" and "dev-lib"
-  # outputs or something.
-  + ''
-    mv ${placeholder "dev"}/share ${placeholder "out"}
-  '';
+    # Move back share/aclocal. Yes, this normally goes in the dev output for good
+    # reason, but in this case the dev output is for the `libpkgconf` library,
+    # while the aclocal stuff is for the tool. The tool is already for use during
+    # development, so there is no reason to have separate "dev-bin" and "dev-lib"
+    # outputs or something.
+    + ''
+      mv ${placeholder "dev"}/share ${placeholder "out"}
+    '';
 
   meta = {
     homepage = "https://github.com/pkgconf/pkgconf";
@@ -52,7 +49,8 @@ stdenv.mkDerivation (finalAttrs: {
       functionality, to allow other tooling such as compilers and IDEs to
       discover and use libraries configured by pkgconf.
     '';
-    changelog = "https://github.com/pkgconf/pkgconf/blob/pkgconf-${finalAttrs.version}/NEWS";
+    changelog =
+      "https://github.com/pkgconf/pkgconf/blob/pkgconf-${finalAttrs.version}/NEWS";
     license = lib.licenses.isc;
     mainProgram = "pkgconf";
     maintainers = with lib.maintainers; [ zaninime AndersonTorres ];

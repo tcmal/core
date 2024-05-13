@@ -1,13 +1,5 @@
-{ haskellPackages
-, lib
-, nodePackages
-, perlPackages
-, python3Packages
-, runCommand
-, testers
-, writers
-, writeText
-}:
+{ haskellPackages, lib, nodePackages, perlPackages, python3Packages, runCommand
+, testers, writers, writeText }:
 
 # If you are reading this, you can test these writers by running: nix-build . -A tests.writers
 
@@ -15,36 +7,14 @@ let
   inherit (lib) getExe recurseIntoAttrs;
 
   inherit (writers)
-    makeFSharpWriter
-    writeBash
-    writeBashBin
-    writeDash
-    writeDashBin
-    writeFish
-    writeFishBin
-    writeFSharp
-    writeHaskell
-    writeHaskellBin
-    writeJS
-    writeJSBin
-    writeJSON
-    writeLua
-    writeNu
-    writePerl
-    writePerlBin
-    writePyPy3
-    writePython3
-    writePython3Bin
-    writeRuby
-    writeRust
-    writeRustBin
-    writeText
-    writeTOML
-    writeYAML
-    ;
+    makeFSharpWriter writeBash writeBashBin writeDash writeDashBin writeFish
+    writeFishBin writeFSharp writeHaskell writeHaskellBin writeJS writeJSBin
+    writeJSON writeLua writeNu writePerl writePerlBin writePyPy3 writePython3
+    writePython3Bin writeRuby writeRust writeRustBin writeText writeTOML
+    writeYAML;
 
   expectSuccess = test:
-    runCommand "run-${test.name}" {} ''
+    runCommand "run-${test.name}" { } ''
       if [[ "$(${test})" != success ]]; then
         echo 'test ${test.name} failed'
         exit 1
@@ -54,7 +24,7 @@ let
     '';
 
   expectSuccessBin = test:
-    runCommand "run-${test.name}" {} ''
+    runCommand "run-${test.name}" { } ''
       if [[ "$(${getExe test})" != success ]]; then
         echo 'test ${test.name} failed'
         exit 1
@@ -64,19 +34,20 @@ let
     '';
 
   expectDataEqual = { file, expected }:
-    let
-      expectedFile = writeText "${file.name}-expected" expected;
-    in
-    testers.testEqualContents { expected = expectedFile; actual = file; assertion = "${file.name} matches"; };
-in
-recurseIntoAttrs {
+    let expectedFile = writeText "${file.name}-expected" expected;
+    in testers.testEqualContents {
+      expected = expectedFile;
+      actual = file;
+      assertion = "${file.name} matches";
+    };
+in recurseIntoAttrs {
   bin = recurseIntoAttrs {
     bash = expectSuccessBin (writeBashBin "test-writers-bash-bin" ''
-     if [[ "test" == "test" ]]; then echo "success"; fi
+      if [[ "test" == "test" ]]; then echo "success"; fi
     '');
 
     dash = expectSuccessBin (writeDashBin "test-writers-dash-bin" ''
-     test '~' = '~' && echo 'success'
+      test '~' = '~' && echo 'success'
     '');
 
     fish = expectSuccessBin (writeFishBin "test-writers-fish-bin" ''
@@ -85,13 +56,15 @@ recurseIntoAttrs {
       end
     '');
 
-    rust = expectSuccessBin (writeRustBin "test-writers-rust-bin" {} ''
+    rust = expectSuccessBin (writeRustBin "test-writers-rust-bin" { } ''
       fn main(){
         println!("success")
       }
     '');
 
-    haskell = expectSuccessBin (writeHaskellBin "test-writers-haskell-bin" { libraries = [ haskellPackages.acme-default ]; } ''
+    haskell = expectSuccessBin (writeHaskellBin "test-writers-haskell-bin" {
+      libraries = [ haskellPackages.acme-default ];
+    } ''
       import Data.Default
 
       int :: Int
@@ -103,7 +76,9 @@ recurseIntoAttrs {
         _ -> print "fail"
     '');
 
-    js = expectSuccessBin (writeJSBin "test-writers-js-bin" { libraries = [ nodePackages.semver ]; } ''
+    js = expectSuccessBin (writeJSBin "test-writers-js-bin" {
+      libraries = [ nodePackages.semver ];
+    } ''
       var semver = require('semver');
 
       if (semver.valid('1.2.3')) {
@@ -113,12 +88,16 @@ recurseIntoAttrs {
       }
     '');
 
-    perl = expectSuccessBin (writePerlBin "test-writers-perl-bin" { libraries = [ perlPackages.boolean ]; } ''
+    perl = expectSuccessBin (writePerlBin "test-writers-perl-bin" {
+      libraries = [ perlPackages.boolean ];
+    } ''
       use boolean;
       print "success\n" if true;
     '');
 
-    python3 = expectSuccessBin (writePython3Bin "test-writers-python3-bin" { libraries = [ python3Packages.pyyaml ]; } ''
+    python3 = expectSuccessBin (writePython3Bin "test-writers-python3-bin" {
+      libraries = [ python3Packages.pyyaml ];
+    } ''
       import yaml
 
       y = yaml.safe_load("""
@@ -172,11 +151,11 @@ recurseIntoAttrs {
 
   simple = recurseIntoAttrs {
     bash = expectSuccess (writeBash "test-writers-bash" ''
-     if [[ "test" == "test" ]]; then echo "success"; fi
+      if [[ "test" == "test" ]]; then echo "success"; fi
     '');
 
     dash = expectSuccess (writeDash "test-writers-dash" ''
-     test '~' = '~' && echo 'success'
+      test '~' = '~' && echo 'success'
     '');
 
     fish = expectSuccess (writeFish "test-writers-fish" ''
@@ -189,7 +168,9 @@ recurseIntoAttrs {
       echo "success"
     '');
 
-    haskell = expectSuccess (writeHaskell "test-writers-haskell" { libraries = [ haskellPackages.acme-default ]; } ''
+    haskell = expectSuccess (writeHaskell "test-writers-haskell" {
+      libraries = [ haskellPackages.acme-default ];
+    } ''
       import Data.Default
 
       int :: Int
@@ -201,22 +182,27 @@ recurseIntoAttrs {
         _ -> print "fail"
     '');
 
-    js = expectSuccess (writeJS "test-writers-js" { libraries = [ nodePackages.semver ]; } ''
-      var semver = require('semver');
+    js = expectSuccess
+      (writeJS "test-writers-js" { libraries = [ nodePackages.semver ]; } ''
+        var semver = require('semver');
 
-      if (semver.valid('1.2.3')) {
-        console.log('success')
-      } else {
-        console.log('fail')
-      }
-    '');
+        if (semver.valid('1.2.3')) {
+          console.log('success')
+        } else {
+          console.log('fail')
+        }
+      '');
 
-    perl = expectSuccess (writePerl "test-writers-perl" { libraries = [ perlPackages.boolean ]; } ''
+    perl = expectSuccess (writePerl "test-writers-perl" {
+      libraries = [ perlPackages.boolean ];
+    } ''
       use boolean;
       print "success\n" if true;
     '');
 
-    python3 = expectSuccess (writePython3 "test-writers-python3" { libraries = [ python3Packages.pyyaml ]; } ''
+    python3 = expectSuccess (writePython3 "test-writers-python3" {
+      libraries = [ python3Packages.pyyaml ];
+    } ''
       import yaml
 
       y = yaml.safe_load("""
@@ -247,8 +233,16 @@ recurseIntoAttrs {
 
     fsharp = expectSuccess (makeFSharpWriter {
       libraries = { fetchNuGet }: [
-        (fetchNuGet { pname = "FSharp.SystemTextJson"; version = "0.17.4"; sha256 = "1bplzc9ybdqspii4q28l8gmfvzpkmgq5l1hlsiyg2h46w881lwg2"; })
-        (fetchNuGet { pname = "System.Text.Json"; version = "4.6.0"; sha256 = "0ism236hwi0k6axssfq58s1d8lihplwiz058pdvl8al71hagri39"; })
+        (fetchNuGet {
+          pname = "FSharp.SystemTextJson";
+          version = "0.17.4";
+          sha256 = "1bplzc9ybdqspii4q28l8gmfvzpkmgq5l1hlsiyg2h46w881lwg2";
+        })
+        (fetchNuGet {
+          pname = "System.Text.Json";
+          version = "4.6.0";
+          sha256 = "0ism236hwi0k6axssfq58s1d8lihplwiz058pdvl8al71hagri39";
+        })
       ];
     } "test-writers-fsharp" ''
 
@@ -274,33 +268,38 @@ recurseIntoAttrs {
     #  print("success")
     #'');
 
-    python3NoLibs = expectSuccess (writePython3 "test-writers-python3-no-libs" {} ''
+    python3NoLibs = expectSuccess
+      (writePython3 "test-writers-python3-no-libs" { } ''
+        print("success")
+      '');
+
+    pypy3NoLibs = expectSuccess (writePyPy3 "test-writers-pypy3-no-libs" { } ''
       print("success")
     '');
 
-    pypy3NoLibs = expectSuccess (writePyPy3 "test-writers-pypy3-no-libs" {} ''
+    fsharpNoNugetDeps = expectSuccess
+      (writeFSharp "test-writers-fsharp-no-nuget-deps" ''
+        printfn "success"
+      '');
+
+    luaNoLibs = expectSuccess (writeLua "test-writers-lua-no-libs" { } ''
       print("success")
     '');
 
-    fsharpNoNugetDeps = expectSuccess (writeFSharp "test-writers-fsharp-no-nuget-deps" ''
-      printfn "success"
-      '');
-
-    luaNoLibs = expectSuccess (writeLua "test-writers-lua-no-libs" {} ''
-      print("success")
-      '');
-
-    rubyNoLibs = expectSuccess (writeRuby "test-writers-ruby-no-libs" {} ''
+    rubyNoLibs = expectSuccess (writeRuby "test-writers-ruby-no-libs" { } ''
       puts "success"
     '');
   };
 
   path = recurseIntoAttrs {
-    bash = expectSuccess (writeBash "test-writers-bash-path" (writeText "test" ''
-      if [[ "test" == "test" ]]; then echo "success"; fi
-    ''));
+    bash = expectSuccess (writeBash "test-writers-bash-path"
+      (writeText "test" ''
+        if [[ "test" == "test" ]]; then echo "success"; fi
+      ''));
 
-    haskell = expectSuccess (writeHaskell "test-writers-haskell-path" { libraries = [ haskellPackages.acme-default ]; } (writeText "test" ''
+    haskell = expectSuccess (writeHaskell "test-writers-haskell-path" {
+      libraries = [ haskellPackages.acme-default ];
+    } (writeText "test" ''
       import Data.Default
 
       int :: Int
@@ -332,88 +331,58 @@ recurseIntoAttrs {
 
     yaml = expectDataEqual {
       file = writeYAML "data.yaml" { hello = "world"; };
-      expected = "hello: world\n";
+      expected = ''
+        hello: world
+      '';
     };
   };
 
   wrapping = recurseIntoAttrs {
-    bash-bin = expectSuccessBin (
-      writeBashBin "test-writers-wrapping-bash-bin"
-        {
-          makeWrapperArgs = [
-            "--set"
-            "ThaigerSprint"
-            "Thailand"
-          ];
-        }
-        ''
-          if [[ "$ThaigerSprint" == "Thailand" ]]; then
-            echo "success"
-          fi
-        ''
-    );
-
-    bash = expectSuccess (
-      writeBash "test-writers-wrapping-bash"
-        {
-          makeWrapperArgs = [
-            "--set"
-            "ThaigerSprint"
-            "Thailand"
-          ];
-        }
-        ''
-          if [[ "$ThaigerSprint" == "Thailand" ]]; then
-            echo "success"
-          fi
-        ''
-    );
-
-    python = expectSuccess (
-      writePython3 "test-writers-wrapping-python"
-        {
-          makeWrapperArgs = [
-            "--set"
-            "ThaigerSprint"
-            "Thailand"
-          ];
-        }
-        ''
-          import os
-
-          if os.environ.get("ThaigerSprint") == "Thailand":
-              print("success")
-        ''
-    );
-
-    rust = expectSuccess (
-      writeRust "test-writers-wrapping-rust"
-        {
-          makeWrapperArgs = [
-            "--set"
-            "ThaigerSprint"
-            "Thailand"
-          ];
-        }
-        ''
-          fn main(){
-            if std::env::var("ThaigerSprint").unwrap() == "Thailand" {
-              println!("success")
-            }
-          }
-        ''
-    );
-
-    no-empty-wrapper = let
-      bin = writeBashBin "bin" { makeWrapperArgs = []; } ''true'';
-    in runCommand "run-test-writers-wrapping-no-empty-wrapper" {} ''
-      ls -A ${bin}/bin
-      if [ $(ls -A ${bin}/bin | wc -l) -eq 1 ]; then
-        touch $out
-      else
-        echo "Error: Empty wrapper was created" >&2
-        exit 1
+    bash-bin = expectSuccessBin (writeBashBin "test-writers-wrapping-bash-bin" {
+      makeWrapperArgs = [ "--set" "ThaigerSprint" "Thailand" ];
+    } ''
+      if [[ "$ThaigerSprint" == "Thailand" ]]; then
+        echo "success"
       fi
-    '';
+    '');
+
+    bash = expectSuccess (writeBash "test-writers-wrapping-bash" {
+      makeWrapperArgs = [ "--set" "ThaigerSprint" "Thailand" ];
+    } ''
+      if [[ "$ThaigerSprint" == "Thailand" ]]; then
+        echo "success"
+      fi
+    '');
+
+    python = expectSuccess (writePython3 "test-writers-wrapping-python" {
+      makeWrapperArgs = [ "--set" "ThaigerSprint" "Thailand" ];
+    } ''
+      import os
+
+      if os.environ.get("ThaigerSprint") == "Thailand":
+          print("success")
+    '');
+
+    rust = expectSuccess (writeRust "test-writers-wrapping-rust" {
+      makeWrapperArgs = [ "--set" "ThaigerSprint" "Thailand" ];
+    } ''
+      fn main(){
+        if std::env::var("ThaigerSprint").unwrap() == "Thailand" {
+          println!("success")
+        }
+      }
+    '');
+
+    no-empty-wrapper =
+      let bin = writeBashBin "bin" { makeWrapperArgs = [ ]; } "true";
+      in runCommand "run-test-writers-wrapping-no-empty-wrapper" { } ''
+        ls -A ${bin}/bin
+        if [ $(ls -A ${bin}/bin | wc -l) -eq 1 ]; then
+          touch $out
+        else
+          echo "Error: Empty wrapper was created" >&2
+          exit 1
+        fi
+      '';
   };
 }

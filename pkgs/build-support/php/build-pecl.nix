@@ -1,19 +1,10 @@
 { stdenv, lib, php, autoreconfHook, fetchurl, re2c, nix-update-script }:
 
-{ pname
-, version
-, internalDeps ? [ ]
-, peclDeps ? [ ]
-, buildInputs ? [ ]
-, nativeBuildInputs ? [ ]
-, postPhpize ? ""
-, makeFlags ? [ ]
-, src ? fetchurl ({
-    url = "https://pecl.php.net/get/${pname}-${version}.tgz";
-  } // lib.filterAttrs (attrName: _: lib.elem attrName [ "sha256" "hash" ]) args)
-, passthru ? { }
-, ...
-}@args:
+{ pname, version, internalDeps ? [ ], peclDeps ? [ ], buildInputs ? [ ]
+, nativeBuildInputs ? [ ], postPhpize ? "", makeFlags ? [ ], src ? fetchurl ({
+  url = "https://pecl.php.net/get/${pname}-${version}.tgz";
+} // lib.filterAttrs (attrName: _: lib.elem attrName [ "sha256" "hash" ]) args)
+, passthru ? { }, ... }@args:
 
 stdenv.mkDerivation (args // {
   name = "php-${pname}-${version}";
@@ -30,8 +21,8 @@ stdenv.mkDerivation (args // {
     phpize
     ${postPhpize}
     ${lib.concatMapStringsSep "\n"
-      (dep: "mkdir -p ext; ln -s ${dep.dev}/include ext/${dep.extensionName}")
-      internalDeps}
+    (dep: "mkdir -p ext; ln -s ${dep.dev}/include ext/${dep.extensionName}")
+    internalDeps}
   '';
   checkPhase = "NO_INTERACTON=yes make test";
 
@@ -40,6 +31,6 @@ stdenv.mkDerivation (args // {
     # PHP extensions correctly.
     # See the corresponding PR: https://github.com/Mic92/nix-update/pull/123
     isPhpExtension = true;
-    updateScript = nix-update-script {};
+    updateScript = nix-update-script { };
   };
 })

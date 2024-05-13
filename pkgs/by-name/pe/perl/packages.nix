@@ -1,8 +1,7 @@
 { ... }:
 res: pkgs: super:
 
-with pkgs;
-{
+with pkgs; {
   perlInterpreters = import ./. { inherit callPackage; };
   inherit (perlInterpreters) perl536 perl538;
 

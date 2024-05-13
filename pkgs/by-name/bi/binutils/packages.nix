@@ -1,8 +1,7 @@
 { lib, noSysDirs, ... }:
 res: pkgs: super:
 
-with pkgs;
-{
+with pkgs; {
   # Here we select the default bintools implementations to be used.  Note when
   # cross compiling these are used not for this stage but the *next* stage.
   # That is why we choose using this stage's target platform / next stage's
@@ -19,22 +18,21 @@ with pkgs;
   #
   # In other words, try to only use this in wrappers, and only use those
   # wrappers from the next stage.
-  bintools-unwrapped =
-    let
-      inherit (stdenv.targetPlatform) linker;
-    in
-    if linker == "lld" then llvmPackages.bintools-unwrapped
+  bintools-unwrapped = let inherit (stdenv.targetPlatform) linker;
+  in if linker == "lld" then
+    llvmPackages.bintools-unwrapped
     # else if linker == "cctools" then darwin.binutils-unwrapped
-    else if linker == "bfd" then binutils-unwrapped
-    else if linker == "gold" then binutils-unwrapped.override { enableGoldDefault = true; }
-    else null;
+  else if linker == "bfd" then
+    binutils-unwrapped
+  else if linker == "gold" then
+    binutils-unwrapped.override { enableGoldDefault = true; }
+  else
+    null;
   bintoolsNoLibc = wrapBintoolsWith {
     bintools = bintools-unwrapped;
     libc = preLibcCrossHeaders;
   };
-  bintools = wrapBintoolsWith {
-    bintools = bintools-unwrapped;
-  };
+  bintools = wrapBintoolsWith { bintools = bintools-unwrapped; };
 
   bintoolsDualAs = wrapBintoolsWith {
     bintools = darwin.binutilsDualAs-unwrapped;
@@ -47,18 +45,15 @@ with pkgs;
     noSysDirs = (stdenv.targetPlatform != stdenv.hostPlatform) || noSysDirs;
   };
   binutils-unwrapped-all-targets = callPackage ./. {
-    autoreconfHook = if targetPlatform.isiOS then autoreconfHook269 else autoreconfHook;
+    autoreconfHook =
+      if targetPlatform.isiOS then autoreconfHook269 else autoreconfHook;
     # FHS sys dirs presumably only have stuff for the build platform
     noSysDirs = (stdenv.targetPlatform != stdenv.hostPlatform) || noSysDirs;
     withAllTargets = true;
   };
-  binutils = wrapBintoolsWith {
-    bintools = binutils-unwrapped;
-  };
+  binutils = wrapBintoolsWith { bintools = binutils-unwrapped; };
   binutils_nogold = lowPrio (wrapBintoolsWith {
-    bintools = binutils-unwrapped.override {
-      enableGold = false;
-    };
+    bintools = binutils-unwrapped.override { enableGold = false; };
   });
   binutilsNoLibc = wrapBintoolsWith {
     bintools = binutils-unwrapped;

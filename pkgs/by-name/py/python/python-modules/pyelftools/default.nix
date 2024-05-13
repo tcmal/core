@@ -1,10 +1,4 @@
-{ lib
-, stdenv
-, buildPythonPackage
-, fetchFromGitHub
-, python
-, pythonOlder
-}:
+{ lib, stdenv, buildPythonPackage, fetchFromGitHub, python, pythonOlder }:
 
 buildPythonPackage rec {
   pname = "pyelftools";
@@ -20,7 +14,8 @@ buildPythonPackage rec {
     hash = "sha256-A9etnN7G24/Gu8YlV/YDpxZV+TG2eVXGx2ZjVnA9ZD4=";
   };
 
-  doCheck = stdenv.hostPlatform.system == "x86_64-linux" && stdenv.hostPlatform.isGnu;
+  doCheck = stdenv.hostPlatform.system == "x86_64-linux"
+    && stdenv.hostPlatform.isGnu;
 
   checkPhase = ''
     patchelf --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" test/external_tools/readelf
@@ -29,12 +24,11 @@ buildPythonPackage rec {
     ${python.interpreter} test/run_readelf_tests.py --parallel
   '';
 
-  pythonImportsCheck = [
-    "elftools"
-  ];
+  pythonImportsCheck = [ "elftools" ];
 
   meta = with lib; {
-    description = "Python library for analyzing ELF files and DWARF debugging information";
+    description =
+      "Python library for analyzing ELF files and DWARF debugging information";
     mainProgram = "readelf.py";
     homepage = "https://github.com/eliben/pyelftools";
     changelog = "https://github.com/eliben/pyelftools/blob/v${version}/CHANGES";

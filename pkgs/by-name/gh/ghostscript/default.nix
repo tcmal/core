@@ -1,39 +1,17 @@
-{ config
-, stdenv
-, lib
-, fetchurl
-, pkg-config
-, zlib
-, expat
-, openssl
-, autoconf
-, libjpeg
-, libpng
-, libtiff
-, freetype
-, fontconfig
-, libpaper
-, jbig2dec
-, libiconv
-, ijs
-, lcms2
-, callPackage
-, bash
-, buildPackages
-, openjpeg
-, cupsSupport ? config.ghostscript.cups or (!stdenv.isDarwin)
-, cups
-, x11Support ? cupsSupport
-, xorg # with CUPS, X11 only adds very little
+{ config, stdenv, lib, fetchurl, pkg-config, zlib, expat, openssl, autoconf
+, libjpeg, libpng, libtiff, freetype, fontconfig, libpaper, jbig2dec, libiconv
+, ijs, lcms2, callPackage, bash, buildPackages, openjpeg
+, cupsSupport ? config.ghostscript.cups or (!stdenv.isDarwin), cups
+, x11Support ? cupsSupport, xorg # with CUPS, X11 only adds very little
 , dynamicDrivers ? true
 
-# for passthru.tests
-# , graphicsmagick
-# , imagemagick
-# , libspectre
-# , lilypond
-# , pstoedit
-# , python3
+  # for passthru.tests
+  # , graphicsmagick
+  # , imagemagick
+  # , libspectre
+  # , lilypond
+  # , pstoedit
+  # , python3
 }:
 
 let
@@ -58,45 +36,58 @@ let
     '';
   };
 
-in
-stdenv.mkDerivation rec {
+in stdenv.mkDerivation rec {
   pname = "ghostscript${lib.optionalString x11Support "-with-X"}";
   version = "10.02.1";
 
   src = fetchurl {
-    url = "https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs${lib.replaceStrings ["."] [""] version}/ghostscript-${version}.tar.xz";
-    hash = "sha512-7g91TBvYoYQorRTqo+rYD/i5YnWvUBLnqDhPHxBJDaBW7smuPMeRp6E6JOFuVN9bzN0QnH1ToUU0u9c2CjALEQ=";
+    url =
+      "https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs${
+        lib.replaceStrings [ "." ] [ "" ] version
+      }/ghostscript-${version}.tar.xz";
+    hash =
+      "sha512-7g91TBvYoYQorRTqo+rYD/i5YnWvUBLnqDhPHxBJDaBW7smuPMeRp6E6JOFuVN9bzN0QnH1ToUU0u9c2CjALEQ=";
   };
 
-  patches = [
-    ./urw-font-files.patch
-    ./doc-no-ref.diff
-  ];
+  patches = [ ./urw-font-files.patch ./doc-no-ref.diff ];
 
   outputs = [ "out" "man" "doc" ];
 
   enableParallelBuilding = true;
 
-  depsBuildBuild = [
-    buildPackages.stdenv.cc
-  ];
+  depsBuildBuild = [ buildPackages.stdenv.cc ];
 
   nativeBuildInputs = [ pkg-config autoconf zlib ]
     ++ lib.optional cupsSupport cups;
 
   buildInputs = [
-    zlib expat openssl
-    libjpeg libpng libtiff freetype fontconfig libpaper jbig2dec
-    libiconv ijs lcms2 bash openjpeg
-  ]
-  ++ lib.optionals x11Support [ xorg.libICE xorg.libX11 xorg.libXext xorg.libXt ]
-  ++ lib.optional cupsSupport cups
-  ;
+    zlib
+    expat
+    openssl
+    libjpeg
+    libpng
+    libtiff
+    freetype
+    fontconfig
+    libpaper
+    jbig2dec
+    libiconv
+    ijs
+    lcms2
+    bash
+    openjpeg
+  ] ++ lib.optionals x11Support [
+    xorg.libICE
+    xorg.libX11
+    xorg.libXext
+    xorg.libXt
+  ] ++ lib.optional cupsSupport cups;
 
   preConfigure = ''
     # https://ghostscript.com/doc/current/Make.htm
     export CCAUX=$CC_FOR_BUILD
-    ${lib.optionalString cupsSupport ''export CUPSCONFIG="${cups.dev}/bin/cups-config"''}
+    ${lib.optionalString cupsSupport
+    ''export CUPSCONFIG="${cups.dev}/bin/cups-config"''}
 
     rm -rf jpeg libpng zlib jasper expat tiff lcms2mt jbig2dec freetype cups/libs ijs openjpeg
 
@@ -106,26 +97,24 @@ stdenv.mkDerivation rec {
     autoconf
   '';
 
-  configureFlags = [
-    "--with-system-libtiff"
-    "--without-tesseract"
-  ] ++ lib.optionals dynamicDrivers [
-    "--enable-dynamic"
-    "--disable-hidden-visibility"
-  ] ++ lib.optionals x11Support [
-    "--with-x"
-  ] ++ lib.optionals cupsSupport [
-    "--enable-cups"
-  ];
+  configureFlags = [ "--with-system-libtiff" "--without-tesseract" ]
+    ++ lib.optionals dynamicDrivers [
+      "--enable-dynamic"
+      "--disable-hidden-visibility"
+    ] ++ lib.optionals x11Support [ "--with-x" ]
+    ++ lib.optionals cupsSupport [ "--enable-cups" ];
 
   # make check does nothing useful
   doCheck = false;
 
   # don't build/install statically linked bin/gs
-  buildFlags = [ "so" ]
-    # without -headerpad, the following error occurs on Darwin when compiling with X11 support (as of 10.02.0)
-    # error: install_name_tool: changing install names or rpaths can't be redone for: [...]libgs.dylib.10 (the program must be relinked, and you may need to use -headerpad or -headerpad_max_install_names)
-    ++ lib.optional (x11Support && stdenv.isDarwin) "LDFLAGS=-headerpad_max_install_names";
+  buildFlags = [
+    "so"
+  ]
+  # without -headerpad, the following error occurs on Darwin when compiling with X11 support (as of 10.02.0)
+  # error: install_name_tool: changing install names or rpaths can't be redone for: [...]libgs.dylib.10 (the program must be relinked, and you may need to use -headerpad or -headerpad_max_install_names)
+    ++ lib.optional (x11Support && stdenv.isDarwin)
+    "LDFLAGS=-headerpad_max_install_names";
   installTargets = [ "soinstall" ];
 
   postInstall = ''

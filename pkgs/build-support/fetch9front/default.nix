@@ -1,18 +1,19 @@
 { fetchgit, fetchzip, lib }:
 
-lib.makeOverridable (
-  { owner
-  , repo
-  , rev
-  , domain ? "git.9front.org"
-  , name ? "source"
-  , leaveDotGit ? false
-  , deepClone ? false
+lib.makeOverridable ({ owner, repo, rev, domain ? "git.9front.org"
+  , name ? "source", leaveDotGit ? false, deepClone ? false
   , ... # For hash agility
-  } @ args:
+  }@args:
 
   let
-    passthruAttrs = removeAttrs args [ "domain" "owner" "repo" "rev" "leaveDotGit" "deepClone" ];
+    passthruAttrs = removeAttrs args [
+      "domain"
+      "owner"
+      "repo"
+      "rev"
+      "leaveDotGit"
+      "deepClone"
+    ];
 
     useFetchGit = leaveDotGit || deepClone;
     fetcher = if useFetchGit then fetchgit else fetchzip;
@@ -26,11 +27,9 @@ lib.makeOverridable (
     } else {
       url = "https://${domain}/${owner}/${repo}/${rev}/snap.tar.gz";
 
-      passthru = {
-        inherit gitRepoUrl;
-      };
-    }) // passthruAttrs // { inherit name; };
-  in
+      passthru = { inherit gitRepoUrl; };
+    }) // passthruAttrs // {
+      inherit name;
+    };
 
-  fetcher fetcherArgs // { inherit rev; }
-)
+  in fetcher fetcherArgs // { inherit rev; })

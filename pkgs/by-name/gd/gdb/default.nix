@@ -1,35 +1,35 @@
 { lib, stdenv, targetPackages
 
 # Build time
-, fetchurl, fetchpatch, pkg-config, perl, texinfo, setupDebugInfoDirs, buildPackages
+, fetchurl, fetchpatch, pkg-config, perl, texinfo, setupDebugInfoDirs
+, buildPackages
 
 # Run time
-, ncurses, readline, gmp, mpfr, expat, libipt, zlib, zstd, xz, dejagnu, sourceHighlight, libiconv
+, ncurses, readline, gmp, mpfr, expat, libipt, zlib, zstd, xz, dejagnu
+, sourceHighlight, libiconv
 
-, pythonSupport ? stdenv.hostPlatform == stdenv.buildPlatform && !stdenv.hostPlatform.isCygwin, python3 ? null
+, pythonSupport ? stdenv.hostPlatform == stdenv.buildPlatform
+  && !stdenv.hostPlatform.isCygwin, python3 ? null
 , enableDebuginfod ? lib.meta.availableOn stdenv.hostPlatform elfutils, elfutils
-, guile ? null
-, hostCpuOnly ? false
-, enableSim ? false
-, safePaths ? [
-   # $debugdir:$datadir/auto-load are whitelisted by default by GDB
-   "$debugdir" "$datadir/auto-load"
-   # targetPackages so we get the right libc when cross-compiling and using buildPackages.gdb
-   targetPackages.stdenv.cc.cc.lib
-  ]
-, writeScript
-}:
+, guile ? null, hostCpuOnly ? false, enableSim ? false, safePaths ? [
+  # $debugdir:$datadir/auto-load are whitelisted by default by GDB
+  "$debugdir"
+  "$datadir/auto-load"
+  # targetPackages so we get the right libc when cross-compiling and using buildPackages.gdb
+  targetPackages.stdenv.cc.cc.lib
+], writeScript }:
 
 let
   basename = "gdb";
-  targetPrefix = lib.optionalString (stdenv.targetPlatform != stdenv.hostPlatform)
-                 "${stdenv.targetPlatform.config}-";
-in
+  targetPrefix =
+    lib.optionalString (stdenv.targetPlatform != stdenv.hostPlatform)
+    "${stdenv.targetPlatform.config}-";
 
-assert pythonSupport -> python3 != null;
+in assert pythonSupport -> python3 != null;
 
 stdenv.mkDerivation rec {
-  pname = targetPrefix + basename + lib.optionalString hostCpuOnly "-host-cpu-only";
+  pname = targetPrefix + basename
+    + lib.optionalString hostCpuOnly "-host-cpu-only";
   version = "14.2";
 
   src = fetchurl {
@@ -47,18 +47,26 @@ stdenv.mkDerivation rec {
     substituteInPlace sim/ppc/emul_unix.c --replace sys/termios.h termios.h
   '';
 
-  patches = [
-    ./debug-info-from-env.patch
-  ] ++ lib.optionals stdenv.isDarwin [
-    ./darwin-target-match.patch
-  ];
+  patches = [ ./debug-info-from-env.patch ]
+    ++ lib.optionals stdenv.isDarwin [ ./darwin-target-match.patch ];
 
   nativeBuildInputs = [ pkg-config texinfo perl setupDebugInfoDirs ];
 
-  buildInputs = [ ncurses readline gmp mpfr expat libipt zlib zstd xz guile sourceHighlight ]
-    ++ lib.optional pythonSupport python3
-    ++ lib.optional doCheck dejagnu
-    ++ lib.optional enableDebuginfod (elfutils.override { enableDebuginfod = true; })
+  buildInputs = [
+    ncurses
+    readline
+    gmp
+    mpfr
+    expat
+    libipt
+    zlib
+    zstd
+    xz
+    guile
+    sourceHighlight
+  ] ++ lib.optional pythonSupport python3 ++ lib.optional doCheck dejagnu
+    ++ lib.optional enableDebuginfod
+    (elfutils.override { enableDebuginfod = true; })
     ++ lib.optional stdenv.isDarwin libiconv;
 
   propagatedNativeBuildInputs = [ setupDebugInfoDirs ];
@@ -88,39 +96,42 @@ stdenv.mkDerivation rec {
   '';
   configureScript = "../configure";
 
-  configureFlags = with lib; [
-    # Set the program prefix to the current targetPrefix.
-    # This ensures that the prefix always conforms to
-    # nixpkgs' expectations instead of relying on the build
-    # system which only receives `config` which is merely a
-    # subset of the platform description.
-    "--program-prefix=${targetPrefix}"
+  configureFlags = with lib;
+    [
+      # Set the program prefix to the current targetPrefix.
+      # This ensures that the prefix always conforms to
+      # nixpkgs' expectations instead of relying on the build
+      # system which only receives `config` which is merely a
+      # subset of the platform description.
+      "--program-prefix=${targetPrefix}"
 
-    "--disable-werror"
-  ] ++ lib.optional (!hostCpuOnly) "--enable-targets=all" ++ [
-    "--enable-64-bit-bfd"
-    "--disable-install-libbfd"
-    "--disable-shared" "--enable-static"
-    "--with-system-zlib"
-    "--with-system-readline"
+      "--disable-werror"
+    ] ++ lib.optional (!hostCpuOnly) "--enable-targets=all" ++ [
+      "--enable-64-bit-bfd"
+      "--disable-install-libbfd"
+      "--disable-shared"
+      "--enable-static"
+      "--with-system-zlib"
+      "--with-system-readline"
 
-    "--with-system-gdbinit=/etc/gdb/gdbinit"
-    "--with-system-gdbinit-dir=/etc/gdb/gdbinit.d"
+      "--with-system-gdbinit=/etc/gdb/gdbinit"
+      "--with-system-gdbinit-dir=/etc/gdb/gdbinit.d"
 
-    "--with-gmp=${gmp.dev}"
-    "--with-mpfr=${mpfr.dev}"
-    "--with-expat" "--with-libexpat-prefix=${expat.dev}"
-    "--with-auto-load-safe-path=${builtins.concatStringsSep ":" safePaths}"
-  ] ++ lib.optional (!pythonSupport) "--without-python"
+      "--with-gmp=${gmp.dev}"
+      "--with-mpfr=${mpfr.dev}"
+      "--with-expat"
+      "--with-libexpat-prefix=${expat.dev}"
+      "--with-auto-load-safe-path=${builtins.concatStringsSep ":" safePaths}"
+    ] ++ lib.optional (!pythonSupport) "--without-python"
     ++ lib.optional stdenv.hostPlatform.isMusl "--disable-nls"
     ++ lib.optional stdenv.hostPlatform.isStatic "--disable-inprocess-agent"
     ++ lib.optional enableDebuginfod "--with-debuginfod=yes"
     ++ lib.optional (!enableSim) "--disable-sim";
 
-  postInstall =
-    '' # Remove Info files already provided by Binutils and other packages.
-       rm -v $out/share/info/bfd.info
-    '';
+  postInstall = ''
+    # Remove Info files already provided by Binutils and other packages.
+          rm -v $out/share/info/bfd.info
+  '';
 
   # TODO: Investigate & fix the test failures.
   doCheck = false;
@@ -153,7 +164,7 @@ stdenv.mkDerivation rec {
     license = lib.licenses.gpl3Plus;
 
     # GDB upstream does not support ARM darwin
-    platforms = with platforms; linux ++ cygwin ++ ["x86_64-darwin"];
+    platforms = with platforms; linux ++ cygwin ++ [ "x86_64-darwin" ];
     maintainers = with maintainers; [ pierron globin lsix ];
   };
 }

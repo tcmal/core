@@ -1,10 +1,4 @@
-{ lib
-, stdenv
-, fetchFromGitHub
-, cmake
-, unstableGitUpdater
-, testers
-}:
+{ lib, stdenv, fetchFromGitHub, cmake, unstableGitUpdater, testers }:
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "rapidcheck";
@@ -12,8 +6,8 @@ stdenv.mkDerivation (finalAttrs: {
 
   src = fetchFromGitHub {
     owner = "emil-e";
-    repo  = "rapidcheck";
-    rev   = "ff6af6fc683159deb51c543b065eba14dfcf329b";
+    repo = "rapidcheck";
+    rev = "ff6af6fc683159deb51c543b065eba14dfcf329b";
     hash = "sha256-Ixz5RpY0n8Un/Pv4XoTfbs40+70iyMbkQUjDqoLaWOg=";
   };
 
@@ -32,7 +26,8 @@ stdenv.mkDerivation (finalAttrs: {
   };
 
   meta = with lib; {
-    description = "A C++ framework for property based testing inspired by QuickCheck";
+    description =
+      "A C++ framework for property based testing inspired by QuickCheck";
     inherit (finalAttrs.src.meta) homepage;
     maintainers = with maintainers; [ ];
     license = licenses.bsd2;

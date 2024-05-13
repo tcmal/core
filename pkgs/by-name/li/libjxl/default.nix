@@ -1,31 +1,11 @@
-{ stdenv, lib, fetchFromGitHub
-, brotli
-, cmake
-, giflib
-, gperftools
-, gtest
-, libhwy
-, libjpeg
-, libpng
-, libwebp
-, gdk-pixbuf
-, openexr_3
-, pkg-config
-, makeWrapper
-, zlib
-, asciidoc
-, graphviz
-, doxygen
-, python3
-, lcms2
-, enablePlugins ? stdenv.buildPlatform.canExecute stdenv.hostPlatform
-}:
+{ stdenv, lib, fetchFromGitHub, brotli, cmake, giflib, gperftools, gtest, libhwy
+, libjpeg, libpng, libwebp, gdk-pixbuf, openexr_3, pkg-config, makeWrapper, zlib
+, asciidoc, graphviz, doxygen, python3, lcms2
+, enablePlugins ? stdenv.buildPlatform.canExecute stdenv.hostPlatform }:
 
-let
-  loadersPath = "${gdk-pixbuf.binaryDir}/jxl-loaders.cache";
-in
+let loadersPath = "${gdk-pixbuf.binaryDir}/jxl-loaders.cache";
 
-stdenv.mkDerivation rec {
+in stdenv.mkDerivation rec {
   pname = "libjxl";
   version = "0.9.1";
 
@@ -42,19 +22,10 @@ stdenv.mkDerivation rec {
 
   strictDeps = true;
 
-  nativeBuildInputs = [
-    cmake
-    pkg-config
-    gdk-pixbuf
-    makeWrapper
-    asciidoc
-    doxygen
-    python3
-  ];
+  nativeBuildInputs =
+    [ cmake pkg-config gdk-pixbuf makeWrapper asciidoc doxygen python3 ];
 
-  depsBuildBuild = [
-    graphviz
-  ];
+  depsBuildBuild = [ graphviz ];
 
   # Functionality not currently provided by this package
   # that the cmake build can apparently use:
@@ -85,10 +56,7 @@ stdenv.mkDerivation rec {
     zlib
   ];
 
-  propagatedBuildInputs = [
-    brotli
-    libhwy
-  ];
+  propagatedBuildInputs = [ brotli libhwy ];
 
   cmakeFlags = [
     # For C dependencies like brotli, which are dynamically linked,
@@ -112,11 +80,8 @@ stdenv.mkDerivation rec {
     # * the `gdk-pixbuf` one, which allows applications like `eog` to load jpeg-xl files
     # * the `gimp` one, which allows GIMP to load jpeg-xl files
     "-DJPEGXL_ENABLE_PLUGINS=ON"
-  ] ++ lib.optionals stdenv.hostPlatform.isStatic [
-    "-DJPEGXL_STATIC=ON"
-  ] ++ lib.optionals stdenv.hostPlatform.isAarch32 [
-    "-DJPEGXL_FORCE_NEON=ON"
-  ];
+  ] ++ lib.optionals stdenv.hostPlatform.isStatic [ "-DJPEGXL_STATIC=ON" ]
+    ++ lib.optionals stdenv.hostPlatform.isAarch32 [ "-DJPEGXL_FORCE_NEON=ON" ];
 
   postPatch = ''
     substituteInPlace plugins/gdk-pixbuf/jxl.thumbnailer \
@@ -132,7 +97,8 @@ stdenv.mkDerivation rec {
       --set GDK_PIXBUF_MODULE_FILE "$out/${loadersPath}"
   '';
 
-  CXXFLAGS = lib.optionalString stdenv.hostPlatform.isAarch32 "-mfp16-format=ieee";
+  CXXFLAGS =
+    lib.optionalString stdenv.hostPlatform.isAarch32 "-mfp16-format=ieee";
 
   # FIXME x86_64-darwin:
   # https://github.com/NixOS/nixpkgs/pull/204030#issuecomment-1352768690

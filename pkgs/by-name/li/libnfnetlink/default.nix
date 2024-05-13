@@ -5,12 +5,14 @@ stdenv.mkDerivation rec {
   version = "1.0.2";
 
   src = fetchurl {
-    url = "https://www.netfilter.org/projects/libnfnetlink/files/libnfnetlink-${version}.tar.bz2";
+    url =
+      "https://www.netfilter.org/projects/libnfnetlink/files/libnfnetlink-${version}.tar.bz2";
     sha256 = "0xn3rcrzxr6g82kfxzs9bqn2zvl2kf2yda30drwb9vr6sk1wfr5h";
   };
 
   meta = {
-    description = "Low-level library for netfilter related kernel/userspace communication";
+    description =
+      "Low-level library for netfilter related kernel/userspace communication";
     longDescription = ''
       libnfnetlink is the low-level library for netfilter related kernel/userspace communication.
       It provides a generic messaging infrastructure for in-kernel netfilter subsystems

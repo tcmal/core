@@ -1,21 +1,17 @@
-{ lib, runCommand, transmission_noSystemd, rqbit, writeShellScript, formats, cacert, rsync }:
-let
-  urlRegexp = ''.*xt=urn:bt[im]h:([^&]{64}|[^&]{40}).*'';
-in
-{ url
-, name ?
-  if (builtins.match urlRegexp url) == null then
-    "bittorrent"
+{ lib, runCommand, transmission_noSystemd, rqbit, writeShellScript, formats
+, cacert, rsync }:
+let urlRegexp = ".*xt=urn:bt[im]h:([^&]{64}|[^&]{40}).*";
+in { url, name ? if (builtins.match urlRegexp url) == null then
+  "bittorrent"
+else
+  "bittorrent-" + builtins.head (builtins.match urlRegexp url), config ?
+  if (backend == "transmission") then
+    { }
   else
-    "bittorrent-" + builtins.head (builtins.match urlRegexp url)
-, config ? if (backend == "transmission") then { } else throw "json config for configuring fetchFromBitorrent only works with the transmission backend"
-, hash
-, backend ? "transmission"
-, recursiveHash ? true
-, postFetch ? ""
-, postUnpack ? ""
-, meta ? {}
-}:
+    throw
+    "json config for configuring fetchFromBitorrent only works with the transmission backend"
+, hash, backend ? "transmission", recursiveHash ? true, postFetch ? ""
+, postUnpack ? "", meta ? { } }:
 let
   afterSuccess = writeShellScript "fetch-bittorrent-done.sh" ''
     ${postUnpack}
@@ -28,11 +24,16 @@ let
     ${postFetch}
     kill $PPID
   '';
-  jsonConfig = (formats.json {}).generate "jsonConfig" config;
-in
-runCommand name {
+  jsonConfig = (formats.json { }).generate "jsonConfig" config;
+in runCommand name {
   inherit meta;
-  nativeBuildInputs = [ cacert ] ++ (if (backend == "transmission" ) then [ transmission_noSystemd ] else if (backend == "rqbit") then [ rqbit ] else throw "rqbit or transmission are the only available backends for fetchtorrent");
+  nativeBuildInputs = [ cacert ] ++ (if (backend == "transmission") then
+    [ transmission_noSystemd ]
+  else if (backend == "rqbit") then
+    [ rqbit ]
+  else
+    throw
+    "rqbit or transmission are the only available backends for fetchtorrent");
   outputHashAlgo = if hash != "" then null else "sha256";
   outputHash = hash;
   outputHashMode = if recursiveHash then "recursive" else "flat";
@@ -41,8 +42,7 @@ runCommand name {
   # by external tools, such as tools that may want to seed fetchtorrent calls
   # in nixpkgs
   inherit url;
-}
-(if (backend == "transmission") then ''
+} (if (backend == "transmission") then ''
   export HOME=$TMP
   export downloadedDirectory=$out/downloadedDirectory
   mkdir -p $downloadedDirectory
@@ -55,8 +55,7 @@ runCommand name {
   }
   trap handleChild CHLD
   transmission-cli --port $(shuf -n 1 -i 49152-65535) --portmap --finish ${afterSuccess} --download-dir $downloadedDirectory --config-dir "$HOME"/.config/transmission "$url"
-'' else
-''
+'' else ''
   export HOME=$TMP
   rqbit --disable-dht-persistence --http-api-listen-addr "127.0.0.1:$(shuf -n 1 -i 49152-65535)" download -o $out --exit-on-finish "$url"
 '')

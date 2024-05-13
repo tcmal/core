@@ -1,56 +1,36 @@
-{ lib
-, stdenv
-, fetchurl
-, buildPackages
-, bzip2
-, curlMinimal
-, expat
-, libarchive
-, libuv
-, ncurses
-, openssl
-, pkg-config
-, ps
-, rhash
-, sphinx
-, texinfo
-, xz
-, zlib
-, isBootstrap ? null
-, isMinimalBuild ? (
-  if isBootstrap != null
-  then lib.warn
-    "isBootstrap argument is deprecated and will be removed; use isMinimalBuild instead"
-    isBootstrap
-  else false)
-, useOpenSSL ? !isMinimalBuild
+{ lib, stdenv, fetchurl, buildPackages, bzip2, curlMinimal, expat, libarchive
+, libuv, ncurses, openssl, pkg-config, ps, rhash, sphinx, texinfo, xz, zlib
+, isBootstrap ? null, isMinimalBuild ? (if isBootstrap != null then
+  lib.warn
+  "isBootstrap argument is deprecated and will be removed; use isMinimalBuild instead"
+  isBootstrap
+else
+  false), useOpenSSL ? !isMinimalBuild
 , useSharedLibraries ? (!isMinimalBuild && !stdenv.isCygwin)
-, uiToolkits ? [] # can contain "ncurses" and/or "qt5"
-, buildDocs ? !(isMinimalBuild || (uiToolkits == []))
-, darwin
+, uiToolkits ? [ ] # can contain "ncurses" and/or "qt5"
+, buildDocs ? !(isMinimalBuild || (uiToolkits == [ ])), darwin
 # , libsForQt5
-, gitUpdater
-}:
+, gitUpdater }:
 
 let
   inherit (darwin.apple_sdk.frameworks) CoreServices SystemConfiguration;
   # inherit (libsForQt5) qtbase wrapQtAppsHook;
   cursesUI = lib.elem "ncurses" uiToolkits;
   # qt5UI = lib.elem "qt5" uiToolkits;
-in
-# Accepts only "ncurses" and "qt5" as possible uiToolkits
-assert lib.subtractLists [ "ncurses" "qt5" ] uiToolkits == [];
+  # Accepts only "ncurses" and "qt5" as possible uiToolkits
+in assert lib.subtractLists [ "ncurses" "qt5" ] uiToolkits == [ ];
 # Minimal, bootstrap cmake does not have toolkits
-assert isMinimalBuild -> (uiToolkits == []);
+assert isMinimalBuild -> (uiToolkits == [ ]);
 stdenv.mkDerivation (finalAttrs: {
-  pname = "cmake"
-    + lib.optionalString isMinimalBuild "-minimal"
+  pname = "cmake" + lib.optionalString isMinimalBuild "-minimal"
     + lib.optionalString cursesUI "-cursesUI";
-    # + lib.optionalString qt5UI "-qt5UI";
+  # + lib.optionalString qt5UI "-qt5UI";
   version = "3.29.1";
 
   src = fetchurl {
-    url = "https://cmake.org/files/v${lib.versions.majorMinor finalAttrs.version}/cmake-${finalAttrs.version}.tar.gz";
+    url = "https://cmake.org/files/v${
+        lib.versions.majorMinor finalAttrs.version
+      }/cmake-${finalAttrs.version}.tar.gz";
     hash = "sha256-f7Auj1e2Kzmqa0z3HoIBSLoaI3JIiElHNQIeMqsO78w=";
   };
 
@@ -61,28 +41,23 @@ stdenv.mkDerivation (finalAttrs: {
     ./002-application-services.diff
     # Derived from https://github.com/libuv/libuv/commit/1a5d4f08238dd532c3718e210078de1186a5920d
     ./003-libuv-application-services.diff
-  ]
-  ++ lib.optional stdenv.isCygwin ./004-cygwin.diff
-  # Derived from https://github.com/curl/curl/commit/31f631a142d855f069242f3e0c643beec25d1b51
-  ++ lib.optional (stdenv.isDarwin && isMinimalBuild) ./005-remove-systemconfiguration-dep.diff
-  # On Darwin, always set CMAKE_SHARED_LIBRARY_RUNTIME_C_FLAG.
-  ++ lib.optional stdenv.isDarwin ./006-darwin-always-set-runtime-c-flag.diff;
+  ] ++ lib.optional stdenv.isCygwin ./004-cygwin.diff
+    # Derived from https://github.com/curl/curl/commit/31f631a142d855f069242f3e0c643beec25d1b51
+    ++ lib.optional (stdenv.isDarwin && isMinimalBuild)
+    ./005-remove-systemconfiguration-dep.diff
+    # On Darwin, always set CMAKE_SHARED_LIBRARY_RUNTIME_C_FLAG.
+    ++ lib.optional stdenv.isDarwin ./006-darwin-always-set-runtime-c-flag.diff;
 
   outputs = [ "out" ] ++ lib.optionals buildDocs [ "man" "info" ];
   separateDebugInfo = true;
   setOutputFlags = false;
 
-  setupHooks = [
-    ./setup-hook.sh
-    ./check-pc-files-hook.sh
-  ];
+  setupHooks = [ ./setup-hook.sh ./check-pc-files-hook.sh ];
 
   depsBuildBuild = [ buildPackages.stdenv.cc ];
 
-  nativeBuildInputs = finalAttrs.setupHooks ++ [
-    pkg-config
-  ]
-  ++ lib.optionals buildDocs [ texinfo ];
+  nativeBuildInputs = finalAttrs.setupHooks ++ [ pkg-config ]
+    ++ lib.optionals buildDocs [ texinfo ];
   # ++ lib.optionals qt5UI [ wrapQtAppsHook ];
 
   buildInputs = lib.optionals useSharedLibraries [
@@ -94,12 +69,10 @@ stdenv.mkDerivation (finalAttrs: {
     zlib
     libuv
     rhash
-  ]
-  ++ lib.optional useOpenSSL openssl
-  ++ lib.optional cursesUI ncurses
-  # ++ lib.optional qt5UI qtbase
-  ++ lib.optional stdenv.isDarwin CoreServices
-  ++ lib.optional (stdenv.isDarwin && !isMinimalBuild) SystemConfiguration;
+  ] ++ lib.optional useOpenSSL openssl ++ lib.optional cursesUI ncurses
+    # ++ lib.optional qt5UI qtbase
+    ++ lib.optional stdenv.isDarwin CoreServices
+    ++ lib.optional (stdenv.isDarwin && !isMinimalBuild) SystemConfiguration;
 
   propagatedBuildInputs = lib.optional stdenv.isDarwin ps;
 
@@ -121,46 +94,45 @@ stdenv.mkDerivation (finalAttrs: {
   configureFlags = [
     "CXXFLAGS=-Wno-elaborated-enum-base"
     "--docdir=share/doc/${finalAttrs.pname}-${finalAttrs.version}"
-  ] ++ (if useSharedLibraries
-        then [
-          "--no-system-cppdap"
-          "--no-system-jsoncpp"
-          "--system-libs"
-        ]
-        else [
-          "--no-system-libs"
-        ]) # FIXME: cleanup
+  ] ++ (if useSharedLibraries then [
+    "--no-system-cppdap"
+    "--no-system-jsoncpp"
+    "--system-libs"
+  ] else
+    [ "--no-system-libs" ]) # FIXME: cleanup
   # ++ lib.optional qt5UI "--qt-gui"
-  ++ lib.optionals buildDocs [
-    "--sphinx-build=${sphinx}/bin/sphinx-build"
-    "--sphinx-info"
-    "--sphinx-man"
-  ]
-  # Workaround https://gitlab.kitware.com/cmake/cmake/-/issues/20568
-  ++ lib.optionals stdenv.hostPlatform.is32bit [
-    "CFLAGS=-D_FILE_OFFSET_BITS=64"
-    "CXXFLAGS=-D_FILE_OFFSET_BITS=64"
-  ]
-  ++ [
-    "--"
-    # We should set the proper `CMAKE_SYSTEM_NAME`.
-    # http://www.cmake.org/Wiki/CMake_Cross_Compiling
-    #
-    # Unfortunately cmake seems to expect absolute paths for ar, ranlib, and
-    # strip. Otherwise they are taken to be relative to the source root of the
-    # package being built.
-    (lib.cmakeFeature "CMAKE_CXX_COMPILER" "${stdenv.cc.targetPrefix}c++")
-    (lib.cmakeFeature "CMAKE_C_COMPILER" "${stdenv.cc.targetPrefix}cc")
-    (lib.cmakeFeature "CMAKE_AR"
-      "${lib.getBin stdenv.cc.bintools.bintools}/bin/${stdenv.cc.targetPrefix}ar")
-    (lib.cmakeFeature "CMAKE_RANLIB"
-      "${lib.getBin stdenv.cc.bintools.bintools}/bin/${stdenv.cc.targetPrefix}ranlib")
-    (lib.cmakeFeature "CMAKE_STRIP"
-      "${lib.getBin stdenv.cc.bintools.bintools}/bin/${stdenv.cc.targetPrefix}strip")
+    ++ lib.optionals buildDocs [
+      "--sphinx-build=${sphinx}/bin/sphinx-build"
+      "--sphinx-info"
+      "--sphinx-man"
+    ]
+    # Workaround https://gitlab.kitware.com/cmake/cmake/-/issues/20568
+    ++ lib.optionals stdenv.hostPlatform.is32bit [
+      "CFLAGS=-D_FILE_OFFSET_BITS=64"
+      "CXXFLAGS=-D_FILE_OFFSET_BITS=64"
+    ] ++ [
+      "--"
+      # We should set the proper `CMAKE_SYSTEM_NAME`.
+      # http://www.cmake.org/Wiki/CMake_Cross_Compiling
+      #
+      # Unfortunately cmake seems to expect absolute paths for ar, ranlib, and
+      # strip. Otherwise they are taken to be relative to the source root of the
+      # package being built.
+      (lib.cmakeFeature "CMAKE_CXX_COMPILER" "${stdenv.cc.targetPrefix}c++")
+      (lib.cmakeFeature "CMAKE_C_COMPILER" "${stdenv.cc.targetPrefix}cc")
+      (lib.cmakeFeature "CMAKE_AR" "${
+          lib.getBin stdenv.cc.bintools.bintools
+        }/bin/${stdenv.cc.targetPrefix}ar")
+      (lib.cmakeFeature "CMAKE_RANLIB" "${
+          lib.getBin stdenv.cc.bintools.bintools
+        }/bin/${stdenv.cc.targetPrefix}ranlib")
+      (lib.cmakeFeature "CMAKE_STRIP" "${
+          lib.getBin stdenv.cc.bintools.bintools
+        }/bin/${stdenv.cc.targetPrefix}strip")
 
-    (lib.cmakeBool "CMAKE_USE_OPENSSL" useOpenSSL)
-    (lib.cmakeBool "BUILD_CursesDialog" cursesUI)
-  ];
+      (lib.cmakeBool "CMAKE_USE_OPENSSL" useOpenSSL)
+      (lib.cmakeBool "BUILD_CursesDialog" cursesUI)
+    ];
 
   # `pkgsCross.musl64.cmake.override { stdenv = pkgsCross.musl64.llvmPackages_16.libcxxStdenv; }`
   # fails with `The C++ compiler does not support C++11 (e.g.  std::unique_ptr).`
@@ -169,9 +141,10 @@ stdenv.mkDerivation (finalAttrs: {
   env.NIX_CFLAGS_COMPILE = "-Wno-unused-command-line-argument";
 
   # make install attempts to use the just-built cmake
-  preInstall = lib.optionalString (stdenv.hostPlatform != stdenv.buildPlatform) ''
-    sed -i 's|bin/cmake|${buildPackages.cmakeMinimal}/bin/cmake|g' Makefile
-  '';
+  preInstall =
+    lib.optionalString (stdenv.hostPlatform != stdenv.buildPlatform) ''
+      sed -i 's|bin/cmake|${buildPackages.cmakeMinimal}/bin/cmake|g' Makefile
+    '';
 
   dontUseCmakeConfigure = true;
   enableParallelBuilding = true;
@@ -194,11 +167,14 @@ stdenv.mkDerivation (finalAttrs: {
       configuration files, and generate native makefiles and workspaces that can
       be used in the compiler environment of your choice.
     '';
-    changelog = "https://cmake.org/cmake/help/v${lib.versions.majorMinor finalAttrs.version}/release/${lib.versions.majorMinor finalAttrs.version}.html";
+    changelog = "https://cmake.org/cmake/help/v${
+        lib.versions.majorMinor finalAttrs.version
+      }/release/${lib.versions.majorMinor finalAttrs.version}.html";
     license = lib.licenses.bsd3;
     maintainers = with lib.maintainers; [ ttuegel lnl7 AndersonTorres ];
     platforms = lib.platforms.all;
     mainProgram = "cmake";
-    broken = (/*qt5UI &&*/ stdenv.isDarwin);
+    broken = ( # qt5UI &&
+      stdenv.isDarwin);
   };
 })

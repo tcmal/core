@@ -3,12 +3,11 @@
    them.  Also, because most Nix expressions for CPAN packages are
    trivial, most are actually defined here.  I.e. there's no function
    for each package in a separate file: the call to the function would
-   be almost as much code as the function itself. */
+   be almost as much code as the function itself.
+*/
 
-{ config
-, stdenv, lib, buildPackages, pkgs, darwin
-, fetchurl, fetchpatch, fetchFromGitHub, fetchFromGitLab
-, perl, shortenPerlShebang
+{ config, stdenv, lib, buildPackages, pkgs, darwin, fetchurl, fetchpatch
+, fetchFromGitHub, fetchFromGitLab, perl, shortenPerlShebang
 # , nixosTests
 }:
 
@@ -19,20 +18,23 @@ assert lib.versionAtLeast perl.version "5.30.3";
 with self; {
 
   inherit perl;
-  perlPackages = self // { perlPackages = self.perlPackages // { __attrsFailEvaluation = true; }; };
+  perlPackages = self // {
+    perlPackages = self.perlPackages // { __attrsFailEvaluation = true; };
+  };
 
   # Check whether a derivation provides a perl module.
-  hasPerlModule = drv: drv ? perlModule ;
+  hasPerlModule = drv: drv ? perlModule;
 
-  requiredPerlModules = drvs: let
-    modules = lib.filter hasPerlModule drvs;
-  in lib.unique ([perl] ++ modules ++ lib.concatLists (lib.catAttrs "requiredPerlModules" modules));
+  requiredPerlModules = drvs:
+    let modules = lib.filter hasPerlModule drvs;
+    in lib.unique ([ perl ] ++ modules
+      ++ lib.concatLists (lib.catAttrs "requiredPerlModules" modules));
 
   # Convert derivation to a perl module.
   toPerlModule = drv:
-    drv.overrideAttrs( oldAttrs: {
+    drv.overrideAttrs (oldAttrs: {
       # Use passthru in order to prevent rebuilds when possible.
-      passthru = (oldAttrs.passthru or {}) // {
+      passthru = (oldAttrs.passthru or { }) // {
         perlModule = perl;
         requiredPerlModules = requiredPerlModules drv.propagatedBuildInputs;
       };
@@ -63,7 +65,7 @@ with self; {
         touch Makefile.PL
         ${args.preConfigure or ""}
       '';
-      buildInputs = (args.buildInputs or []) ++ [ ModuleBuild ];
+      buildInputs = (args.buildInputs or [ ]) ++ [ ModuleBuild ];
     });
 
   /* Construct a perl search path (such as $PERL5LIB)
@@ -83,7 +85,6 @@ with self; {
        => "/nix/store/fddivfrdc1xql02h9q500fpnqy12c74n-perl-CGI-4.38/lib/perl5/site_perl:/nix/store/8hsvdalmsxqkjg0c5ifigpf31vc4vsy2-perl-HTML-Parser-3.72/lib/perl5/site_perl:/nix/store/zhc7wh0xl8hz3y3f71nhlw1559iyvzld-perl-HTML-Tagset-3.20/lib/perl5/site_perl"
   */
   makeFullPerlPath = deps: makePerlPath (lib.misc.closePropagation deps);
-
 
   # ack = buildPerlPackage rec {
   #   pname = "ack";
@@ -2302,7 +2303,8 @@ with self; {
       hash = "sha256-bCMRPoe605MwjJCiBwE+UF9lknRzZjjYx5usnGfMPhk=";
     };
     meta = {
-      description = "Capture STDOUT and STDERR from Perl, XS or external programs";
+      description =
+        "Capture STDOUT and STDERR from Perl, XS or external programs";
       homepage = "https://github.com/dagolden/Capture-Tiny";
       license = with lib.licenses; [ asl20 ];
     };
@@ -3082,7 +3084,6 @@ with self; {
   #   };
   # };
 
-
   CGI = buildPerlPackage {
     pname = "CGI";
     version = "4.59";
@@ -3590,7 +3591,8 @@ with self; {
     pname = "Class-Inspector";
     version = "1.36";
     src = fetchurl {
-      url = "mirror://cpan/authors/id/P/PL/PLICEASE/Class-Inspector-1.36.tar.gz";
+      url =
+        "mirror://cpan/authors/id/P/PL/PLICEASE/Class-Inspector-1.36.tar.gz";
       hash = "sha256-zCldI6RyaHwkSJ1YIm6tI7n9wliOUi8LXwdHdBcAaU4=";
     };
     meta = {
@@ -3688,7 +3690,8 @@ with self; {
     pname = "Class-Method-Modifiers";
     version = "2.15";
     src = fetchurl {
-      url = "mirror://cpan/authors/id/E/ET/ETHER/Class-Method-Modifiers-2.15.tar.gz";
+      url =
+        "mirror://cpan/authors/id/E/ET/ETHER/Class-Method-Modifiers-2.15.tar.gz";
       hash = "sha256-Zc2Fv+R10GbpGG96jMY2BwmFswsOuxzehoHPBiwuFfw=";
     };
     buildInputs = [ TestFatal TestNeeds ];
@@ -3953,7 +3956,6 @@ with self; {
   #     license = with lib.licenses; [ artistic1 gpl1Plus ];
   #   };
   # };
-
 
   Clone = buildPerlPackage {
     pname = "Clone";
@@ -8712,7 +8714,6 @@ with self; {
   #   };
   # };
 
-
   # EncodeEUCJPASCII = buildPerlPackage {
   #   pname = "Encode-EUCJPASCII";
   #   version = "0.03";
@@ -8779,7 +8780,8 @@ with self; {
       sed -i"" -e "s@plan tests => 13@plan tests => 10@" t/env.t
       sed -i"" -e "s@ok(env(\"\\\x@#ok(env(\"\\\x@" t/env.t
       sed -i"" -e "s@ok(\$ENV{\"\\\x@#ok(\$ENV{\"\\\x@" t/env.t
-    '' else null;
+    '' else
+      null;
     meta = {
       description = "Determine the locale encoding";
       license = with lib.licenses; [ artistic1 gpl1Plus ];
@@ -9054,11 +9056,13 @@ with self; {
     pname = "Exporter-Tiny";
     version = "1.006002";
     src = fetchurl {
-      url = "mirror://cpan/authors/id/T/TO/TOBYINK/Exporter-Tiny-1.006002.tar.gz";
+      url =
+        "mirror://cpan/authors/id/T/TO/TOBYINK/Exporter-Tiny-1.006002.tar.gz";
       hash = "sha256-byleLL/7HbwVvbna3DQWccHgzSvfLTErF1Jic8MiY40=";
     };
     meta = {
-      description = "An exporter with the features of Sub::Exporter but only core dependencies";
+      description =
+        "An exporter with the features of Sub::Exporter but only core dependencies";
       homepage = "https://metacpan.org/release/Exporter-Tiny";
       license = with lib.licenses; [ artistic1 gpl1Plus ];
     };
@@ -9211,7 +9215,8 @@ with self; {
     pname = "ExtUtils-InstallPaths";
     version = "0.012";
     src = fetchurl {
-      url = "mirror://cpan/authors/id/L/LE/LEONT/ExtUtils-InstallPaths-0.012.tar.gz";
+      url =
+        "mirror://cpan/authors/id/L/LE/LEONT/ExtUtils-InstallPaths-0.012.tar.gz";
       hash = "sha256-hHNeMDe6sf3/o8JQhWetQSp4XJFZnbPBJZOlCh3UNO0=";
     };
     propagatedBuildInputs = [ ExtUtilsConfig ];
@@ -9374,9 +9379,10 @@ with self; {
       hash = "sha256-TH1g4m2iwH8Fik40UCHpJQUnOzPJVCIVl34IRhHwns8=";
     };
     buildInputs = [ FCGIClient ];
-    postPatch = lib.optionalString (stdenv.hostPlatform != stdenv.buildPlatform) ''
-      sed -i '/use IO::File/d' Makefile.PL
-    '';
+    postPatch =
+      lib.optionalString (stdenv.hostPlatform != stdenv.buildPlatform) ''
+        sed -i '/use IO::File/d' Makefile.PL
+      '';
     meta = {
       description = "Fast CGI module";
       license = with lib.licenses; [ oml ];
@@ -9403,7 +9409,8 @@ with self; {
     pname = "FCGI-ProcManager";
     version = "0.28";
     src = fetchurl {
-      url = "mirror://cpan/authors/id/A/AR/ARODLAND/FCGI-ProcManager-0.28.tar.gz";
+      url =
+        "mirror://cpan/authors/id/A/AR/ARODLAND/FCGI-ProcManager-0.28.tar.gz";
       hash = "sha256-4clYwEJCehdeBR4ACPICXo7IBhPTx3UFl7+OUpsEQg4=";
     };
     meta = {
@@ -10171,7 +10178,8 @@ with self; {
     pname = "File-ShareDir-Install";
     version = "0.14";
     src = fetchurl {
-      url = "mirror://cpan/authors/id/E/ET/ETHER/File-ShareDir-Install-0.14.tar.gz";
+      url =
+        "mirror://cpan/authors/id/E/ET/ETHER/File-ShareDir-Install-0.14.tar.gz";
       hash = "sha256-j5UzsZjy1KmlKIy8fSJPdnmtBaeoVzdFWZeJQovFrqA=";
     };
     meta = {
@@ -12122,7 +12130,8 @@ with self; {
     pname = "HTTP-CookieJar";
     version = "0.014";
     src = fetchurl {
-      url = "mirror://cpan/authors/id/D/DA/DAGOLDEN/HTTP-CookieJar-0.014.tar.gz";
+      url =
+        "mirror://cpan/authors/id/D/DA/DAGOLDEN/HTTP-CookieJar-0.014.tar.gz";
       hash = "sha256-cJTqXJH1NtJjuF6Dq06alj4RxECM4I7K5VP6nAzEfnM=";
     };
     propagatedBuildInputs = [ HTTPDate ];
@@ -12282,7 +12291,8 @@ with self; {
       hash = "sha256-AcuEBmEqP3OIQtHpcxOuTYdIcNG41tZjMfFgAJQ9TL4=";
     };
     buildInputs = [ TestNeeds TryTiny ];
-    propagatedBuildInputs = [ Clone EncodeLocale HTTPDate IOHTML LWPMediaTypes URI ];
+    propagatedBuildInputs =
+      [ Clone EncodeLocale HTTPDate IOHTML LWPMediaTypes URI ];
     meta = {
       description = "HTTP style message (base class)";
       homepage = "https://github.com/libwww-perl/HTTP-Message";
@@ -13125,7 +13135,6 @@ with self; {
   #     license = with lib.licenses; [ mit ];
   #   };
   # };
-
 
   # IPCRun = buildPerlPackage {
   #   pname = "IPC-Run";
@@ -14177,7 +14186,7 @@ with self; {
       url = "mirror://cpan/authors/id/P/PV/PVANDRY/gettext-1.07.tar.gz";
       hash = "sha256-kJ1HlUaX58BCGPlykVt4e9EkTXXjvQFiC8Fn1bvEnBU=";
     };
-    LANG="C";
+    LANG = "C";
     meta = {
       description = "Perl extension for emulating gettext-related API";
       license = with lib.licenses; [ artistic1 gpl1Plus ];
@@ -14663,14 +14672,24 @@ with self; {
       url = "mirror://cpan/authors/id/O/OA/OALDERS/libwww-perl-6.72.tar.gz";
       hash = "sha256-6bg1T9XiC+IHr+I93VhPzVm/gpmNwHfez2hLodrloF0=";
     };
-    propagatedBuildInputs = [ FileListing HTMLParser HTTPCookies HTTPCookieJar HTTPNegotiate NetHTTP TryTiny WWWRobotRules ];
+    propagatedBuildInputs = [
+      FileListing
+      HTMLParser
+      HTTPCookies
+      HTTPCookieJar
+      HTTPNegotiate
+      NetHTTP
+      TryTiny
+      WWWRobotRules
+    ];
     preCheck = ''
       export NO_NETWORK_TESTING=1
     '';
     # support cross-compilation by avoiding using `has_module` which does not work in miniperl (it requires B native module)
-    postPatch = lib.optionalString (stdenv.buildPlatform != stdenv.hostPlatform) ''
-      substituteInPlace Makefile.PL --replace 'if has_module' 'if 0; #'
-    '';
+    postPatch =
+      lib.optionalString (stdenv.buildPlatform != stdenv.hostPlatform) ''
+        substituteInPlace Makefile.PL --replace 'if has_module' 'if 0; #'
+      '';
     doCheck = !stdenv.isDarwin;
     nativeCheckInputs = [ HTTPDaemon TestFatal TestNeeds TestRequiresInternet ];
     meta = {
@@ -15095,7 +15114,6 @@ with self; {
   #     mainProgram = "spfquery";
   #   };
   # };
-
 
   # MailTools = buildPerlPackage {
   #   pname = "MailTools";
@@ -16013,20 +16031,22 @@ with self; {
       url = "mirror://cpan/authors/id/L/LE/LEONT/Module-Build-0.4234.tar.gz";
       hash = "sha256-Zq6sYSdBi+XkcerTdEZIx2a9AUgoJcW2ZlJnXyvIao8=";
     };
-    postConfigure = lib.optionalString (stdenv.hostPlatform != stdenv.buildPlatform) ''
-      # for unknown reason, the first run of Build fails
-      ./Build || true
-    '';
-    postPatch = lib.optionalString (stdenv.hostPlatform != stdenv.buildPlatform) ''
-      # remove version check since miniperl uses a stub of File::Temp, which do not provide a version:
-      # https://github.com/arsv/perl-cross/blob/master/cnf/stub/File/Temp.pm
-      sed -i '/File::Temp/d' \
-        Build.PL
+    postConfigure =
+      lib.optionalString (stdenv.hostPlatform != stdenv.buildPlatform) ''
+        # for unknown reason, the first run of Build fails
+        ./Build || true
+      '';
+    postPatch =
+      lib.optionalString (stdenv.hostPlatform != stdenv.buildPlatform) ''
+        # remove version check since miniperl uses a stub of File::Temp, which do not provide a version:
+        # https://github.com/arsv/perl-cross/blob/master/cnf/stub/File/Temp.pm
+        sed -i '/File::Temp/d' \
+          Build.PL
 
-      # fix discover perl function, it can not handle a wrapped perl
-      sed -i "s,\$self->_discover_perl_interpreter,'$(type -p perl)',g" \
-        lib/Module/Build/Base.pm
-    '';
+        # fix discover perl function, it can not handle a wrapped perl
+        sed -i "s,\$self->_discover_perl_interpreter,'$(type -p perl)',g" \
+          lib/Module/Build/Base.pm
+      '';
     meta = {
       description = "Build and install Perl modules";
       license = with lib.licenses; [ artistic1 gpl1Plus ];
@@ -16099,7 +16119,8 @@ with self; {
     pname = "Module-Build-Tiny";
     version = "0.047";
     src = fetchurl {
-      url = "mirror://cpan/authors/id/L/LE/LEONT/Module-Build-Tiny-0.047.tar.gz";
+      url =
+        "mirror://cpan/authors/id/L/LE/LEONT/Module-Build-Tiny-0.047.tar.gz";
       hash = "sha256-cSYOlCG5PDPdGz59DPFfdZwMp8dT+oQCeew75w+PjJ0=";
     };
     buildInputs = [ FileShareDir ];
@@ -16997,7 +17018,8 @@ with self; {
       hash = "sha256-+1opUmSfrtBzc/Igt4AEqcaro4dzkTN0DBdw6bH0sQg=";
     };
     buildInputs = [ TestFatal ];
-    propagatedBuildInputs = [ ClassMethodModifiers ModuleRuntime RoleTiny SubQuote ];
+    propagatedBuildInputs =
+      [ ClassMethodModifiers ModuleRuntime RoleTiny SubQuote ];
     meta = {
       description = "Minimalist Object Orientation (with Moose compatibility)";
       license = with lib.licenses; [ artistic1 gpl1Plus ];
@@ -18716,7 +18738,7 @@ with self; {
     };
     propagatedBuildInputs = [ URI ];
     __darwinAllowLocalNetworking = true;
-    doCheck = false; /* wants network */
+    doCheck = false; # wants network
     meta = {
       description = "Low-level HTTP connection (client)";
       homepage = "https://github.com/libwww-perl/Net-HTTP";
@@ -21820,7 +21842,6 @@ with self; {
   #   };
   # };
 
-
   # Readonly = buildPerlModule {
   #   pname = "Readonly";
   #   version = "2.05";
@@ -24251,8 +24272,7 @@ with self; {
   #   };
   # };
 
-  TermReadKey = let
-    cross = stdenv.hostPlatform != stdenv.buildPlatform;
+  TermReadKey = let cross = stdenv.hostPlatform != stdenv.buildPlatform;
   in buildPerlPackage {
     pname = "TermReadKey";
     version = "2.38";
@@ -24272,9 +24292,8 @@ with self; {
     '');
 
     # TermReadKey uses itself in the build process
-    nativeBuildInputs = lib.optionals cross [
-      perl.perlOnBuild.pkgs.TermReadKey
-    ];
+    nativeBuildInputs =
+      lib.optionals cross [ perl.perlOnBuild.pkgs.TermReadKey ];
     meta = {
       description = "A perl module for simple terminal control";
       license = with lib.licenses; [ artistic1 gpl1Plus ];
@@ -24659,7 +24678,6 @@ with self; {
   #   };
   # };
 
-
   # TestBase = buildPerlPackage {
   #   pname = "Test-Base";
   #   version = "0.89";
@@ -25022,7 +25040,8 @@ with self; {
     };
     propagatedBuildInputs = [ TryTiny ];
     meta = {
-      description = "Incredibly simple helpers for testing code with exceptions";
+      description =
+        "Incredibly simple helpers for testing code with exceptions";
       homepage = "https://github.com/rjbs/Test-Fatal";
       license = with lib.licenses; [ artistic1 gpl1Plus ];
     };
@@ -25288,7 +25307,8 @@ with self; {
     pname = "Test-Memory-Cycle";
     version = "1.06";
     src = fetchurl {
-      url = "mirror://cpan/authors/id/P/PE/PETDANCE/Test-Memory-Cycle-1.06.tar.gz";
+      url =
+        "mirror://cpan/authors/id/P/PE/PETDANCE/Test-Memory-Cycle-1.06.tar.gz";
       hash = "sha256-nVPd/clkzYRUyw2kxpW2o65HtFg5KRw0y52NHPqrMgI=";
     };
     propagatedBuildInputs = [ DevelCycle PadWalker ];
@@ -25399,7 +25419,6 @@ with self; {
   #     license = with lib.licenses; [ artistic1 gpl1Plus ];
   #   };
   # };
-
 
   # TestMockObject = buildPerlPackage {
   #   pname = "Test-MockObject";
@@ -25735,7 +25754,8 @@ with self; {
     pname = "Test-RequiresInternet";
     version = "0.05";
     src = fetchurl {
-      url = "mirror://cpan/authors/id/M/MA/MALLEN/Test-RequiresInternet-0.05.tar.gz";
+      url =
+        "mirror://cpan/authors/id/M/MA/MALLEN/Test-RequiresInternet-0.05.tar.gz";
       hash = "sha256-u6ezKhzA1Yzi7CCyAKc0fGljFkHoyuj/RWetJO8egz4=";
     };
     meta = {
@@ -28621,7 +28641,8 @@ with self; {
     pname = "XML-NamespaceSupport";
     version = "1.12";
     src = fetchurl {
-      url = "mirror://cpan/authors/id/P/PE/PERIGRIN/XML-NamespaceSupport-1.12.tar.gz";
+      url =
+        "mirror://cpan/authors/id/P/PE/PERIGRIN/XML-NamespaceSupport-1.12.tar.gz";
       hash = "sha256-R+mVhZ+N0EE6o/ItNQxKYtplLoVCZ6oFhq5USuK65e8=";
     };
     meta = {
@@ -28637,13 +28658,19 @@ with self; {
       url = "mirror://cpan/authors/id/T/TO/TODDR/XML-Parser-2.46.tar.gz";
       hash = "sha256-0zEzJJHFHMz7TLlP/ET5zXM3jmGEmNSjffngQ2YcUV0=";
     };
-    patches = [ ./perl-modules/xml-parser-0001-HACK-Assumes-Expat-paths-are-good.patch ];
-    postPatch = lib.optionalString (stdenv.buildPlatform != stdenv.hostPlatform) ''
-      substituteInPlace Expat/Makefile.PL --replace 'use English;' '#'
-    '' + lib.optionalString stdenv.isCygwin ''
-      sed -i"" -e "s@my \$compiler = File::Spec->catfile(\$path, \$cc\[0\]) \. \$Config{_exe};@my \$compiler = File::Spec->catfile(\$path, \$cc\[0\]) \. (\$^O eq 'cygwin' ? \"\" : \$Config{_exe});@" inc/Devel/CheckLib.pm
-    '';
-    makeMakerFlags = [ "EXPATLIBPATH=${pkgs.expat.out}/lib" "EXPATINCPATH=${pkgs.expat.dev}/include" ];
+    patches = [
+      ./perl-modules/xml-parser-0001-HACK-Assumes-Expat-paths-are-good.patch
+    ];
+    postPatch =
+      lib.optionalString (stdenv.buildPlatform != stdenv.hostPlatform) ''
+        substituteInPlace Expat/Makefile.PL --replace 'use English;' '#'
+      '' + lib.optionalString stdenv.isCygwin ''
+        sed -i"" -e "s@my \$compiler = File::Spec->catfile(\$path, \$cc\[0\]) \. \$Config{_exe};@my \$compiler = File::Spec->catfile(\$path, \$cc\[0\]) \. (\$^O eq 'cygwin' ? \"\" : \$Config{_exe});@" inc/Devel/CheckLib.pm
+      '';
+    makeMakerFlags = [
+      "EXPATLIBPATH=${pkgs.expat.out}/lib"
+      "EXPATINCPATH=${pkgs.expat.dev}/include"
+    ];
     propagatedBuildInputs = [ LWP ];
     meta = {
       description = "A perl module for parsing XML documents";
@@ -28762,7 +28789,7 @@ with self; {
     propagatedBuildInputs = [ XMLNamespaceSupport XMLSAXBase ];
     postInstall = ''
       perl -MXML::SAX -e "XML::SAX->add_parser(q(XML::SAX::PurePerl))->save_parsers()"
-      '';
+    '';
     meta = {
       description = "Simple API for XML";
       license = with lib.licenses; [ artistic1 gpl1Plus ];

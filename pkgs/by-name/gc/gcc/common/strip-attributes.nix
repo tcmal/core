@@ -49,7 +49,8 @@
       )
       popd
   '' + lib.optionalString (!langJit) ''
-    ${/*keep indentation*/ ""}
+    ${ # keep indentation
+    ""}
       pushd $lib
       local -ar libHostFiles=(
         lib{,32,64}/*.{a,o,so*}

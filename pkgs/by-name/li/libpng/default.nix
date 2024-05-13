@@ -1,13 +1,12 @@
-{ lib, stdenv, fetchurl, zlib, apngSupport ? true
-, testers
-}:
+{ lib, stdenv, fetchurl, zlib, apngSupport ? true, testers }:
 
 assert zlib != null;
 
 let
   patchVersion = "1.6.43";
   patch_src = fetchurl {
-    url = "mirror://sourceforge/libpng-apng/libpng-${patchVersion}-apng.patch.gz";
+    url =
+      "mirror://sourceforge/libpng-apng/libpng-${patchVersion}-apng.patch.gz";
     hash = "sha256-0QdXnpDVU4bQDmCG6nUJQvIqBLmrR2u6DGYHcM76/iI=";
   };
   whenPatched = lib.optionalString apngSupport;
@@ -36,9 +35,12 @@ in stdenv.mkDerivation (finalAttrs: {
   };
 
   meta = with lib; {
-    description = "The official reference implementation for the PNG file format" + whenPatched " with animation patch";
+    description =
+      "The official reference implementation for the PNG file format"
+      + whenPatched " with animation patch";
     homepage = "http://www.libpng.org/pub/png/libpng.html";
-    changelog = "https://github.com/pnggroup/libpng/blob/v${finalAttrs.version}/CHANGES";
+    changelog =
+      "https://github.com/pnggroup/libpng/blob/v${finalAttrs.version}/CHANGES";
     license = licenses.libpng2;
     pkgConfigModules = [ "libpng" "libpng16" ];
     platforms = platforms.all;

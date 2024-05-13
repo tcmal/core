@@ -1,8 +1,7 @@
 { ... }:
 res: pkgs: super:
 
-with pkgs;
-{
+with pkgs; {
   texinfo413 = callPackage ./4.13a.nix { };
   texinfo4 = texinfo413;
   texinfo5 = callPackage ./5.2.nix { };

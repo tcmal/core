@@ -1,32 +1,27 @@
-{ lib
-, stdenv
-, fetchFromGitHub
-, cmake
-, curl
-, openssl
-, zlib
-, aws-crt-cpp
-, CoreAudio
-, AudioToolbox
+{ lib, stdenv, fetchFromGitHub, cmake, curl, openssl, zlib, aws-crt-cpp
+, CoreAudio, AudioToolbox
 , # Allow building a limited set of APIs, e.g. ["s3" "ec2"].
-  apis ? ["*"]
-, # Whether to enable AWS' custom memory management.
-  customMemoryManagement ? true
-# for passthru.tests
-# , nix
-# , arrow-cpp
-# , aws-sdk-cpp
+apis ? [ "*" ], # Whether to enable AWS' custom memory management.
+customMemoryManagement ? true
+  # for passthru.tests
+  # , nix
+  # , arrow-cpp
+  # , aws-sdk-cpp
 }:
 
 let
-  host_os = if stdenv.hostPlatform.isDarwin then "APPLE"
-       else if stdenv.hostPlatform.isAndroid then "ANDROID"
-       else if stdenv.hostPlatform.isWindows then "WINDOWS"
-       else if stdenv.hostPlatform.isLinux then "LINUX"
-       else throw "Unknown host OS";
-in
+  host_os = if stdenv.hostPlatform.isDarwin then
+    "APPLE"
+  else if stdenv.hostPlatform.isAndroid then
+    "ANDROID"
+  else if stdenv.hostPlatform.isWindows then
+    "WINDOWS"
+  else if stdenv.hostPlatform.isLinux then
+    "LINUX"
+  else
+    throw "Unknown host OS";
 
-stdenv.mkDerivation rec {
+in stdenv.mkDerivation rec {
   pname = "aws-sdk-cpp";
   version = "1.11.296";
 
@@ -70,25 +65,23 @@ stdenv.mkDerivation rec {
 
   nativeBuildInputs = [ cmake curl ];
 
-  buildInputs = [
-    curl openssl zlib
-  ] ++ lib.optionals (stdenv.isDarwin &&
-                        ((builtins.elem "text-to-speech" apis) ||
-                         (builtins.elem "*" apis)))
-         [ CoreAudio AudioToolbox ];
+  buildInputs = [ curl openssl zlib ] ++ lib.optionals (stdenv.isDarwin
+    && ((builtins.elem "text-to-speech" apis) || (builtins.elem "*" apis))) [
+      CoreAudio
+      AudioToolbox
+    ];
 
   # propagation is needed for Security.framework to be available when linking
   propagatedBuildInputs = [ aws-crt-cpp ];
 
-  cmakeFlags = [
-    "-DBUILD_DEPS=OFF"
-  ] ++ lib.optional (!customMemoryManagement) "-DCUSTOM_MEMORY_MANAGEMENT=0"
-  ++ lib.optionals (stdenv.buildPlatform != stdenv.hostPlatform) [
-    "-DENABLE_TESTING=OFF"
-    "-DCURL_HAS_H2=1"
-    "-DCURL_HAS_TLS_PROXY=1"
-    "-DTARGET_ARCH=${host_os}"
-  ] ++ lib.optional (apis != ["*"])
+  cmakeFlags = [ "-DBUILD_DEPS=OFF" ]
+    ++ lib.optional (!customMemoryManagement) "-DCUSTOM_MEMORY_MANAGEMENT=0"
+    ++ lib.optionals (stdenv.buildPlatform != stdenv.hostPlatform) [
+      "-DENABLE_TESTING=OFF"
+      "-DCURL_HAS_H2=1"
+      "-DCURL_HAS_TLS_PROXY=1"
+      "-DTARGET_ARCH=${host_os}"
+    ] ++ lib.optional (apis != [ "*" ])
     "-DBUILD_ONLY=${lib.concatStringsSep ";" apis}";
 
   env.NIX_CFLAGS_COMPILE = toString [
@@ -150,6 +143,7 @@ stdenv.mkDerivation rec {
     platforms = platforms.unix;
     maintainers = with maintainers; [ eelco orivej ];
     # building ec2 runs out of memory: cc1plus: out of memory allocating 33554372 bytes after a total of 74424320 bytes
-    broken = stdenv.buildPlatform.is32bit && ((builtins.elem "ec2" apis) || (builtins.elem "*" apis));
+    broken = stdenv.buildPlatform.is32bit
+      && ((builtins.elem "ec2" apis) || (builtins.elem "*" apis));
   };
 }

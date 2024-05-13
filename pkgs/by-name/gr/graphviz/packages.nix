@@ -1,8 +1,7 @@
 { ... }:
 res: pkgs: super:
 
-with pkgs;
-{
+with pkgs; {
   graphviz = callPackage ./. {
     inherit (darwin.apple_sdk.frameworks) ApplicationServices Foundation;
   };

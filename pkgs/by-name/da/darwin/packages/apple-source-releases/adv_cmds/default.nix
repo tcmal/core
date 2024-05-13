@@ -11,8 +11,7 @@ let
       ln -s ${lib.getDev Libc}/include/msgcat.h "$out/include/"
     '';
   };
-in
-appleDerivation {
+in appleDerivation {
   # We can't just run the root build, because https://github.com/facebook/xcbuild/issues/264
 
   patchPhase = ''

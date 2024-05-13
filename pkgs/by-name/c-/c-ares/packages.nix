@@ -1,10 +1,7 @@
 { ... }:
 res: pkgs: super:
 
-with pkgs;
-{
+with pkgs; {
   c-ares = callPackage ./. { };
-  c-aresMinimal = callPackage ./. {
-    withCMake = false;
-  };
+  c-aresMinimal = callPackage ./. { withCMake = false; };
 }

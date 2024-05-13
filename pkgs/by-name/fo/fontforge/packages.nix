@@ -1,8 +1,7 @@
 { ... }:
 res: pkgs: super:
 
-with pkgs;
-{
+with pkgs; {
   fontforge = lowPrio (callPackage ./. {
     inherit (darwin.apple_sdk.frameworks) Carbon Cocoa;
     python = python3;

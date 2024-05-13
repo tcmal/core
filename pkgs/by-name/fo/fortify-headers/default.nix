@@ -1,7 +1,4 @@
-{ lib
-, stdenv
-, fetchurl
-}:
+{ lib, stdenv, fetchurl }:
 
 stdenv.mkDerivation {
   pname = "fortify-headers";
@@ -10,15 +7,13 @@ stdenv.mkDerivation {
   # upstream only accessible via git - unusable during bootstrap, hence
   # extract from the alpine package
   src = fetchurl {
-    url = "https://dl-cdn.alpinelinux.org/alpine/v3.18/main/x86_64/fortify-headers-1.1-r3.apk";
-    name = "fortify-headers.tar.gz";  # ensure it's extracted as a .tar.gz
+    url =
+      "https://dl-cdn.alpinelinux.org/alpine/v3.18/main/x86_64/fortify-headers-1.1-r3.apk";
+    name = "fortify-headers.tar.gz"; # ensure it's extracted as a .tar.gz
     hash = "sha256-8A8JcKHIBgXpUuIP4zs3Q1yBs5jCGd5F3H2E8UN/S2g=";
   };
 
-  patches = [
-    ./wchar-imports-skip.patch
-    ./restore-macros.patch
-  ];
+  patches = [ ./wchar-imports-skip.patch ./restore-macros.patch ];
 
   installPhase = ''
     runHook preInstall

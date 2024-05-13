@@ -1,5 +1,5 @@
-{ lib, writeShellScript }: let
-  output = "hello";
+{ lib, writeShellScript }:
+let output = "hello";
 in (writeShellScript "test-script" ''
   echo ${lib.escapeShellArg output}
 '').overrideAttrs (old: {

@@ -1,20 +1,8 @@
-{ lib
-, stdenv
-, fetchNpmDeps
-, buildPackages
-, nodejs
-, darwin
-} @ topLevelArgs:
+{ lib, stdenv, fetchNpmDeps, buildPackages, nodejs, darwin }@topLevelArgs:
 
-{ name ? "${args.pname}-${args.version}"
-, src ? null
-, srcs ? null
-, sourceRoot ? null
-, prePatch ? ""
-, patches ? [ ]
-, postPatch ? ""
-, nativeBuildInputs ? [ ]
-, buildInputs ? [ ]
+{ name ? "${args.pname}-${args.version}", src ? null, srcs ? null
+, sourceRoot ? null, prePatch ? "", patches ? [ ], postPatch ? ""
+, nativeBuildInputs ? [ ], buildInputs ? [ ]
   # The output hash of the dependencies for this project.
   # Can be calculated in advance with prefetch-npm-deps.
 , npmDepsHash ? ""
@@ -42,41 +30,33 @@
   # Flags to pass to `npm prune`.
 , npmPruneFlags ? npmInstallFlags
   # Value for npm `--workspace` flag and directory in which the files to be installed are found.
-, npmWorkspace ? null
-, nodejs ? topLevelArgs.nodejs
-, npmDeps ?  fetchNpmDeps {
-  inherit forceGitDeps forceEmptyCache src srcs sourceRoot prePatch patches postPatch;
+, npmWorkspace ? null, nodejs ? topLevelArgs.nodejs, npmDeps ? fetchNpmDeps {
+  inherit forceGitDeps forceEmptyCache src srcs sourceRoot prePatch patches
+    postPatch;
   name = "${name}-npm-deps";
   hash = npmDepsHash;
 }
-  # Custom npmConfigHook
+# Custom npmConfigHook
 , npmConfigHook ? null
   # Custom npmBuildHook
 , npmBuildHook ? null
   # Custom npmInstallHook
-, npmInstallHook ? null
-, ...
-} @ args:
+, npmInstallHook ? null, ... }@args:
 
 let
   # .override {} negates splicing, so we need to use buildPackages explicitly
-  npmHooks = buildPackages.npmHooks.override {
-    inherit nodejs;
-  };
-in
-stdenv.mkDerivation (args // {
+  npmHooks = buildPackages.npmHooks.override { inherit nodejs; };
+in stdenv.mkDerivation (args // {
   inherit npmDeps npmBuildScript;
 
-  nativeBuildInputs = nativeBuildInputs
-    ++ [
-      nodejs
-      # Prefer passed hooks
-      (if npmConfigHook != null then npmConfigHook else npmHooks.npmConfigHook)
-      (if npmBuildHook != null then npmBuildHook else npmHooks.npmBuildHook)
-      (if npmInstallHook != null then npmInstallHook else npmHooks.npmInstallHook)
-      nodejs.python
-    ]
-    ++ lib.optionals stdenv.isDarwin [ darwin.cctools ];
+  nativeBuildInputs = nativeBuildInputs ++ [
+    nodejs
+    # Prefer passed hooks
+    (if npmConfigHook != null then npmConfigHook else npmHooks.npmConfigHook)
+    (if npmBuildHook != null then npmBuildHook else npmHooks.npmBuildHook)
+    (if npmInstallHook != null then npmInstallHook else npmHooks.npmInstallHook)
+    nodejs.python
+  ] ++ lib.optionals stdenv.isDarwin [ darwin.cctools ];
   buildInputs = buildInputs ++ [ nodejs ];
 
   strictDeps = true;
@@ -84,5 +64,7 @@ stdenv.mkDerivation (args // {
   # Stripping takes way too long with the amount of files required by a typical Node.js project.
   dontStrip = args.dontStrip or true;
 
-  meta = (args.meta or { }) // { platforms = args.meta.platforms or nodejs.meta.platforms; };
+  meta = (args.meta or { }) // {
+    platforms = args.meta.platforms or nodejs.meta.platforms;
+  };
 })

@@ -1,11 +1,11 @@
 { ... }:
 res: pkgs: super:
 
-with pkgs;
-{
+with pkgs; {
   javaPackages = recurseIntoAttrs (callPackage ./java-packages.nix { });
 
-  inherit (javaPackages) openjfx11 openjfx15 openjfx17 openjfx19 openjfx20 openjfx21 openjfx22;
+  inherit (javaPackages)
+    openjfx11 openjfx15 openjfx17 openjfx19 openjfx20 openjfx21 openjfx22;
   openjfx = openjfx17;
 
   openjdk8-bootstrap = javaPackages.compiler.openjdk8-bootstrap;
@@ -50,7 +50,7 @@ with pkgs;
   jdk22 = openjdk22;
   jdk22_headless = openjdk22_headless;
 
-  /* default JDK */
+  # default JDK
   jdk = jdk21;
   jdk_headless = jdk21_headless;
 
@@ -64,9 +64,7 @@ with pkgs;
   jre = jdk;
   jre_headless = jdk_headless;
 
-  jre17_minimal = callPackage ./openjdk/jre.nix {
-    jdk = jdk17;
-  };
+  jre17_minimal = callPackage ./openjdk/jre.nix { jdk = jdk17; };
   jre_minimal = callPackage ./openjdk/jre.nix { };
 
   openjdk = jdk;

@@ -1,55 +1,38 @@
-{ lib
-, stdenv
-, llvm_meta
-, release_version
-, patches ? []
-, monorepoSrc ? null
-, src ? null
-, runCommand
-, cmake
-, ninja
-, llvm
-, targetLlvm
-, lit
-, clang-unwrapped
-, perl
-, pkg-config
-, xcbuild
-, version
-}:
+{ lib, stdenv, llvm_meta, release_version, patches ? [ ], monorepoSrc ? null
+, src ? null, runCommand, cmake, ninja, llvm, targetLlvm, lit, clang-unwrapped
+, perl, pkg-config, xcbuild, version }:
 let
   pname = "openmp";
-  src' =
-    if monorepoSrc != null then
-      runCommand "${pname}-src-${version}" {} ''
-        mkdir -p "$out"
-        cp -r ${monorepoSrc}/cmake "$out"
-        cp -r ${monorepoSrc}/${pname} "$out"
-      '' else src;
-in
-stdenv.mkDerivation (rec {
+  src' = if monorepoSrc != null then
+    runCommand "${pname}-src-${version}" { } ''
+      mkdir -p "$out"
+      cp -r ${monorepoSrc}/cmake "$out"
+      cp -r ${monorepoSrc}/${pname} "$out"
+    ''
+  else
+    src;
+in stdenv.mkDerivation (rec {
   inherit pname version patches;
 
   src = src';
 
-  sourceRoot =
-    if lib.versionOlder release_version "13" then null
-    else "${src.name}/${pname}";
+  sourceRoot = if lib.versionOlder release_version "13" then
+    null
+  else
+    "${src.name}/${pname}";
 
   outputs = [ "out" ]
     ++ lib.optionals (lib.versionAtLeast release_version "14") [ "dev" ];
 
   patchFlags =
-    if lib.versionOlder release_version "14" then [ "-p2" ]
-    else null;
+    if lib.versionOlder release_version "14" then [ "-p2" ] else null;
 
-  nativeBuildInputs = [
-    cmake
-  ] ++ lib.optionals (lib.versionAtLeast release_version "15") [
-    ninja
-  ] ++ [ perl ] ++ lib.optionals (lib.versionAtLeast release_version "14") [
-    pkg-config lit
-  ];
+  nativeBuildInputs = [ cmake ]
+    ++ lib.optionals (lib.versionAtLeast release_version "15") [ ninja ]
+    ++ [ perl ] ++ lib.optionals (lib.versionAtLeast release_version "14") [
+      pkg-config
+      lit
+    ];
 
   buildInputs = [
     (if stdenv.buildPlatform == stdenv.hostPlatform then llvm else targetLlvm)

@@ -1,11 +1,6 @@
-{ buildPythonPackage
-, lib
-, fetchFromGitHub
-, setuptools-scm
-, pythonOlder
+{ buildPythonPackage, lib, fetchFromGitHub, setuptools-scm, pythonOlder
 # , importlib-metadata
-, callPackage
-}:
+, callPackage }:
 
 buildPythonPackage rec {
   pname = "pluggy";
@@ -26,12 +21,11 @@ buildPythonPackage rec {
 
   # To prevent infinite recursion with pytest
   doCheck = false;
-  passthru.tests = {
-    pytest = callPackage ./tests.nix { };
-  };
+  passthru.tests = { pytest = callPackage ./tests.nix { }; };
 
   meta = {
-    changelog = "https://github.com/pytest-dev/pluggy/blob/${src.rev}/CHANGELOG.rst";
+    changelog =
+      "https://github.com/pytest-dev/pluggy/blob/${src.rev}/CHANGELOG.rst";
     description = "Plugin and hook calling mechanisms for Python";
     homepage = "https://github.com/pytest-dev/pluggy";
     license = lib.licenses.mit;

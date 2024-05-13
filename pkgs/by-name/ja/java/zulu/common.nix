@@ -1,61 +1,38 @@
-{ lib
-, stdenv
-, fetchurl
-, setJavaClassPath
-, enableJavaFX ? false
-, dists
-  # minimum dependencies
-, unzip
-, autoPatchelfHook
-, makeWrapper
-, alsa-lib
-, fontconfig
-, freetype
-, zlib
+{ lib, stdenv, fetchurl, setJavaClassPath, enableJavaFX ? false, dists
+# minimum dependencies
+, unzip, autoPatchelfHook, makeWrapper, alsa-lib, fontconfig, freetype, zlib
 , xorg
-  # runtime dependencies
+# runtime dependencies
 , cups
-  # runtime dependencies for GTK+ Look and Feel
-, gtkSupport ? stdenv.isLinux
-, cairo
-, glib
-, gtk2
-, gtk3
-  # runtime dependencies for JavaFX
-, ffmpeg
-}:
+# runtime dependencies for GTK+ Look and Feel
+, gtkSupport ? stdenv.isLinux, cairo, glib, gtk2, gtk3
+# runtime dependencies for JavaFX
+, ffmpeg }:
 let
-  dist = dists.${stdenv.hostPlatform.system}
-    or (throw "Unsupported system: ${stdenv.hostPlatform.system}");
+  dist = dists.${stdenv.hostPlatform.system} or (throw
+    "Unsupported system: ${stdenv.hostPlatform.system}");
 
   arch = {
     "aarch64" = "aarch64";
     "x86_64" = "x64";
-  }.${stdenv.hostPlatform.parsed.cpu.name}
-    or (throw "Unsupported architecture: ${stdenv.hostPlatform.parsed.cpu.name}");
+  }.${stdenv.hostPlatform.parsed.cpu.name} or (throw
+    "Unsupported architecture: ${stdenv.hostPlatform.parsed.cpu.name}");
 
   platform = {
     "darwin" = "macosx";
     "linux" = "linux";
-  }.${stdenv.hostPlatform.parsed.kernel.name}
-    or (throw "Unsupported platform: ${stdenv.hostPlatform.parsed.kernel.name}");
+  }.${stdenv.hostPlatform.parsed.kernel.name} or (throw
+    "Unsupported platform: ${stdenv.hostPlatform.parsed.kernel.name}");
 
-  runtimeDependencies = [
-    cups
-  ] ++ lib.optionals gtkSupport [
-    cairo
-    glib
-    gtk3
-  ] ++ lib.optionals (gtkSupport && lib.versionOlder dist.jdkVersion "17") [
-    gtk2
-  ] ++ lib.optionals (stdenv.isLinux && enableJavaFX) [
-    ffmpeg.lib
-  ];
+  runtimeDependencies = [ cups ] ++ lib.optionals gtkSupport [ cairo glib gtk3 ]
+    ++ lib.optionals (gtkSupport && lib.versionOlder dist.jdkVersion "17")
+    [ gtk2 ] ++ lib.optionals (stdenv.isLinux && enableJavaFX) [ ffmpeg.lib ];
 
   runtimeLibraryPath = lib.makeLibraryPath runtimeDependencies;
 
   jce-policies = fetchurl {
-    url = "https://web.archive.org/web/20211126120343/http://cdn.azul.com/zcek/bin/ZuluJCEPolicies.zip";
+    url =
+      "https://web.archive.org/web/20211126120343/http://cdn.azul.com/zcek/bin/ZuluJCEPolicies.zip";
     hash = "sha256-gCGii4ysQbRPFCH9IQoKCCL8r4jWLS5wo1sv9iioZ1o=";
   };
 
@@ -68,17 +45,14 @@ let
     version = dist.jdkVersion;
 
     src = fetchurl {
-      url = "https://cdn.azul.com/zulu/bin/zulu${dist.zuluVersion}-${javaPackage}${dist.jdkVersion}-${platform}_${arch}.tar.gz";
+      url =
+        "https://cdn.azul.com/zulu/bin/zulu${dist.zuluVersion}-${javaPackage}${dist.jdkVersion}-${platform}_${arch}.tar.gz";
       inherit (dist) hash;
       curlOpts = "-H Referer:https://www.azul.com/downloads/zulu/";
     };
 
-    nativeBuildInputs = [
-      unzip
-    ] ++ lib.optionals stdenv.isLinux [
-      autoPatchelfHook
-      makeWrapper
-    ];
+    nativeBuildInputs = [ unzip ]
+      ++ lib.optionals stdenv.isLinux [ autoPatchelfHook makeWrapper ];
 
     buildInputs = lib.optionals stdenv.isLinux [
       alsa-lib # libasound.so wanted by lib/libjsound.so
@@ -97,14 +71,17 @@ let
     autoPatchelfIgnoreMissingDeps = if (stdenv.isLinux && enableJavaFX) then [
       "libavcodec*.so.*"
       "libavformat*.so.*"
-    ] else null;
+    ] else
+      null;
 
     installPhase = ''
       mkdir -p $out
       mv * $out
 
       unzip ${jce-policies}
-      mv -f ZuluJCEPolicies/*.jar $out/${lib.optionalString isJdk8 "jre/"}lib/security/
+      mv -f ZuluJCEPolicies/*.jar $out/${
+        lib.optionalString isJdk8 "jre/"
+      }lib/security/
 
       # jni.h expects jni_md.h to be in the header search path.
       ln -s $out/include/${stdenv.hostPlatform.parsed.kernel.name}/*_md.h $out/include/
@@ -116,8 +93,12 @@ let
     '';
 
     preFixup = ''
-      # Propagate the setJavaClassPath setup hook from the ${if isJdk8 then "JRE" else "JDK"} so that
-      # any package that depends on the ${if isJdk8 then "JRE" else "JDK"} has $CLASSPATH set up
+      # Propagate the setJavaClassPath setup hook from the ${
+        if isJdk8 then "JRE" else "JDK"
+      } so that
+      # any package that depends on the ${
+        if isJdk8 then "JRE" else "JDK"
+      } has $CLASSPATH set up
       # properly.
       mkdir -p $out/nix-support
       printWords ${setJavaClassPath} > $out/nix-support/propagated-build-inputs
@@ -137,23 +118,21 @@ let
         fi
       done
     ''
-    # FIXME: move all of the above to installPhase.
-    + lib.optionalString stdenv.isLinux ''
-      find "$out" -name libfontmanager.so -exec \
-        patchelf --add-needed libfontconfig.so {} \;
-    '';
+      # FIXME: move all of the above to installPhase.
+      + lib.optionalString stdenv.isLinux ''
+        find "$out" -name libfontmanager.so -exec \
+          patchelf --add-needed libfontconfig.so {} \;
+      '';
 
     # fixupPhase is moving the man to share/man which breaks it because it's a
     # relative symlink.
     postFixup = lib.optionalString stdenv.isDarwin ''
-      ln -nsf ../zulu-${lib.versions.major version}.jdk/Contents/Home/man $out/share/man
+      ln -nsf ../zulu-${
+        lib.versions.major version
+      }.jdk/Contents/Home/man $out/share/man
     '';
 
-    passthru = (lib.optionalAttrs isJdk8 {
-      jre = jdk;
-    }) // {
-      home = jdk;
-    };
+    passthru = (lib.optionalAttrs isJdk8 { jre = jdk; }) // { home = jdk; };
 
     meta = (import ../openjdk/meta.nix lib version) // {
       description = "Certified builds of OpenJDK";
@@ -165,8 +144,10 @@ let
       mainProgram = "java";
       maintainers = [ ];
       platforms = builtins.attrNames dists;
-      sourceProvenance = with lib.sourceTypes; [ binaryBytecode binaryNativeCode ];
+      sourceProvenance = with lib.sourceTypes; [
+        binaryBytecode
+        binaryNativeCode
+      ];
     };
   };
-in
-jdk
+in jdk

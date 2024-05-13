@@ -1,7 +1,4 @@
-{ buildPythonPackage
-, pluggy
-, pytestCheckHook
-}:
+{ buildPythonPackage, pluggy, pytestCheckHook }:
 
 buildPythonPackage {
   pname = "pluggy-tests";
@@ -13,8 +10,5 @@ buildPythonPackage {
   dontBuild = true;
   dontInstall = true;
 
-  nativeCheckInputs = [
-    pluggy
-    pytestCheckHook
-  ];
+  nativeCheckInputs = [ pluggy pytestCheckHook ];
 }

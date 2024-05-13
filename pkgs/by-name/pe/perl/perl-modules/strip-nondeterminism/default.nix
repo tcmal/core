@@ -1,13 +1,5 @@
-{ lib
-, stdenv
-, file
-, fetchFromGitLab
-, buildPerlPackage
-, ArchiveZip
-, ArchiveCpio
-, SubOverride
-, shortenPerlShebang
-}:
+{ lib, stdenv, file, fetchFromGitLab, buildPerlPackage, ArchiveZip, ArchiveCpio
+, SubOverride, shortenPerlShebang }:
 
 buildPerlPackage rec {
   pname = "strip-nondeterminism";
@@ -25,17 +17,12 @@ buildPerlPackage rec {
 
   strictDeps = true;
   nativeBuildInputs = lib.optionals stdenv.isDarwin [ shortenPerlShebang ];
-  buildInputs = [
-    ArchiveZip
-    ArchiveCpio
-    SubOverride
-  ];
+  buildInputs = [ ArchiveZip ArchiveCpio SubOverride ];
 
   postPatch = ''
     substituteInPlace lib/File/StripNondeterminism.pm \
       --replace "exec('file'" "exec('${lib.getExe file}'"
   '';
-
 
   postBuild = ''
     patchShebangs ./bin
@@ -60,7 +47,8 @@ buildPerlPackage rec {
   doInstallCheck = true;
 
   meta = with lib; {
-    description = "A Perl module for stripping bits of non-deterministic information";
+    description =
+      "A Perl module for stripping bits of non-deterministic information";
     mainProgram = "strip-nondeterminism";
     homepage = "https://reproducible-builds.org/";
     license = licenses.gpl3Only;

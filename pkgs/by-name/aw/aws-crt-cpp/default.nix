@@ -1,17 +1,6 @@
-{ lib, stdenv
-, fetchFromGitHub
-, aws-c-auth
-, aws-c-cal
-, aws-c-common
-, aws-c-compression
-, aws-c-event-stream
-, aws-c-http
-, aws-c-io
-, aws-c-mqtt
-, aws-c-s3
-, aws-checksums
-, cmake
-, s2n-tls
+{ lib, stdenv, fetchFromGitHub, aws-c-auth, aws-c-cal, aws-c-common
+, aws-c-compression, aws-c-event-stream, aws-c-http, aws-c-io, aws-c-mqtt
+, aws-c-s3, aws-checksums, cmake, s2n-tls
 # for passthru.tests
 # , nix
 }:
@@ -39,9 +28,7 @@ stdenv.mkDerivation rec {
     substituteInPlace CMakeLists.txt --replace '-Werror' ""
   '';
 
-  nativeBuildInputs = [
-    cmake
-  ];
+  nativeBuildInputs = [ cmake ];
 
   propagatedBuildInputs = [
     aws-c-auth
@@ -57,10 +44,7 @@ stdenv.mkDerivation rec {
     s2n-tls
   ];
 
-  cmakeFlags = [
-    "-DBUILD_DEPS=OFF"
-    "-DBUILD_SHARED_LIBS=ON"
-  ];
+  cmakeFlags = [ "-DBUILD_DEPS=OFF" "-DBUILD_SHARED_LIBS=ON" ];
 
   postInstall = ''
     # Prevent dependency cycle.

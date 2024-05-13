@@ -1,18 +1,5 @@
-{ lib
-, stdenv
-, fetchFromGitHub
-, fetchpatch
-, buildPackages
-, cmake
-, zlib
-, c-ares
-, pkg-config
-, re2
-, openssl
-, protobuf
-, grpc
-, abseil-cpp
-, libnsl
+{ lib, stdenv, fetchFromGitHub, fetchpatch, buildPackages, cmake, zlib, c-ares
+, pkg-config, re2, openssl, protobuf, grpc, abseil-cpp, libnsl
 
 # for passthru.tests
 # , python3
@@ -22,8 +9,8 @@
 stdenv.mkDerivation rec {
   pname = "grpc";
   version = "1.62.1"; # N.B: if you change this, please update:
-    # pythonPackages.grpcio-tools
-    # pythonPackages.grpcio-status
+  # pythonPackages.grpcio-tools
+  # pythonPackages.grpcio-status
 
   src = fetchFromGitHub {
     owner = "grpc";
@@ -37,7 +24,8 @@ stdenv.mkDerivation rec {
     (fetchpatch {
       # armv6l support, https://github.com/grpc/grpc/pull/21341
       name = "grpc-link-libatomic.patch";
-      url = "https://github.com/lopsided98/grpc/commit/a9b917666234f5665c347123d699055d8c2537b2.patch";
+      url =
+        "https://github.com/lopsided98/grpc/commit/a9b917666234f5665c347123d699055d8c2537b2.patch";
       hash = "sha256-Lm0GQsz/UjBbXXEE14lT0dcRzVmCKycrlrdBJj+KLu8=";
     })
   ];
@@ -45,8 +33,7 @@ stdenv.mkDerivation rec {
   nativeBuildInputs = [ cmake pkg-config ]
     ++ lib.optional (stdenv.hostPlatform != stdenv.buildPlatform) grpc;
   propagatedBuildInputs = [ c-ares re2 zlib abseil-cpp ];
-  buildInputs = [ openssl protobuf ]
-    ++ lib.optionals stdenv.isLinux [ libnsl ];
+  buildInputs = [ openssl protobuf ] ++ lib.optionals stdenv.isLinux [ libnsl ];
 
   cmakeFlags = [
     "-DgRPC_ZLIB_PROVIDER=package"
@@ -65,14 +52,12 @@ stdenv.mkDerivation rec {
   # problematic, because the compatibility types in abseil will have different
   # interface definitions than the ones used for building abseil itself.
   # [1] https://github.com/grpc/grpc/blob/v1.57.0/CMakeLists.txt#L239-L243
-  ++ (let
-    defaultCxxIsOlderThan17 =
-      (stdenv.cc.isClang && lib.versionAtLeast stdenv.cc.cc.version "16.0")
-       || (stdenv.cc.isGNU && lib.versionAtLeast stdenv.cc.cc.version "11.0");
+    ++ (let
+      defaultCxxIsOlderThan17 =
+        (stdenv.cc.isClang && lib.versionAtLeast stdenv.cc.cc.version "16.0")
+        || (stdenv.cc.isGNU && lib.versionAtLeast stdenv.cc.cc.version "11.0");
     in lib.optionals (stdenv.hostPlatform.isDarwin && defaultCxxIsOlderThan17)
-  [
-    "-DCMAKE_CXX_STANDARD=17"
-  ]);
+    [ "-DCMAKE_CXX_STANDARD=17" ]);
 
   # CMake creates a build directory by default, this conflicts with the
   # basel BUILD file on case-insensitive filesystems.
@@ -89,12 +74,11 @@ stdenv.mkDerivation rec {
     export LD_LIBRARY_PATH=$(pwd)''${LD_LIBRARY_PATH:+:}$LD_LIBRARY_PATH
   '';
 
-  env.NIX_CFLAGS_COMPILE = toString ([
-    "-Wno-error"
-  ] ++ lib.optionals stdenv.isDarwin [
-    # Workaround for https://github.com/llvm/llvm-project/issues/48757
-    "-Wno-elaborated-enum-base"
-  ]);
+  env.NIX_CFLAGS_COMPILE = toString ([ "-Wno-error" ]
+    ++ lib.optionals stdenv.isDarwin [
+      # Workaround for https://github.com/llvm/llvm-project/issues/48757
+      "-Wno-elaborated-enum-base"
+    ]);
 
   enableParallelBuilds = true;
 

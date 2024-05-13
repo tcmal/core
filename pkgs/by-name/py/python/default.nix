@@ -1,14 +1,5 @@
-{ __splicedPackages
-, callPackage
-, config
-, darwin
-, db
-, lib
-, libffiBoot
-, makeScopeWithSplicing'
-, pythonPackagesExtensions
-, stdenv
-}@args:
+{ __splicedPackages, callPackage, config, darwin, db, lib, libffiBoot
+, makeScopeWithSplicing', pythonPackagesExtensions, stdenv }@args:
 
 (let
 
@@ -123,7 +114,7 @@ in {
     enableOptimizations = false;
     enableLTO = false;
     mimetypesSupport = false;
-  } // sources.python311)).overrideAttrs(old: {
+  } // sources.python311)).overrideAttrs (old: {
     # TODO(@Artturin): Add this to the main cpython expr
     strictDeps = true;
     pname = "python3-minimal";

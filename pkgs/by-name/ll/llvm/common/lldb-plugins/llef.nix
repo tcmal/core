@@ -1,9 +1,4 @@
-{ lib
-, stdenv
-, fetchFromGitHub
-, makeWrapper
-, lldb
-}:
+{ lib, stdenv, fetchFromGitHub, makeWrapper, lldb }:
 
 stdenv.mkDerivation {
   pname = "llef";
@@ -33,7 +28,8 @@ stdenv.mkDerivation {
   '';
 
   meta = with lib; {
-    description = "LLEF is a plugin for LLDB to make it more useful for RE and VR";
+    description =
+      "LLEF is a plugin for LLDB to make it more useful for RE and VR";
     homepage = "https://github.com/foundryzero/llef";
     license = licenses.mit;
     platforms = platforms.all;

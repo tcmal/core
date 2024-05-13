@@ -1,10 +1,4 @@
-{ lib, stdenv
-, fetchFromGitLab
-, meson
-, python3
-, ninja
-, testers
-}:
+{ lib, stdenv, fetchFromGitLab, meson, python3, ninja, testers }:
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "bzip2-unstable";
@@ -21,17 +15,11 @@ stdenv.mkDerivation (finalAttrs: {
     patchShebangs install_links.py
   '';
 
-  nativeBuildInputs = [
-    meson
-    python3
-    ninja
-  ];
+  nativeBuildInputs = [ meson python3 ninja ];
 
   outputs = [ "bin" "dev" "out" "man" ];
 
-  mesonFlags = [
-    "-Ddocs=disabled"
-  ];
+  mesonFlags = [ "-Ddocs=disabled" ];
 
   strictDeps = true;
 
@@ -42,6 +30,6 @@ stdenv.mkDerivation (finalAttrs: {
     license = licenses.bsdOriginal;
     pkgConfigModules = [ "bz2" ];
     platforms = platforms.all;
-    maintainers = [];
+    maintainers = [ ];
   };
 })

@@ -1,41 +1,32 @@
 { ... }:
 res: pkgs: super:
 
-with pkgs;
-{
+with pkgs; {
   autoreconfHook = callPackage
-    (
-      { makeSetupHook, autoconf, automake, gettext, libtool }:
-      makeSetupHook
-        {
-          name = "autoreconf-hook";
-          propagatedBuildInputs = [ autoconf automake gettext libtool ];
-        } ./setup-hooks/autoreconf.sh
-    )
-    { };
+    ({ makeSetupHook, autoconf, automake, gettext, libtool }:
+      makeSetupHook {
+        name = "autoreconf-hook";
+        propagatedBuildInputs = [ autoconf automake gettext libtool ];
+      } ./setup-hooks/autoreconf.sh) { };
 
   autoreconfHook264 = autoreconfHook.override {
     autoconf = autoconf264;
     automake = automake111x;
   };
 
-  autoreconfHook269 = autoreconfHook.override {
-    autoconf = autoconf269;
-  };
-  autoreconfHook271 = autoreconfHook.override {
-    autoconf = autoconf271;
-  };
+  autoreconfHook269 = autoreconfHook.override { autoconf = autoconf269; };
+  autoreconfHook271 = autoreconfHook.override { autoconf = autoconf271; };
 
-  autoPatchelfHook = makeSetupHook
-    {
-      name = "auto-patchelf-hook";
-      propagatedBuildInputs = [ bintools ];
-      substitutions = {
-        pythonInterpreter = "${python3.withPackages (ps: [ ps.pyelftools ])}/bin/python";
-        autoPatchelfScript = ./setup-hooks/auto-patchelf.py;
-      };
-      meta.platforms = lib.platforms.linux;
-    } ./setup-hooks/auto-patchelf.sh;
+  autoPatchelfHook = makeSetupHook {
+    name = "auto-patchelf-hook";
+    propagatedBuildInputs = [ bintools ];
+    substitutions = {
+      pythonInterpreter =
+        "${python3.withPackages (ps: [ ps.pyelftools ])}/bin/python";
+      autoPatchelfScript = ./setup-hooks/auto-patchelf.py;
+    };
+    meta.platforms = lib.platforms.linux;
+  } ./setup-hooks/auto-patchelf.sh;
 
   # tomato-c = callPackage ../applications/misc/tomato-c { };
 
@@ -49,16 +40,13 @@ with pkgs;
   #   inherit (darwin.apple_sdk.frameworks) Security;
   # };
 
-  stripJavaArchivesHook = makeSetupHook
-    {
-      name = "strip-java-archives-hook";
-      propagatedBuildInputs = [ strip-nondeterminism ];
-    } ./setup-hooks/strip-java-archives.sh;
+  stripJavaArchivesHook = makeSetupHook {
+    name = "strip-java-archives-hook";
+    propagatedBuildInputs = [ strip-nondeterminism ];
+  } ./setup-hooks/strip-java-archives.sh;
 
-  ensureNewerSourcesHook = { year }: makeSetupHook
-    {
-      name = "ensure-newer-sources-hook";
-    }
+  ensureNewerSourcesHook = { year }:
+    makeSetupHook { name = "ensure-newer-sources-hook"; }
     (writeScript "ensure-newer-sources-hook.sh" ''
       postUnpackHooks+=(_ensureNewerSources)
       _ensureNewerSources() {
@@ -80,11 +68,10 @@ with pkgs;
   # Post 24.11 branch-off, this should throw an error in aliases.nix.
   addOpenGLRunpath = callPackage ./add-opengl-runpath { };
 
-  updateAutotoolsGnuConfigScriptsHook = makeSetupHook
-    {
-      name = "update-autotools-gnu-config-scripts-hook";
-      substitutions = { gnu_config = gnu-config; };
-    } ./setup-hooks/update-autotools-gnu-config-scripts.sh;
+  updateAutotoolsGnuConfigScriptsHook = makeSetupHook {
+    name = "update-autotools-gnu-config-scripts-hook";
+    substitutions = { gnu_config = gnu-config; };
+  } ./setup-hooks/update-autotools-gnu-config-scripts.sh;
 
   # gogUnpackHook = makeSetupHook
   #   {
@@ -96,7 +83,8 @@ with pkgs;
   buildEnv = callPackage ./buildenv { }; # not actually a package
 
   buildFHSEnv = buildFHSEnvBubblewrap;
-  buildFHSEnvChroot = callPackage ./build-fhsenv-chroot { }; # Deprecated; use buildFHSEnv/buildFHSEnvBubblewrap
+  buildFHSEnvChroot = callPackage ./build-fhsenv-chroot
+    { }; # Deprecated; use buildFHSEnv/buildFHSEnvBubblewrap
   buildFHSEnvBubblewrap = callPackage ./build-fhsenv-bubblewrap { };
 
   # buildMaven = callPackage ./build-maven.nix { };
@@ -113,11 +101,7 @@ with pkgs;
 
   diffPlugins = (callPackage ./plugins.nix { }).diffPlugins;
 
-  dieHook = makeSetupHook
-    {
-      name = "die-hook";
-    } ./setup-hooks/die.sh;
-
+  dieHook = makeSetupHook { name = "die-hook"; } ./setup-hooks/die.sh;
 
   # dockerTools = callPackage ./docker
   #   {
@@ -151,11 +135,12 @@ with pkgs;
 
   # fetchbzr = callPackage ./fetchbzr { };
 
-  fetchcvs =
-    if stdenv.buildPlatform != stdenv.hostPlatform
-    # hack around splicing being crummy with things that (correctly) don't eval.
-    then buildPackages.fetchcvs
-    else callPackage ./fetchcvs { };
+  fetchcvs = if stdenv.buildPlatform != stdenv.hostPlatform
+  # hack around splicing being crummy with things that (correctly) don't eval.
+  then
+    buildPackages.fetchcvs
+  else
+    callPackage ./fetchcvs { };
 
   fetchdarcs = callPackage ./fetchdarcs { };
 
@@ -185,38 +170,35 @@ with pkgs;
   fetchpijul = callPackage ./fetchpijul { };
 
   inherit (callPackages ./node/fetch-yarn-deps { })
-    fixup-yarn-lock
-    prefetch-yarn-deps
-    fetchYarnDeps;
+    fixup-yarn-lock prefetch-yarn-deps fetchYarnDeps;
 
   prefer-remote-fetch = import ./prefer-remote-fetch;
 
-  fetchpatch = callPackage ./fetchpatch
-    {
-      # 0.3.4 would change hashes: https://github.com/NixOS/nixpkgs/issues/25154
-      patchutils = buildPackages.patchutils_0_3_3;
-    } // {
+  fetchpatch = callPackage ./fetchpatch {
+    # 0.3.4 would change hashes: https://github.com/NixOS/nixpkgs/issues/25154
+    patchutils = buildPackages.patchutils_0_3_3;
+  } // {
     tests = pkgs.tests.fetchpatch;
     version = 1;
   };
 
-  fetchpatch2 = callPackage ./fetchpatch
-    {
-      patchutils = buildPackages.patchutils_0_4_2;
-    } // {
-    tests = pkgs.tests.fetchpatch2;
-    version = 2;
-  };
+  fetchpatch2 =
+    callPackage ./fetchpatch { patchutils = buildPackages.patchutils_0_4_2; }
+    // {
+      tests = pkgs.tests.fetchpatch2;
+      version = 2;
+    };
 
   fetchs3 = callPackage ./fetchs3 { };
 
   fetchtorrent = callPackage ./fetchtorrent { };
 
-  fetchsvn =
-    if stdenv.buildPlatform != stdenv.hostPlatform
-    # hack around splicing being crummy with things that (correctly) don't eval.
-    then buildPackages.fetchsvn
-    else callPackage ./fetchsvn { };
+  fetchsvn = if stdenv.buildPlatform != stdenv.hostPlatform
+  # hack around splicing being crummy with things that (correctly) don't eval.
+  then
+    buildPackages.fetchsvn
+  else
+    callPackage ./fetchsvn { };
 
   fetchsvnrevision = import ./fetchsvnrevision runCommand subversion;
 
@@ -224,71 +206,70 @@ with pkgs;
 
   fetchhg = callPackage ./fetchhg { };
 
-  fetchFirefoxAddon = callPackage ./fetchfirefoxaddon { }
-    // {
+  fetchFirefoxAddon = callPackage ./fetchfirefoxaddon { } // {
     tests = pkgs.tests.fetchFirefoxAddon;
   };
 
   fetchNextcloudApp = callPackage ./fetchnextcloudapp { };
 
   # `fetchurl' downloads a file from the network.
-  fetchurl =
-    if stdenv.buildPlatform != stdenv.hostPlatform
-    then buildPackages.fetchurl # No need to do special overrides twice,
-    else
-      makeOverridable (import ./fetchurl) {
-        inherit lib stdenvNoCC buildPackages;
-        inherit cacert;
-        curl = buildPackages.curlMinimal.override (old: rec {
-          # break dependency cycles
+  fetchurl = if stdenv.buildPlatform != stdenv.hostPlatform then
+    buildPackages.fetchurl # No need to do special overrides twice,
+  else
+    makeOverridable (import ./fetchurl) {
+      inherit lib stdenvNoCC buildPackages;
+      inherit cacert;
+      curl = buildPackages.curlMinimal.override (old: rec {
+        # break dependency cycles
+        fetchurl = stdenv.fetchurlBoot;
+        zlib = buildPackages.zlib.override { fetchurl = stdenv.fetchurlBoot; };
+        pkg-config = buildPackages.pkg-config.override (old: {
+          pkg-config =
+            old.pkg-config.override { fetchurl = stdenv.fetchurlBoot; };
+        });
+        perl = buildPackages.perl.override { fetchurl = stdenv.fetchurlBoot; };
+        openssl = buildPackages.openssl.override {
           fetchurl = stdenv.fetchurlBoot;
-          zlib = buildPackages.zlib.override { fetchurl = stdenv.fetchurlBoot; };
-          pkg-config = buildPackages.pkg-config.override (old: {
-            pkg-config = old.pkg-config.override {
+          buildPackages = {
+            coreutils = buildPackages.coreutils.override {
               fetchurl = stdenv.fetchurlBoot;
-            };
-          });
-          perl = buildPackages.perl.override { fetchurl = stdenv.fetchurlBoot; };
-          openssl = buildPackages.openssl.override {
-            fetchurl = stdenv.fetchurlBoot;
-            buildPackages = {
-              coreutils = buildPackages.coreutils.override {
-                fetchurl = stdenv.fetchurlBoot;
-                inherit perl;
-                xz = buildPackages.xz.override { fetchurl = stdenv.fetchurlBoot; };
-                gmp = null;
-                aclSupport = false;
-                attrSupport = false;
-              };
               inherit perl;
+              xz =
+                buildPackages.xz.override { fetchurl = stdenv.fetchurlBoot; };
+              gmp = null;
+              aclSupport = false;
+              attrSupport = false;
             };
             inherit perl;
           };
-          libssh2 = buildPackages.libssh2.override {
-            fetchurl = stdenv.fetchurlBoot;
-            inherit zlib openssl;
-          };
-          # On darwin, libkrb5 needs bootstrap_cmds which would require
-          # converting many packages to fetchurl_boot to avoid evaluation cycles.
-          # So turn gssSupport off there, and on Windows.
-          # On other platforms, keep the previous value.
-          gssSupport =
-            if stdenv.isDarwin || stdenv.hostPlatform.isWindows
-            then false
-            else old.gssSupport or true; # `? true` is the default
-          libkrb5 = buildPackages.libkrb5.override {
-            fetchurl = stdenv.fetchurlBoot;
-            inherit pkg-config perl openssl;
-            keyutils = buildPackages.keyutils.override { fetchurl = stdenv.fetchurlBoot; };
-          };
-          nghttp2 = buildPackages.nghttp2.override {
-            fetchurl = stdenv.fetchurlBoot;
-            inherit pkg-config;
-            enableApp = false; # curl just needs libnghttp2
-            enableTests = false; # avoids bringing `cunit` and `tzdata` into scope
-          };
-        });
-      };
+          inherit perl;
+        };
+        libssh2 = buildPackages.libssh2.override {
+          fetchurl = stdenv.fetchurlBoot;
+          inherit zlib openssl;
+        };
+        # On darwin, libkrb5 needs bootstrap_cmds which would require
+        # converting many packages to fetchurl_boot to avoid evaluation cycles.
+        # So turn gssSupport off there, and on Windows.
+        # On other platforms, keep the previous value.
+        gssSupport = if stdenv.isDarwin || stdenv.hostPlatform.isWindows then
+          false
+        else
+          old.gssSupport or true; # `? true` is the default
+        libkrb5 = buildPackages.libkrb5.override {
+          fetchurl = stdenv.fetchurlBoot;
+          inherit pkg-config perl openssl;
+          keyutils =
+            buildPackages.keyutils.override { fetchurl = stdenv.fetchurlBoot; };
+        };
+        nghttp2 = buildPackages.nghttp2.override {
+          fetchurl = stdenv.fetchurlBoot;
+          inherit pkg-config;
+          enableApp = false; # curl just needs libnghttp2
+          enableTests = false; # avoids bringing `cunit` and `tzdata` into scope
+        };
+      });
+    };
 
   # fetchRepoProject = callPackage ./fetchrepoproject { };
 
@@ -296,10 +277,7 @@ with pkgs;
   #   inherit curl stdenv;
   # };
 
-  fetchzip = callPackage ./fetchzip { }
-    // {
-    tests = pkgs.tests.fetchzip;
-  };
+  fetchzip = callPackage ./fetchzip { } // { tests = pkgs.tests.fetchzip; };
 
   # fetchDebianPatch = callPackage ./fetchdebianpatch { }
   #   // {
@@ -369,18 +347,18 @@ with pkgs;
 
   makeWrapper = makeShellWrapper;
 
-  makeShellWrapper = makeSetupHook
-    {
-      name = "make-shell-wrapper-hook";
-      propagatedBuildInputs = [ dieHook ];
-      substitutions = {
-        # targetPackages.runtimeShell only exists when pkgs == targetPackages (when targetPackages is not  __raw)
-        shell = if targetPackages ? runtimeShell then targetPackages.runtimeShell else throw "makeWrapper/makeShellWrapper must be in nativeBuildInputs";
-      };
-      passthru = {
-        tests = tests.makeWrapper;
-      };
-    } ./setup-hooks/make-wrapper.sh;
+  makeShellWrapper = makeSetupHook {
+    name = "make-shell-wrapper-hook";
+    propagatedBuildInputs = [ dieHook ];
+    substitutions = {
+      # targetPackages.runtimeShell only exists when pkgs == targetPackages (when targetPackages is not  __raw)
+      shell = if targetPackages ? runtimeShell then
+        targetPackages.runtimeShell
+      else
+        throw "makeWrapper/makeShellWrapper must be in nativeBuildInputs";
+    };
+    passthru = { tests = tests.makeWrapper; };
+  } ./setup-hooks/make-wrapper.sh;
 
   makeBinaryWrapper = callPackage ./setup-hooks/make-binary-wrapper { };
 
@@ -415,11 +393,10 @@ with pkgs;
 
   # setupSystemdUnits = callPackage ./setup-systemd-units.nix { };
 
-  shortenPerlShebang = makeSetupHook
-    {
-      name = "shorten-perl-shebang-hook";
-      propagatedBuildInputs = [ dieHook ];
-    } ./setup-hooks/shorten-perl-shebang.sh;
+  shortenPerlShebang = makeSetupHook {
+    name = "shorten-perl-shebang-hook";
+    propagatedBuildInputs = [ dieHook ];
+  } ./setup-hooks/shorten-perl-shebang.sh;
 
   # singularity-tools = callPackage ./singularity-tools { };
 
@@ -433,15 +410,13 @@ with pkgs;
 
   # replaceDependency = callPackage ./replace-dependency.nix { };
 
-  nukeReferences = callPackage ./nuke-references {
-    inherit (darwin) signingUtils;
-  };
+  nukeReferences =
+    callPackage ./nuke-references { inherit (darwin) signingUtils; };
 
   # referencesByPopularity = callPackage ./references-by-popularity { };
 
-  removeReferencesTo = callPackage ./remove-references-to {
-    inherit (darwin) signingUtils;
-  };
+  removeReferencesTo =
+    callPackage ./remove-references-to { inherit (darwin) signingUtils; };
 
   # # No callPackage.  In particular, we don't want `img` *package* in parameters.
   # vmTools = makeOverridable (import ./vm) { inherit pkgs lib; };
@@ -454,12 +429,11 @@ with pkgs;
   #   name = "set-java-classpath-hook";
   # } ./setup-hooks/set-java-classpath.sh;
 
-  fixDarwinDylibNames = makeSetupHook
-    {
-      name = "fix-darwin-dylib-names-hook";
-      substitutions = { inherit (binutils) targetPrefix; };
-      meta.platforms = lib.platforms.darwin;
-    } ./setup-hooks/fix-darwin-dylib-names.sh;
+  fixDarwinDylibNames = makeSetupHook {
+    name = "fix-darwin-dylib-names-hook";
+    substitutions = { inherit (binutils) targetPrefix; };
+    meta.platforms = lib.platforms.darwin;
+  } ./setup-hooks/fix-darwin-dylib-names.sh;
 
   # writeDarwinBundle = callPackage ./make-darwin-bundle/write-darwin-bundle.nix { };
 
@@ -490,10 +464,8 @@ with pkgs;
   # # intended to be used like nix-build -E 'with import <nixpkgs> { }; enableDebugging fooPackage'
   # enableDebugging = pkg: pkg.override { stdenv = stdenvAdapters.keepDebugInfo pkg.stdenv; };
 
-  findXMLCatalogs = makeSetupHook
-    {
-      name = "find-xml-catalogs-hook";
-    } ./setup-hooks/find-xml-catalogs.sh;
+  findXMLCatalogs = makeSetupHook { name = "find-xml-catalogs-hook"; }
+    ./setup-hooks/find-xml-catalogs.sh;
 
   # wrapGAppsHook = callPackage ./setup-hooks/wrap-gapps-hook {
   #   makeWrapper = makeBinaryWrapper;
@@ -507,10 +479,8 @@ with pkgs;
   #   name = "separate-debug-info-hook";
   # } ./setup-hooks/separate-debug-info.sh;
 
-  setupDebugInfoDirs = makeSetupHook
-    {
-      name = "setup-debug-info-dirs-hook";
-    } ./setup-hooks/setup-debug-info-dirs.sh;
+  setupDebugInfoDirs = makeSetupHook { name = "setup-debug-info-dirs-hook"; }
+    ./setup-hooks/setup-debug-info-dirs.sh;
 
   # useOldCXXAbi = makeSetupHook {
   #   name = "use-old-cxx-abi-hook";
@@ -539,70 +509,63 @@ with pkgs;
 
   # deterministic-uname = callPackage ./deterministic-uname { };
 
-  wrapCCWith =
-    { cc
+  wrapCCWith = { cc
     , # This should be the only bintools runtime dep with this sort of logic. The
-      # Others should instead delegate to the next stage's choice with
-      # `targetPackages.stdenv.cc.bintools`. This one is different just to
-      # provide the default choice, avoiding infinite recursion.
-      # See the bintools attribute for the logic and reasoning. We need to provide
-      # a default here, since eval will hit this function when bootstrapping
-      # stdenv where the bintools attribute doesn't exist, but will never actually
-      # be evaluated -- callPackage ends up being too eager.
-      bintools ? pkgs.bintools
-    , libc ? bintools.libc
+    # Others should instead delegate to the next stage's choice with
+    # `targetPackages.stdenv.cc.bintools`. This one is different just to
+    # provide the default choice, avoiding infinite recursion.
+    # See the bintools attribute for the logic and reasoning. We need to provide
+    # a default here, since eval will hit this function when bootstrapping
+    # stdenv where the bintools attribute doesn't exist, but will never actually
+    # be evaluated -- callPackage ends up being too eager.
+    bintools ? pkgs.bintools, libc ? bintools.libc
     , # libc++ from the default LLVM version is bound at the top level, but we
-      # want the C++ library to be explicitly chosen by the caller, and null by
-      # default.
-      libcxx ? null
-    , extraPackages ? lib.optional (cc.isGNU or false && stdenv.targetPlatform.isMinGW) ((threadsCrossFor cc.version).package)
-    , nixSupport ? { }
-    , ...
-    } @ extraArgs:
-    callPackage ./cc-wrapper (
-      let
-        self = {
-          nativeTools = stdenv.targetPlatform == stdenv.hostPlatform && stdenv.cc.nativeTools or false;
-          nativeLibc = stdenv.targetPlatform == stdenv.hostPlatform && stdenv.cc.nativeLibc or false;
-          nativePrefix = stdenv.cc.nativePrefix or "";
-          noLibc = !self.nativeLibc && (self.libc == null);
+    # want the C++ library to be explicitly chosen by the caller, and null by
+    # default.
+    libcxx ? null, extraPackages ?
+      lib.optional (cc.isGNU or false && stdenv.targetPlatform.isMinGW)
+      ((threadsCrossFor cc.version).package), nixSupport ? { }, ... }@extraArgs:
+    callPackage ./cc-wrapper (let
+      self = {
+        nativeTools = stdenv.targetPlatform == stdenv.hostPlatform
+          && stdenv.cc.nativeTools or false;
+        nativeLibc = stdenv.targetPlatform == stdenv.hostPlatform
+          && stdenv.cc.nativeLibc or false;
+        nativePrefix = stdenv.cc.nativePrefix or "";
+        noLibc = !self.nativeLibc && (self.libc == null);
 
-          isGNU = cc.isGNU or false;
-          isClang = cc.isClang or false;
+        isGNU = cc.isGNU or false;
+        isClang = cc.isClang or false;
 
-          inherit cc bintools libc libcxx extraPackages nixSupport zlib;
-        } // extraArgs;
-      in
-      self
-    );
+        inherit cc bintools libc libcxx extraPackages nixSupport zlib;
+      } // extraArgs;
+    in self);
 
-  wrapCC = cc: wrapCCWith {
-    inherit cc;
-  };
+  wrapCC = cc: wrapCCWith { inherit cc; };
 
-  wrapBintoolsWith =
-    { bintools
-    , libc ? if stdenv.targetPlatform != stdenv.hostPlatform then libcCross else stdenv.cc.libc
-    , ...
-    } @ extraArgs:
-    callPackage ./bintools-wrapper (
-      let
-        self = {
-          nativeTools = stdenv.targetPlatform == stdenv.hostPlatform && stdenv.cc.nativeTools or false;
-          nativeLibc = stdenv.targetPlatform == stdenv.hostPlatform && stdenv.cc.nativeLibc or false;
-          nativePrefix = stdenv.cc.nativePrefix or "";
+  wrapBintoolsWith = { bintools, libc ?
+      if stdenv.targetPlatform != stdenv.hostPlatform then
+        libcCross
+      else
+        stdenv.cc.libc, ... }@extraArgs:
+    callPackage ./bintools-wrapper (let
+      self = {
+        nativeTools = stdenv.targetPlatform == stdenv.hostPlatform
+          && stdenv.cc.nativeTools or false;
+        nativeLibc = stdenv.targetPlatform == stdenv.hostPlatform
+          && stdenv.cc.nativeLibc or false;
+        nativePrefix = stdenv.cc.nativePrefix or "";
 
-          noLibc = (self.libc == null);
+        noLibc = (self.libc == null);
 
-          inherit bintools libc;
-          inherit (darwin) postLinkSignHook signingUtils;
-        } // extraArgs;
-      in
-      self
-    );
+        inherit bintools libc;
+        inherit (darwin) postLinkSignHook signingUtils;
+      } // extraArgs;
+    in self);
 
   # sourceFromHead = callPackage ./source-from-head-fun.nix { };
 
-  wrapRustcWith = { rustc-unwrapped, ... } @ args: callPackage ./rust/rustc-wrapper args;
+  wrapRustcWith = { rustc-unwrapped, ... }@args:
+    callPackage ./rust/rustc-wrapper args;
   wrapRustc = rustc-unwrapped: wrapRustcWith { inherit rustc-unwrapped; };
 }

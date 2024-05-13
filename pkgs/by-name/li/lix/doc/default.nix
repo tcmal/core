@@ -1,9 +1,4 @@
-{
-  src,
-  rustPlatform,
-  version,
-  cargoHash,
-}:
+{ src, rustPlatform, version, cargoHash, }:
 
 rustPlatform.buildRustPackage {
   pname = "lix-doc";

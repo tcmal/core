@@ -1,18 +1,15 @@
 { pkgspath ? ../../.., test-pkgspath ? pkgspath
-, localSystem ? { system = builtins.currentSystem; }
-, crossSystem ? null
-, bootstrapFiles ? null
-}:
+, localSystem ? { system = builtins.currentSystem; }, crossSystem ? null
+, bootstrapFiles ? null }:
 
-let cross = if crossSystem != null
-      then { inherit crossSystem; }
-      else {};
-    custom-bootstrap = if bootstrapFiles != null
-      then { stdenvStages = args:
-              let args' = args // { bootstrapFiles = bootstrapFiles; };
-              in (import "${pkgspath}/pkgs/stdenv/darwin" args');
-           }
-      else {};
+let
+  cross = if crossSystem != null then { inherit crossSystem; } else { };
+  custom-bootstrap = if bootstrapFiles != null then {
+    stdenvStages = args:
+      let args' = args // { bootstrapFiles = bootstrapFiles; };
+      in (import "${pkgspath}/pkgs/stdenv/darwin" args');
+  } else
+    { };
 in with import pkgspath ({ inherit localSystem; } // cross // custom-bootstrap);
 
 rec {
@@ -22,11 +19,7 @@ rec {
     nativeBuildInputs = [ dumpnar nukeReferences ];
 
     buildCommand = let
-      inherit (lib)
-        getBin
-        getDev
-        getLib
-        ;
+      inherit (lib) getBin getDev getLib;
 
       coreutils_ = (coreutils.override (args: {
         # We want coreutils without ACL support.
@@ -90,10 +83,9 @@ rec {
         EOF
 
         chmod +x $out/bin/egrep $out/bin/fgrep $out/bin/dsymutil
-    '';
+      '';
 
-    in
-    ''
+    in ''
       mkdir -p $out/bin $out/lib $out/lib/darwin
 
       ${lib.optionalString stdenv.targetPlatform.isx86_64 ''
@@ -154,14 +146,22 @@ rec {
       cp -d ${getLib openssl}/lib/*.dylib $out/lib
 
       # Copy what we need of clang
-      cp -d ${getBin llvmPackages.clang-unwrapped}/bin/clang{,++,-cl,-cpp,-[0-9]*} $out/bin
-      cp -d ${getLib llvmPackages.clang-unwrapped}/lib/libclang-cpp*.dylib $out/lib
+      cp -d ${
+        getBin llvmPackages.clang-unwrapped
+      }/bin/clang{,++,-cl,-cpp,-[0-9]*} $out/bin
+      cp -d ${
+        getLib llvmPackages.clang-unwrapped
+      }/lib/libclang-cpp*.dylib $out/lib
       cp -rd ${getLib llvmPackages.clang-unwrapped}/lib/clang $out/lib
 
       cp -d ${getLib llvmPackages.libcxx}/lib/libc++*.dylib $out/lib
       mkdir -p $out/lib/darwin
-      cp -d ${getLib llvmPackages.compiler-rt}/lib/darwin/libclang_rt.{,profile_}osx.a  $out/lib/darwin
-      cp -d ${getLib llvmPackages.compiler-rt}/lib/libclang_rt.{,profile_}osx.a $out/lib
+      cp -d ${
+        getLib llvmPackages.compiler-rt
+      }/lib/darwin/libclang_rt.{,profile_}osx.a  $out/lib/darwin
+      cp -d ${
+        getLib llvmPackages.compiler-rt
+      }/lib/libclang_rt.{,profile_}osx.a $out/lib
       cp -d ${getLib llvmPackages.llvm}/lib/libLLVM.dylib $out/lib
       cp -d ${getLib libffi}/lib/libffi*.dylib $out/lib
 
@@ -269,16 +269,14 @@ rec {
       dumpnar $out/unpack | xz -9 -T $NIX_BUILD_CORES > $out/on-server/unpack.nar.xz
     '';
 
-    allowedReferences = [];
+    allowedReferences = [ ];
 
-    meta = {
-      maintainers = [ lib.maintainers.copumpkin ];
-    };
+    meta = { maintainers = [ lib.maintainers.copumpkin ]; };
   };
 
   bootstrapFiles = {
     bootstrapTools = "${build}/on-server/bootstrap-tools.tar.xz";
-    unpack = runCommand "unpack" { allowedReferences = []; } ''
+    unpack = runCommand "unpack" { allowedReferences = [ ]; } ''
       cp -r ${build}/unpack $out
     '';
   };
@@ -291,13 +289,10 @@ rec {
 
     args = [
       "${bootstrapFiles.unpack}/bootstrap-tools-unpack.sh"
-        bootstrapFiles.bootstrapTools
+      bootstrapFiles.bootstrapTools
     ];
 
-    PATH = lib.makeBinPath [
-      (placeholder "out")
-      bootstrapFiles.unpack
-    ];
+    PATH = lib.makeBinPath [ (placeholder "out") bootstrapFiles.unpack ];
 
     allowedReferences = [ "out" ];
   };
@@ -306,7 +301,7 @@ rec {
     name = "test-bootstrap-tools";
     inherit (stdenv.hostPlatform) system;
     builder = "${bootstrapTools}/bin/bash";
-    args = [ "-euo" "pipefail" "-c" "eval \"$buildCommand\"" ];
+    args = [ "-euo" "pipefail" "-c" ''eval "$buildCommand"'' ];
     PATH = lib.makeBinPath [ bootstrapTools ];
     tools = bootstrapTools;
     "${stdenv.cc.darwinMinVersionVariable}" = stdenv.cc.darwinMinVersion;
@@ -401,8 +396,8 @@ rec {
     # that platform.
     localSystem = if crossSystem != null then crossSystem else localSystem;
 
-    stdenvStages = args: let
-        args' = args // { inherit bootstrapFiles; };
+    stdenvStages = args:
+      let args' = args // { inherit bootstrapFiles; };
       in (import (test-pkgspath + "/pkgs/stdenv/darwin") args');
   };
 }

@@ -1,19 +1,10 @@
-{ lib
-, buildPythonPackage
-, fetchPypi
-, isPyPy
-, pythonAtLeast
-, pythonOlder
+{ lib, buildPythonPackage, fetchPypi, isPyPy, pythonAtLeast, pythonOlder
 
 # build-system
 , setuptools
 
 # tests
-, freezegun
-, pytestCheckHook
-, pytz
-, tzdata
-}:
+, freezegun, pytestCheckHook, pytz, tzdata }:
 
 buildPythonPackage rec {
   pname = "babel";
@@ -28,13 +19,9 @@ buildPythonPackage rec {
     hash = "sha256-aRmGfbA2OYuiHrXHoPayirjLw656c6ROvjSudKTn02M=";
   };
 
-  nativeBuildInputs = [
-    setuptools
-  ];
+  nativeBuildInputs = [ setuptools ];
 
-  propagatedBuildInputs = lib.optionals (pythonOlder "3.9") [
-    pytz
-  ];
+  propagatedBuildInputs = lib.optionals (pythonOlder "3.9") [ pytz ];
 
   # including backports.zoneinfo for python<3.9 yields infinite recursion
   doCheck = pythonAtLeast "3.9";
@@ -44,9 +31,7 @@ buildPythonPackage rec {
     pytestCheckHook
     # https://github.com/python-babel/babel/issues/988#issuecomment-1521765563
     pytz
-  ] ++ lib.optionals isPyPy [
-    tzdata
-  ];
+  ] ++ lib.optionals isPyPy [ tzdata ];
 
   disabledTests = [
     # fails on days switching from and to daylight saving time in EST
@@ -56,7 +41,8 @@ buildPythonPackage rec {
 
   meta = with lib; {
     homepage = "https://babel.pocoo.org/";
-    changelog = "https://github.com/python-babel/babel/releases/tag/v${version}";
+    changelog =
+      "https://github.com/python-babel/babel/releases/tag/v${version}";
     description = "Collection of internationalizing tools";
     mainProgram = "pybabel";
     license = licenses.bsd3;

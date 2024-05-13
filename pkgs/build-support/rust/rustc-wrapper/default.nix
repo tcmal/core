@@ -47,6 +47,7 @@ runCommand "${rustc-unwrapped.pname}-wrapper-${rustc-unwrapped.version}" {
   prog=${rustc-unwrapped}/bin/rustdoc extraFlagsVar=NIX_RUSTDOCFLAGS \
       substituteAll ${./rustc-wrapper.sh} $out/bin/rustdoc
   chmod +x $out/bin/{rustc,rustdoc}
-  ${lib.concatMapStrings (output: "ln -s ${rustc-unwrapped.${output}} \$${output}\n")
-    (lib.remove "out" rustc-unwrapped.outputs)}
+  ${lib.concatMapStrings (output: ''
+    ln -s ${rustc-unwrapped.${output}} ''$${output}
+  '') (lib.remove "out" rustc-unwrapped.outputs)}
 ''

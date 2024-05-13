@@ -1,5 +1,5 @@
-{ lib, stdenv, buildPackages, appleDerivation, fetchFromGitHub, bsdmake, perl, flex, bison
-}:
+{ lib, stdenv, buildPackages, appleDerivation, fetchFromGitHub, bsdmake, perl
+, flex, bison }:
 
 # this derivation sucks
 # locale data was removed after adv_cmds-118, so our base is that because it's easier than
@@ -10,12 +10,13 @@
 #
 # the more recent adv_cmds release is used for everything else in this package
 
-let recentAdvCmds = fetchFromGitHub {
-  owner = "apple-oss-distributions";
-  repo = "adv_cmds";
-  rev = "adv_cmds-158";
-  hash = "sha256-1qL69pGHIaefooJJ8eT83XGz9+bW7Yg3k+X9fNkMCHw=";
-};
+let
+  recentAdvCmds = fetchFromGitHub {
+    owner = "apple-oss-distributions";
+    repo = "adv_cmds";
+    rev = "adv_cmds-158";
+    hash = "sha256-1qL69pGHIaefooJJ8eT83XGz9+bW7Yg3k+X9fNkMCHw=";
+  };
 
 in appleDerivation {
   depsBuildBuild = [ buildPackages.stdenv.cc ];
@@ -87,11 +88,7 @@ in appleDerivation {
     touch "$out"
   '';
 
-  outputs = [
-    "out"
-    "ps"
-    "locale"
-  ];
+  outputs = [ "out" "ps" "locale" ];
   setOutputFlags = false;
 
   meta = {

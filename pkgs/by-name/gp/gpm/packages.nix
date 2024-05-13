@@ -1,8 +1,7 @@
 { ... }:
 res: pkgs: super:
 
-with pkgs;
-{
+with pkgs; {
   gpm = callPackage ./. {
     withNcurses = false; # Keep curses disabled for lack of value
 

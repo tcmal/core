@@ -1,9 +1,4 @@
-{ stdenv
-, python
-, flit-core
-, installer
-, packaging
-}:
+{ stdenv, python, flit-core, installer, packaging }:
 
 stdenv.mkDerivation {
   pname = "${python.libPrefix}-bootstrap-${packaging.pname}";

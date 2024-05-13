@@ -1,9 +1,6 @@
 { ... }:
 res: pkgs: super:
 
-with pkgs;
-{
-  libxslt = callPackage ./. {
-    python = python3;
-  };
+with pkgs; {
+  libxslt = callPackage ./. { python = python3; };
 }

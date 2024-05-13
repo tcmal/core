@@ -6,7 +6,8 @@ stdenv.mkDerivation rec {
   outputs = [ "out" "cxx" "doc" "dev" ];
 
   src = fetchurl {
-    url = "https://www.bytereef.org/software/mpdecimal/releases/mpdecimal-${version}.tar.gz";
+    url =
+      "https://www.bytereef.org/software/mpdecimal/releases/mpdecimal-${version}.tar.gz";
     hash = "sha256-lCRFwyRbInMP1Bpnp8XCMdEcsbmTa5wPdjNPt9C0Row=";
   };
 
@@ -21,9 +22,10 @@ stdenv.mkDerivation rec {
   '';
 
   meta = {
-    description = "Library for arbitrary precision decimal floating point arithmetic";
+    description =
+      "Library for arbitrary precision decimal floating point arithmetic";
 
-    longDescription =  ''
+    longDescription = ''
       libmpdec is a fast C/C++ library for correctly-rounded arbitrary
       precision decimal floating point arithmetic.  It is a complete
       implementation of Mike Cowlishaw/IBM's General Decimal Arithmetic

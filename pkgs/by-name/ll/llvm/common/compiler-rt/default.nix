@@ -1,58 +1,47 @@
-{ lib
-, stdenv
-, llvm_meta
-, release_version
-, version
-, patches ? []
-, src ? null
-, monorepoSrc ? null
-, runCommand
-, cmake
-, ninja
-, python3
-, xcbuild
-, libllvm
-, linuxHeaders
-, libxcrypt
-, doFakeLibgcc ? stdenv.hostPlatform.isFreeBSD
-}:
+{ lib, stdenv, llvm_meta, release_version, version, patches ? [ ], src ? null
+, monorepoSrc ? null, runCommand, cmake, ninja, python3, xcbuild, libllvm
+, linuxHeaders, libxcrypt, doFakeLibgcc ? stdenv.hostPlatform.isFreeBSD }:
 
 let
 
   useLLVM = stdenv.hostPlatform.useLLVM or false;
   bareMetal = stdenv.hostPlatform.parsed.kernel.name == "none";
   haveLibc = stdenv.cc.libc != null;
-  isDarwinStatic = stdenv.hostPlatform.isDarwin && stdenv.hostPlatform.isStatic && lib.versionAtLeast release_version "16";
+  isDarwinStatic = stdenv.hostPlatform.isDarwin && stdenv.hostPlatform.isStatic
+    && lib.versionAtLeast release_version "16";
   inherit (stdenv.hostPlatform) isMusl isAarch64;
 
   baseName = "compiler-rt";
   pname = baseName + lib.optionalString (haveLibc) "-libc";
 
   src' = if monorepoSrc != null then
-    runCommand "${baseName}-src-${version}" {} ''
+    runCommand "${baseName}-src-${version}" { } ''
       mkdir -p "$out"
       cp -r ${monorepoSrc}/cmake "$out"
       cp -r ${monorepoSrc}/${baseName} "$out"
-    '' else src;
+    ''
+  else
+    src;
 
   preConfigure = lib.optionalString (useLLVM && !haveLibc) ''
     cmakeFlagsArray+=(-DCMAKE_C_FLAGS="-nodefaultlibs -ffreestanding")
   '';
-in
 
-stdenv.mkDerivation ({
+in stdenv.mkDerivation ({
   inherit pname version patches;
 
   src = src';
-  sourceRoot = if lib.versionOlder release_version "13" then null
-    else "${src'.name}/${baseName}";
+  sourceRoot = if lib.versionOlder release_version "13" then
+    null
+  else
+    "${src'.name}/${baseName}";
 
   nativeBuildInputs = [ cmake ]
     ++ (lib.optional (lib.versionAtLeast release_version "15") ninja)
-    ++ [ python3 libllvm.dev ]
-    ++ lib.optional stdenv.isDarwin xcbuild.xcrun;
+    ++ [ python3 libllvm.dev ] ++ lib.optional stdenv.isDarwin xcbuild.xcrun;
   buildInputs =
-    lib.optional (stdenv.hostPlatform.isLinux && stdenv.hostPlatform.isRiscV) linuxHeaders;
+    lib.optional (stdenv.hostPlatform.isLinux && stdenv.hostPlatform.isRiscV)
+    linuxHeaders;
 
   env.NIX_CFLAGS_COMPILE = toString ([
     "-DSCUDO_DEFAULT_OPTIONS=DeleteSizeMismatch=0:DeallocationTypeMismatch=0"
@@ -69,45 +58,50 @@ stdenv.mkDerivation ({
     "-DCOMPILER_RT_DEFAULT_TARGET_ONLY=ON"
     "-DCMAKE_C_COMPILER_TARGET=${stdenv.hostPlatform.config}"
     "-DCMAKE_ASM_COMPILER_TARGET=${stdenv.hostPlatform.config}"
-  ] ++ lib.optionals (haveLibc && stdenv.hostPlatform.libc == "glibc") [
-    "-DSANITIZER_COMMON_CFLAGS=-I${libxcrypt}/include"
-  ] ++ lib.optionals ((useLLVM || bareMetal || isMusl || isAarch64) && (lib.versions.major release_version == "13")) [
-    "-DCOMPILER_RT_BUILD_LIBFUZZER=OFF"
-  ] ++ lib.optionals (useLLVM || bareMetal || isMusl || isDarwinStatic) [
-    "-DCOMPILER_RT_BUILD_SANITIZERS=OFF"
-    "-DCOMPILER_RT_BUILD_XRAY=OFF"
-    "-DCOMPILER_RT_BUILD_LIBFUZZER=OFF"
-    "-DCOMPILER_RT_BUILD_MEMPROF=OFF"
-    "-DCOMPILER_RT_BUILD_ORC=OFF" # may be possible to build with musl if necessary
-  ] ++ lib.optionals (useLLVM || bareMetal) [
-     "-DCOMPILER_RT_BUILD_PROFILE=OFF"
-  ] ++ lib.optionals ((useLLVM && !haveLibc) || bareMetal || isDarwinStatic) [
-    "-DCMAKE_CXX_COMPILER_WORKS=ON"
-  ] ++ lib.optionals ((useLLVM && !haveLibc) || bareMetal) [
-    "-DCMAKE_C_COMPILER_WORKS=ON"
-    "-DCOMPILER_RT_BAREMETAL_BUILD=ON"
-    "-DCMAKE_SIZEOF_VOID_P=${toString (stdenv.hostPlatform.parsed.cpu.bits / 8)}"
-  ] ++ lib.optionals (useLLVM && !haveLibc) [
-    "-DCMAKE_C_FLAGS=-nodefaultlibs"
-  ] ++ lib.optionals (useLLVM) [
-    "-DCOMPILER_RT_BUILD_BUILTINS=ON"
-    #https://stackoverflow.com/questions/53633705/cmake-the-c-compiler-is-not-able-to-compile-a-simple-test-program
-    "-DCMAKE_TRY_COMPILE_TARGET_TYPE=STATIC_LIBRARY"
-  ] ++ lib.optionals (bareMetal) [
-    "-DCOMPILER_RT_OS_DIR=baremetal"
-  ] ++ lib.optionals (stdenv.hostPlatform.isDarwin) (lib.optionals (lib.versionAtLeast release_version "16") [
-    "-DCMAKE_LIPO=${lib.getBin stdenv.cc.bintools.bintools}/bin/${stdenv.cc.targetPrefix}lipo"
-  ] ++ [
-    "-DDARWIN_macosx_OVERRIDE_SDK_VERSION=ON"
-    "-DDARWIN_osx_ARCHS=${stdenv.hostPlatform.darwinArch}"
-    "-DDARWIN_osx_BUILTIN_ARCHS=${stdenv.hostPlatform.darwinArch}"
-  ] ++ lib.optionals (lib.versionAtLeast release_version "15") [
-    # `COMPILER_RT_DEFAULT_TARGET_ONLY` does not apply to Darwin:
-    # https://github.com/llvm/llvm-project/blob/27ef42bec80b6c010b7b3729ed0528619521a690/compiler-rt/cmake/base-config-ix.cmake#L153
-    "-DCOMPILER_RT_ENABLE_IOS=OFF"
-  ]) ++ lib.optionals (lib.versionAtLeast version "19" && stdenv.isDarwin && lib.versionOlder stdenv.hostPlatform.darwinMinVersion "10.13") [
-    "-DSANITIZER_MIN_OSX_VERSION=10.10"
-  ];
+  ] ++ lib.optionals (haveLibc && stdenv.hostPlatform.libc == "glibc")
+    [ "-DSANITIZER_COMMON_CFLAGS=-I${libxcrypt}/include" ] ++ lib.optionals
+    ((useLLVM || bareMetal || isMusl || isAarch64)
+      && (lib.versions.major release_version == "13"))
+    [ "-DCOMPILER_RT_BUILD_LIBFUZZER=OFF" ]
+    ++ lib.optionals (useLLVM || bareMetal || isMusl || isDarwinStatic) [
+      "-DCOMPILER_RT_BUILD_SANITIZERS=OFF"
+      "-DCOMPILER_RT_BUILD_XRAY=OFF"
+      "-DCOMPILER_RT_BUILD_LIBFUZZER=OFF"
+      "-DCOMPILER_RT_BUILD_MEMPROF=OFF"
+      "-DCOMPILER_RT_BUILD_ORC=OFF" # may be possible to build with musl if necessary
+    ] ++ lib.optionals (useLLVM || bareMetal)
+    [ "-DCOMPILER_RT_BUILD_PROFILE=OFF" ]
+    ++ lib.optionals ((useLLVM && !haveLibc) || bareMetal || isDarwinStatic)
+    [ "-DCMAKE_CXX_COMPILER_WORKS=ON" ]
+    ++ lib.optionals ((useLLVM && !haveLibc) || bareMetal) [
+      "-DCMAKE_C_COMPILER_WORKS=ON"
+      "-DCOMPILER_RT_BAREMETAL_BUILD=ON"
+      "-DCMAKE_SIZEOF_VOID_P=${
+        toString (stdenv.hostPlatform.parsed.cpu.bits / 8)
+      }"
+    ]
+    ++ lib.optionals (useLLVM && !haveLibc) [ "-DCMAKE_C_FLAGS=-nodefaultlibs" ]
+    ++ lib.optionals (useLLVM) [
+      "-DCOMPILER_RT_BUILD_BUILTINS=ON"
+      #https://stackoverflow.com/questions/53633705/cmake-the-c-compiler-is-not-able-to-compile-a-simple-test-program
+      "-DCMAKE_TRY_COMPILE_TARGET_TYPE=STATIC_LIBRARY"
+    ] ++ lib.optionals (bareMetal) [ "-DCOMPILER_RT_OS_DIR=baremetal" ]
+    ++ lib.optionals (stdenv.hostPlatform.isDarwin)
+    (lib.optionals (lib.versionAtLeast release_version "16") [
+      "-DCMAKE_LIPO=${
+        lib.getBin stdenv.cc.bintools.bintools
+      }/bin/${stdenv.cc.targetPrefix}lipo"
+    ] ++ [
+      "-DDARWIN_macosx_OVERRIDE_SDK_VERSION=ON"
+      "-DDARWIN_osx_ARCHS=${stdenv.hostPlatform.darwinArch}"
+      "-DDARWIN_osx_BUILTIN_ARCHS=${stdenv.hostPlatform.darwinArch}"
+    ] ++ lib.optionals (lib.versionAtLeast release_version "15") [
+      # `COMPILER_RT_DEFAULT_TARGET_ONLY` does not apply to Darwin:
+      # https://github.com/llvm/llvm-project/blob/27ef42bec80b6c010b7b3729ed0528619521a690/compiler-rt/cmake/base-config-ix.cmake#L153
+      "-DCOMPILER_RT_ENABLE_IOS=OFF"
+    ]) ++ lib.optionals (lib.versionAtLeast version "19" && stdenv.isDarwin
+      && lib.versionOlder stdenv.hostPlatform.darwinMinVersion "10.13")
+    [ "-DSANITIZER_MIN_OSX_VERSION=10.10" ];
 
   outputs = [ "out" "dev" ];
 
@@ -122,17 +116,20 @@ stdenv.mkDerivation ({
   '' + lib.optionalString stdenv.isDarwin ''
     substituteInPlace cmake/config-ix.cmake \
       --replace 'set(COMPILER_RT_HAS_TSAN TRUE)' 'set(COMPILER_RT_HAS_TSAN FALSE)'
-  '' + lib.optionalString (useLLVM && !haveLibc) ((lib.optionalString (lib.versionAtLeast release_version "18") ''
-    substituteInPlace lib/builtins/aarch64/sme-libc-routines.c \
-      --replace "<stdlib.h>" "<stddef.h>"
-  '') + ''
-    substituteInPlace lib/builtins/int_util.c \
-      --replace "#include <stdlib.h>" ""
-    substituteInPlace lib/builtins/clear_cache.c \
-      --replace "#include <assert.h>" ""
-    substituteInPlace lib/builtins/cpu_model${lib.optionalString (lib.versionAtLeast version "18") "/x86"}.c \
-      --replace "#include <assert.h>" ""
-  '');
+  '' + lib.optionalString (useLLVM && !haveLibc)
+    ((lib.optionalString (lib.versionAtLeast release_version "18") ''
+      substituteInPlace lib/builtins/aarch64/sme-libc-routines.c \
+        --replace "<stdlib.h>" "<stddef.h>"
+    '') + ''
+      substituteInPlace lib/builtins/int_util.c \
+        --replace "#include <stdlib.h>" ""
+      substituteInPlace lib/builtins/clear_cache.c \
+        --replace "#include <assert.h>" ""
+      substituteInPlace lib/builtins/cpu_model${
+        lib.optionalString (lib.versionAtLeast version "18") "/x86"
+      }.c \
+        --replace "#include <assert.h>" ""
+    '');
 
   # Hack around weird upsream RPATH bug
   postInstall = lib.optionalString (stdenv.hostPlatform.isDarwin) ''
@@ -149,7 +146,7 @@ stdenv.mkDerivation ({
     ln -s $out/lib/*/clang_rt.crtbegin_shared-*.o $out/lib/crtbeginS.o
     ln -s $out/lib/*/clang_rt.crtend_shared-*.o $out/lib/crtendS.o
   '' + lib.optionalString doFakeLibgcc ''
-     ln -s $out/lib/freebsd/libclang_rt.builtins-*.a $out/lib/libgcc.a
+    ln -s $out/lib/freebsd/libclang_rt.builtins-*.a $out/lib/libgcc.a
   '';
 
   meta = llvm_meta // {
@@ -170,4 +167,7 @@ stdenv.mkDerivation ({
     # https://reviews.llvm.org/D43106#1019077
     broken = stdenv.hostPlatform.isRiscV32 && !stdenv.cc.isClang;
   };
-} // (if lib.versionOlder release_version "16" then { inherit preConfigure; } else {}))
+} // (if lib.versionOlder release_version "16" then {
+  inherit preConfigure;
+} else
+  { }))

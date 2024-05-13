@@ -1,81 +1,24 @@
-{ lib
-, fetchFromGitHub
-, version
-, suffix ? ""
-, hash ? null
-, src ? fetchFromGitHub {
+{ lib, fetchFromGitHub, version, suffix ? "", hash ? null, src ?
+  fetchFromGitHub {
     owner = "lix-project";
     repo = "lix";
     rev = version;
     inherit hash;
-  }
-, docCargoHash ? null
-, patches ? [ ]
-, maintainers ? []
-,
-}@args:
+  }, docCargoHash ? null, patches ? [ ], maintainers ? [ ], }@args:
 assert (hash == null) -> (src != null);
-{ stdenv
-, meson
-, bash
-, bison
-, boehmgc
-, boost
-, brotli
-, busybox-sandbox-shell
-, bzip2
-, callPackage
-, coreutils
-, curl
-, cmake
-, docbook_xsl_ns
-, docbook5
-, doxygen
-, editline
-, flex
-, git
-, gnutar
-, gtest
-, gzip
-, jq
-, lib
-, libarchive
-, libcpuid
-, libgit2
-, libsodium
-, libxml2
-, libxslt
-, lowdown
-, lsof
-, man
-, mercurial
-, mdbook
-, mdbook-linkcheck
-, nlohmann_json
-, ninja
-, openssl
-, toml11
-, python3
-, perl
-, pkg-config
-, rapidcheck
-, Security
-, sqlite
-, util-linuxMinimal
-, xz
+{ stdenv, meson, bash, bison, boehmgc, boost, brotli, busybox-sandbox-shell
+, bzip2, callPackage, coreutils, curl, cmake, docbook_xsl_ns, docbook5, doxygen
+, editline, flex, git, gnutar, gtest, gzip, jq, lib, libarchive, libcpuid
+, libgit2, libsodium, libxml2, libxslt, lowdown, lsof, man, mercurial, mdbook
+, mdbook-linkcheck, nlohmann_json, ninja, openssl, toml11, python3, perl
+, pkg-config, rapidcheck, Security, sqlite, util-linuxMinimal, xz
 # , nixosTests
 , enableDocumentation ? stdenv.hostPlatform == stdenv.buildPlatform
 , enableStatic ? stdenv.hostPlatform.isStatic
-, withAWS ? !enableStatic && (stdenv.isLinux || stdenv.isDarwin)
-, aws-sdk-cpp
+, withAWS ? !enableStatic && (stdenv.isLinux || stdenv.isDarwin), aws-sdk-cpp
 , # RISC-V support in progress https://github.com/seccomp/libseccomp/pull/50
-  withLibseccomp ? lib.meta.availableOn stdenv.hostPlatform libseccomp
-, libseccomp
-, confDir
-, stateDir
-, storeDir
-,
-}:
+withLibseccomp ? lib.meta.availableOn stdenv.hostPlatform libseccomp, libseccomp
+, confDir, stateDir, storeDir, }:
 let
   lix-doc = callPackage ./doc {
     inherit src;
@@ -90,70 +33,55 @@ let
 
     inherit src patches;
 
-    outputs =
-      [
-        "out"
-        "dev"
-      ]
-      ++ lib.optionals enableDocumentation [
-        "man"
-        "doc"
-      ];
+    outputs = [ "out" "dev" ]
+      ++ lib.optionals enableDocumentation [ "man" "doc" ];
 
     strictDeps = true;
 
-    nativeBuildInputs =
-      [
-        pkg-config
-        bison
-        flex
-        jq
-        meson
-        ninja
-        cmake
-        python3
-        doxygen
+    nativeBuildInputs = [
+      pkg-config
+      bison
+      flex
+      jq
+      meson
+      ninja
+      cmake
+      python3
+      doxygen
 
-        # Tests
-        git
-        mercurial
-        jq
-        lsof
-      ]
-      ++ lib.optionals (enableDocumentation) [
-        (lib.getBin lowdown)
-        mdbook
-        mdbook-linkcheck
-      ]
-      ++ lib.optionals stdenv.isLinux [ util-linuxMinimal ];
+      # Tests
+      git
+      mercurial
+      jq
+      lsof
+    ] ++ lib.optionals (enableDocumentation) [
+      (lib.getBin lowdown)
+      mdbook
+      mdbook-linkcheck
+    ] ++ lib.optionals stdenv.isLinux [ util-linuxMinimal ];
 
-    buildInputs =
-      [
-        boost
-        brotli
-        bzip2
-        curl
-        editline
-        libsodium
-        openssl
-        sqlite
-        xz
-        gtest
-        libarchive
-        lowdown
-        rapidcheck
-        toml11
-        lix-doc
-      ]
-      ++ lib.optionals stdenv.isDarwin [ Security ]
+    buildInputs = [
+      boost
+      brotli
+      bzip2
+      curl
+      editline
+      libsodium
+      openssl
+      sqlite
+      xz
+      gtest
+      libarchive
+      lowdown
+      rapidcheck
+      toml11
+      lix-doc
+    ] ++ lib.optionals stdenv.isDarwin [ Security ]
       ++ lib.optionals (stdenv.isx86_64) [ libcpuid ]
       ++ lib.optionals withLibseccomp [ libseccomp ]
       ++ lib.optionals withAWS [ aws-sdk-cpp ];
 
-    propagatedBuildInputs = [
-      boehmgc
-      nlohmann_json
-    ];
+    propagatedBuildInputs = [ boehmgc nlohmann_json ];
 
     postPatch = ''
       patchShebangs --build tests
@@ -180,21 +108,20 @@ let
         ''}
       '';
 
-    mesonFlags =
-      [
-        (lib.mesonEnable "gc" true)
-        (lib.mesonBool "enable-tests" true)
-        (lib.mesonBool "enable-docs" enableDocumentation)
-        (lib.mesonBool "enable-embedded-sandbox-shell" (stdenv.isLinux && stdenv.hostPlatform.isStatic))
-        (lib.mesonEnable "seccomp-sandboxing" withLibseccomp)
+    mesonFlags = [
+      (lib.mesonEnable "gc" true)
+      (lib.mesonBool "enable-tests" true)
+      (lib.mesonBool "enable-docs" enableDocumentation)
+      (lib.mesonBool "enable-embedded-sandbox-shell"
+        (stdenv.isLinux && stdenv.hostPlatform.isStatic))
+      (lib.mesonEnable "seccomp-sandboxing" withLibseccomp)
 
-        (lib.mesonOption "store-dir" storeDir)
-        (lib.mesonOption "state-dir" stateDir)
-        (lib.mesonOption "sysconfdir" confDir)
-      ]
-      ++ lib.optionals stdenv.isLinux [
-        (lib.mesonOption "sandbox-shell" "${busybox-sandbox-shell}/bin/busybox")
-      ];
+      (lib.mesonOption "store-dir" storeDir)
+      (lib.mesonOption "state-dir" stateDir)
+      (lib.mesonOption "sysconfdir" confDir)
+    ] ++ lib.optionals stdenv.isLinux [
+      (lib.mesonOption "sandbox-shell" "${busybox-sandbox-shell}/bin/busybox")
+    ];
 
     # Needed for Meson to find Boost.
     # https://github.com/NixOS/nixpkgs/issues/86131.
@@ -203,30 +130,24 @@ let
       BOOST_LIBRARYDIR = "${lib.getLib boost}/lib";
     };
 
-    postInstall =
-      ''
-        mkdir -p $doc/nix-support
-        echo "doc manual $doc/share/doc/nix/manual" >> $doc/nix-support/hydra-build-products
-      ''
-      + lib.optionalString stdenv.hostPlatform.isStatic ''
-        mkdir -p $out/nix-support
-        echo "file binary-dist $out/bin/nix" >> $out/nix-support/hydra-build-products
-      ''
-      + lib.optionalString stdenv.isDarwin ''
-        for lib in libnixutil.dylib libnixexpr.dylib; do
-          install_name_tool \
-            -change "${lib.getLib boost}/lib/libboost_context.dylib" \
-            "$out/lib/libboost_context.dylib" \
-            "$out/lib/$lib"
-        done
-      '';
+    postInstall = ''
+      mkdir -p $doc/nix-support
+      echo "doc manual $doc/share/doc/nix/manual" >> $doc/nix-support/hydra-build-products
+    '' + lib.optionalString stdenv.hostPlatform.isStatic ''
+      mkdir -p $out/nix-support
+      echo "file binary-dist $out/bin/nix" >> $out/nix-support/hydra-build-products
+    '' + lib.optionalString stdenv.isDarwin ''
+      for lib in libnixutil.dylib libnixexpr.dylib; do
+        install_name_tool \
+          -change "${lib.getLib boost}/lib/libboost_context.dylib" \
+          "$out/lib/libboost_context.dylib" \
+          "$out/lib/$lib"
+      done
+    '';
 
     doCheck = true;
     mesonCheckFlags = [ "--suite=check" ];
-    checkInputs = [
-      gtest
-      rapidcheck
-    ];
+    checkInputs = [ gtest rapidcheck ];
 
     doInstallCheck = true;
     mesonInstallCheckFlags = [ "--suite=installcheck" ];
@@ -246,7 +167,8 @@ let
       runHook postInstallCheck
     '';
     # strictoverflow is disabled because we trap on signed overflow instead
-    hardeningDisable = [ "strictoverflow" ] ++ lib.optional stdenv.hostPlatform.isStatic "pie";
+    hardeningDisable = [ "strictoverflow" ]
+      ++ lib.optional stdenv.hostPlatform.isStatic "pie";
     # hardeningEnable = lib.optionals (!stdenv.isDarwin) [ "pie" ];
     # hardeningDisable = lib.optional stdenv.hostPlatform.isMusl "fortify";
     separateDebugInfo = stdenv.isLinux && !enableStatic;
@@ -263,7 +185,8 @@ let
     # not this common file.
     pos = builtins.unsafeGetAttrPos "version" args;
     meta = with lib; {
-      description = "Powerful package manager that makes package management reliable and reproducible";
+      description =
+        "Powerful package manager that makes package management reliable and reproducible";
       longDescription = ''
         Lix (a fork of Nix) is a powerful package manager for Linux and other Unix systems that
         makes package management reliable and reproducible. It provides atomic
@@ -280,5 +203,4 @@ let
       broken = enableStatic;
     };
   };
-in
-self
+in self

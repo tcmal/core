@@ -1,11 +1,4 @@
-{ lib
-, stdenv
-, fetchFromGitHub
-, zlib
-, ilmbase
-, fetchpatch
-, cmake
-}:
+{ lib, stdenv, fetchFromGitHub, zlib, ilmbase, fetchpatch, cmake }:
 
 stdenv.mkDerivation rec {
   pname = "openexr";
@@ -23,14 +16,16 @@ stdenv.mkDerivation rec {
   patches = [
     (fetchpatch {
       name = "CVE-2021-45942.patch";
-      url = "https://github.com/AcademySoftwareFoundation/openexr/commit/11cad77da87c4fa2aab7d58dd5339e254db7937e.patch";
+      url =
+        "https://github.com/AcademySoftwareFoundation/openexr/commit/11cad77da87c4fa2aab7d58dd5339e254db7937e.patch";
       stripLen = 4;
       extraPrefix = "OpenEXR/IlmImf/";
       sha256 = "1wa2jn6sa0n3phaqvklnlbgk1bz60y756ad4jk4d757pzpnannsy";
     })
     (fetchpatch {
       name = "CVE-2021-3933.patch";
-      url = "https://github.com/AcademySoftwareFoundation/openexr/commit/5db6f7aee79e3e75e8c3780b18b28699614dd08e.patch";
+      url =
+        "https://github.com/AcademySoftwareFoundation/openexr/commit/5db6f7aee79e3e75e8c3780b18b28699614dd08e.patch";
       stripLen = 4;
       extraPrefix = "OpenEXR/IlmImf/";
       sha256 = "sha256-DrpldpNgN5pWKzIuuPIrynGX3EpP8YhJlu+lLfNFGxQ=";
@@ -49,9 +44,8 @@ stdenv.mkDerivation rec {
     echo 'set_tests_properties(OpenEXR.IlmImf PROPERTIES TIMEOUT 3000)' >> OpenEXR/IlmImfTest/CMakeLists.txt
   '';
 
-  cmakeFlags = [
-    "-DCMAKE_CTEST_ARGUMENTS=--timeout;3600"
-  ] ++ lib.optional stdenv.hostPlatform.isStatic "-DCMAKE_SKIP_RPATH=ON";
+  cmakeFlags = [ "-DCMAKE_CTEST_ARGUMENTS=--timeout;3600" ]
+    ++ lib.optional stdenv.hostPlatform.isStatic "-DCMAKE_SKIP_RPATH=ON";
 
   nativeBuildInputs = [ cmake ];
   propagatedBuildInputs = [ ilmbase zlib ];

@@ -1,16 +1,5 @@
-{ lib
-, stdenv
-, fetchurl
-, apr
-, scons
-, openssl
-, aprutil
-, zlib
-, libkrb5
-, pkg-config
-, libiconv
-, fetchpatch
-}:
+{ lib, stdenv, fetchurl, apr, scons, openssl, aprutil, zlib, libkrb5, pkg-config
+, libiconv, fetchpatch }:
 
 stdenv.mkDerivation rec {
   pname = "serf";
@@ -29,7 +18,8 @@ stdenv.mkDerivation rec {
     ./scons.patch
 
     (fetchpatch {
-      url = "https://src.fedoraproject.org/rpms/libserf/raw/rawhide/f/libserf-1.3.9-errgetfunc.patch";
+      url =
+        "https://src.fedoraproject.org/rpms/libserf/raw/rawhide/f/libserf-1.3.9-errgetfunc.patch";
       hash = "sha256-FQJvXOIZ0iItvbbcu4kR88j74M7fOi7C/0NN3o1/ub4=";
     })
   ];

@@ -1,10 +1,7 @@
 { ... }:
 res: pkgs: super:
 
-with pkgs;
-{
+with pkgs; {
   musl = callPackage ./. { };
-  muslCross = musl.override {
-    stdenv = crossLibcStdenv;
-  };
+  muslCross = musl.override { stdenv = crossLibcStdenv; };
 }

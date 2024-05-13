@@ -1,20 +1,7 @@
-{ lib
-, stdenv
-, fetchurl
-, perl
-, libiconv
-, zlib
-, popt
-, enableACLs ? lib.meta.availableOn stdenv.hostPlatform acl
-, acl
-, enableLZ4 ? true
-, lz4
-, enableOpenSSL ? true
-, openssl
-, enableXXHash ? true
-, xxHash
-, enableZstd ? true
-, zstd
+{ lib, stdenv, fetchurl, perl, libiconv, zlib, popt
+, enableACLs ? lib.meta.availableOn stdenv.hostPlatform acl, acl
+, enableLZ4 ? true, lz4, enableOpenSSL ? true, openssl, enableXXHash ? true
+, xxHash, enableZstd ? true, zstd
 # for passthru.tests
 # , nixosTests
 }:
@@ -39,12 +26,9 @@ stdenv.mkDerivation rec {
     ./configure.ac-fix-failing-IPv6-check.patch
   ];
 
-  buildInputs = [ libiconv zlib popt ]
-    ++ lib.optional enableACLs acl
-    ++ lib.optional enableZstd zstd
-    ++ lib.optional enableLZ4 lz4
-    ++ lib.optional enableOpenSSL openssl
-    ++ lib.optional enableXXHash xxHash;
+  buildInputs = [ libiconv zlib popt ] ++ lib.optional enableACLs acl
+    ++ lib.optional enableZstd zstd ++ lib.optional enableLZ4 lz4
+    ++ lib.optional enableOpenSSL openssl ++ lib.optional enableXXHash xxHash;
 
   configureFlags = [
     "--with-nobody-group=nogroup"
@@ -52,14 +36,12 @@ stdenv.mkDerivation rec {
     # disable the included zlib explicitly as it otherwise still compiles and
     # links them even.
     "--with-included-zlib=no"
-  ] ++ lib.optionals (stdenv.hostPlatform.isMusl && stdenv.hostPlatform.isx86_64) [
-    # fix `multiversioning needs 'ifunc' which is not supported on this target` error
-    "--disable-roll-simd"
-  ] ++ lib.optionals (!enableZstd) [
-    "--disable-zstd"
-  ] ++ lib.optionals (!enableXXHash) [
-    "--disable-xxhash"
-  ];
+  ] ++ lib.optionals
+    (stdenv.hostPlatform.isMusl && stdenv.hostPlatform.isx86_64) [
+      # fix `multiversioning needs 'ifunc' which is not supported on this target` error
+      "--disable-roll-simd"
+    ] ++ lib.optionals (!enableZstd) [ "--disable-zstd" ]
+    ++ lib.optionals (!enableXXHash) [ "--disable-xxhash" ];
 
   enableParallelBuilding = true;
 

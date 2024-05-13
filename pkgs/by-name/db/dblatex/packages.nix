@@ -1,8 +1,7 @@
 { ... }:
 res: pkgs: super:
 
-with pkgs;
-{
+with pkgs; {
   dblatex = callPackage ./. { };
   dblatexFull = dblatex.override { enableAllFeatures = true; };
 }

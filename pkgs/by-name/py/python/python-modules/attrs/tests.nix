@@ -1,8 +1,4 @@
-{ buildPythonPackage
-, pytestCheckHook
-, attrs
-, hypothesis
-}:
+{ buildPythonPackage, pytestCheckHook, attrs, hypothesis }:
 
 buildPythonPackage {
   pname = "attrs-tests";
@@ -14,9 +10,5 @@ buildPythonPackage {
   dontBuild = true;
   dontInstall = true;
 
-  nativeCheckInputs = [
-    attrs
-    hypothesis
-    pytestCheckHook
-  ];
+  nativeCheckInputs = [ attrs hypothesis pytestCheckHook ];
 }

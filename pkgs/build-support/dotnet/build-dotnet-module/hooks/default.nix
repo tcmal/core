@@ -1,27 +1,10 @@
-{ lib
-, stdenv
-, which
-, coreutils
-, zlib
-, openssl
-, callPackage
-, makeSetupHook
-, makeWrapper
-, dotnet-sdk
-, dotnet-test-sdk
-, disabledTests
-, nuget-source
-, dotnet-runtime
-, runtimeDeps
-, buildType
-, runtimeId
-}:
+{ lib, stdenv, which, coreutils, zlib, openssl, callPackage, makeSetupHook
+, makeWrapper, dotnet-sdk, dotnet-test-sdk, disabledTests, nuget-source
+, dotnet-runtime, runtimeDeps, buildType, runtimeId }:
 assert (builtins.isString runtimeId);
 
-let
-  libraryPath = lib.makeLibraryPath runtimeDeps;
-in
-{
+let libraryPath = lib.makeLibraryPath runtimeDeps;
+in {
   dotnetConfigureHook = callPackage ({ }:
     makeSetupHook {
       name = "dotnet-configure-hook";
@@ -44,9 +27,7 @@ in
     makeSetupHook {
       name = "dotnet-build-hook";
       propagatedBuildInputs = [ dotnet-sdk ];
-      substitutions = {
-        inherit buildType runtimeId;
-      };
+      substitutions = { inherit buildType runtimeId; };
     } ./dotnet-build-hook.sh) { };
 
   dotnetCheckHook = callPackage ({ }:
@@ -55,12 +36,12 @@ in
       propagatedBuildInputs = [ dotnet-test-sdk ];
       substitutions = {
         inherit buildType runtimeId libraryPath;
-        disabledTests = lib.optionalString (disabledTests != [])
-          (let
-            escapedNames = lib.lists.map (n: lib.replaceStrings [","] ["%2C"] n) disabledTests;
-            filters = lib.lists.map (n: "FullyQualifiedName!=${n}") escapedNames;
-          in
-          "${lib.concatStringsSep "&" filters}");
+        disabledTests = lib.optionalString (disabledTests != [ ]) (let
+          escapedNames =
+            lib.lists.map (n: lib.replaceStrings [ "," ] [ "%2C" ] n)
+            disabledTests;
+          filters = lib.lists.map (n: "FullyQualifiedName!=${n}") escapedNames;
+        in "${lib.concatStringsSep "&" filters}");
       };
     } ./dotnet-check-hook.sh) { };
 
@@ -68,9 +49,7 @@ in
     makeSetupHook {
       name = "dotnet-install-hook";
       propagatedBuildInputs = [ dotnet-sdk ];
-      substitutions = {
-        inherit buildType runtimeId;
-      };
+      substitutions = { inherit buildType runtimeId; };
     } ./dotnet-install-hook.sh) { };
 
   dotnetFixupHook = callPackage ({ }:

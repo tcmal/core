@@ -1,10 +1,6 @@
-{ lib, stdenv, fetchurl, makeWrapper, apr, expat, gnused
-, sslSupport ? true, openssl
-, bdbSupport ? true, db
-, ldapSupport ? !stdenv.isCygwin, openldap
-, libiconv, libxcrypt
-, cyrus_sasl, autoreconfHook
-}:
+{ lib, stdenv, fetchurl, makeWrapper, apr, expat, gnused, sslSupport ? true
+, openssl, bdbSupport ? true, db, ldapSupport ? !stdenv.isCygwin, openldap
+, libiconv, libxcrypt, cyrus_sasl, autoreconfHook }:
 
 assert sslSupport -> openssl != null;
 assert bdbSupport -> db != null;
@@ -37,10 +33,14 @@ stdenv.mkDerivation rec {
     ++ lib.optional sslSupport "--with-openssl=${openssl.dev}"
     ++ lib.optional bdbSupport "--with-berkeley-db=${db.dev}"
     ++ lib.optional ldapSupport "--with-ldap=ldap"
-    ++ lib.optionals stdenv.isCygwin
-      [ "--without-pgsql" "--without-sqlite2" "--without-sqlite3"
-        "--without-freetds" "--without-berkeley-db" "--without-crypto" ]
-    ;
+    ++ lib.optionals stdenv.isCygwin [
+      "--without-pgsql"
+      "--without-sqlite2"
+      "--without-sqlite3"
+      "--without-freetds"
+      "--without-berkeley-db"
+      "--without-crypto"
+    ];
 
   postConfigure = ''
     echo '#define APR_HAVE_CRYPT_H 1' >> confdefs.h
@@ -53,11 +53,10 @@ stdenv.mkDerivation rec {
         --replace "-ldb-6.9" "-ldb"
       substituteInPlace apu-1-config \
         --replace "-ldb-6.9" "-ldb"
-  '';
+    '';
 
   propagatedBuildInputs = [ apr expat libiconv libxcrypt ]
-    ++ lib.optional sslSupport openssl
-    ++ lib.optional bdbSupport db
+    ++ lib.optional sslSupport openssl ++ lib.optional bdbSupport db
     ++ lib.optional ldapSupport openldap
     ++ lib.optional stdenv.isFreeBSD cyrus_sasl;
 
@@ -75,9 +74,7 @@ stdenv.mkDerivation rec {
 
   enableParallelBuilding = true;
 
-  passthru = {
-    inherit sslSupport bdbSupport ldapSupport;
-  };
+  passthru = { inherit sslSupport bdbSupport ldapSupport; };
 
   meta = with lib; {
     homepage = "https://apr.apache.org/";

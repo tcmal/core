@@ -5,7 +5,8 @@ stdenv.mkDerivation rec {
   version = "17";
 
   src = fetchurl {
-    url = "http://knackered.knackered.org/angus/download/${pname}/${pname}-p${version}.tar.gz";
+    url =
+      "http://knackered.knackered.org/angus/download/${pname}/${pname}-p${version}.tar.gz";
     hash = "sha256-OFPreVhLqPvieoFUJbZan38Vsljg1DoFqFa9t11YiuQ=";
   };
 
@@ -27,7 +28,8 @@ stdenv.mkDerivation rec {
   '';
 
   meta = {
-    description = "Collection of useful utilities for manipulating PS documents";
+    description =
+      "Collection of useful utilities for manipulating PS documents";
     homepage = "http://knackered.knackered.org/angus/psutils/";
     license = lib.licenses.bsd3;
     platforms = lib.platforms.unix;

@@ -1,6 +1,5 @@
-{ lib, stdenv, buildPackages, fetchurl, fetchpatch
-, flex, cracklib, db4, gettext, audit, libxcrypt
-, autoreconfHook269, pkg-config-unwrapped
+{ lib, stdenv, buildPackages, fetchurl, fetchpatch, flex, cracklib, db4, gettext
+, audit, libxcrypt, autoreconfHook269, pkg-config-unwrapped
 # for passthru.tests
 # , nixosTests
 }:
@@ -10,7 +9,8 @@ stdenv.mkDerivation rec {
   version = "1.6.0";
 
   src = fetchurl {
-    url = "https://github.com/linux-pam/linux-pam/releases/download/v${version}/Linux-PAM-${version}.tar.xz";
+    url =
+      "https://github.com/linux-pam/linux-pam/releases/download/v${version}/Linux-PAM-${version}.tar.xz";
     hash = "sha256-//SjTlu+534ujxmS8nYx4jKby/igVj3etcM4m04xaa0=";
   };
 
@@ -20,7 +20,8 @@ stdenv.mkDerivation rec {
     # Backport fix for missing include breaking musl builds.
     (fetchpatch {
       name = "pam_namespace-stdint.h.patch";
-      url = "https://github.com/linux-pam/linux-pam/commit/cc9d40b7cdbd3e15ccaa324a0dda1680ef9dea13.patch";
+      url =
+        "https://github.com/linux-pam/linux-pam/commit/cc9d40b7cdbd3e15ccaa324a0dda1680ef9dea13.patch";
       hash = "sha256-tCnH2yPO4dBbJOZA0fP2gm1EavHRMEJyfzB5Vy7YjAA=";
     })
 
@@ -29,18 +30,25 @@ stdenv.mkDerivation rec {
     # TODO: drop upstreamed patch on 1.6.1 update.
     (fetchpatch {
       name = "revert-unconditional-helper.patch";
-      url = "https://github.com/linux-pam/linux-pam/commit/8d0c575336ad301cd14e16ad2fdec6fe621764b8.patch";
+      url =
+        "https://github.com/linux-pam/linux-pam/commit/8d0c575336ad301cd14e16ad2fdec6fe621764b8.patch";
       hash = "sha256-z9KfMxxqXQVnmNaixaVjLnQqaGsH8MBHhHbiP/8fvhE=";
     })
   ];
 
   # Case-insensitivity workaround for https://github.com/linux-pam/linux-pam/issues/569
-  postPatch = if stdenv.buildPlatform.isDarwin && stdenv.buildPlatform != stdenv.hostPlatform then ''
+  postPatch = if stdenv.buildPlatform.isDarwin && stdenv.buildPlatform
+  != stdenv.hostPlatform then ''
     rm CHANGELOG
     touch ChangeLog
-  '' else null;
+  '' else
+    null;
 
-  outputs = [ "out" "doc" "man" /* "modules" */ ];
+  outputs = [
+    "out"
+    "doc"
+    "man" # "modules"
+  ];
 
   depsBuildBuild = [ buildPackages.stdenv.cc ];
   # autoreconfHook269 is needed for `suid-wrapper-path.patch` above.
@@ -54,11 +62,11 @@ stdenv.mkDerivation rec {
   enableParallelBuilding = true;
 
   preConfigure = lib.optionalString (stdenv.hostPlatform.libc == "musl") ''
-      # export ac_cv_search_crypt=no
-      # (taken from Alpine linux, apparently insecure but also doesn't build O:))
-      # disable insecure modules
-      # sed -e 's/pam_rhosts//g' -i modules/Makefile.am
-      sed -e 's/pam_rhosts//g' -i modules/Makefile.in
+    # export ac_cv_search_crypt=no
+    # (taken from Alpine linux, apparently insecure but also doesn't build O:))
+    # disable insecure modules
+    # sed -e 's/pam_rhosts//g' -i modules/Makefile.am
+    sed -e 's/pam_rhosts//g' -i modules/Makefile.in
   '';
 
   configureFlags = [
@@ -69,9 +77,7 @@ stdenv.mkDerivation rec {
     "--enable-lastlog"
   ];
 
-  installFlags = [
-    "SCONFIGDIR=${placeholder "out"}/etc/security"
-  ];
+  installFlags = [ "SCONFIGDIR=${placeholder "out"}/etc/security" ];
 
   doCheck = false; # fails
 
@@ -81,7 +87,8 @@ stdenv.mkDerivation rec {
 
   meta = with lib; {
     homepage = "http://www.linux-pam.org/";
-    description = "Pluggable Authentication Modules, a flexible mechanism for authenticating user";
+    description =
+      "Pluggable Authentication Modules, a flexible mechanism for authenticating user";
     platforms = platforms.linux;
     license = licenses.bsd3;
   };

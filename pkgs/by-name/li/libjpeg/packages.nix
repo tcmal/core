@@ -1,8 +1,6 @@
-
 { ... }:
 res: pkgs: super:
 
-with pkgs;
-{
+with pkgs; {
   libjpeg_original = callPackage ./. { };
 }

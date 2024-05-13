@@ -1,18 +1,13 @@
-{ stdenv, lib, fetchFromGitHub, pkg-config, lndir, bash, cpio, file, which, unzip, zip
-, cups, freetype, alsa-lib, cacert, perl, liberation_ttf, fontconfig, zlib
-, libX11, libICE, libXrender, libXext, libXt, libXtst, libXi, libXinerama, libXcursor, libXrandr
-, libjpeg, giflib
-, openjdk8-bootstrap
-, setJavaClassPath
-, headless ? false
-, enableGnome2 ? true, gtk2, gnome_vfs, glib, GConf
-}:
+{ stdenv, lib, fetchFromGitHub, pkg-config, lndir, bash, cpio, file, which
+, unzip, zip, cups, freetype, alsa-lib, cacert, perl, liberation_ttf, fontconfig
+, zlib, libX11, libICE, libXrender, libXext, libXt, libXtst, libXi, libXinerama
+, libXcursor, libXrandr, libjpeg, giflib, openjdk8-bootstrap, setJavaClassPath
+, headless ? false, enableGnome2 ? true, gtk2, gnome_vfs, glib, GConf }:
 
 let
 
-  /**
-   * The JRE libraries are in directories that depend on the CPU.
-   */
+  #
+  # The JRE libraries are in directories that depend on the CPU.
   architecture = {
     i686-linux = "i386";
     x86_64-linux = "amd64";
@@ -40,11 +35,35 @@ let
 
     nativeBuildInputs = [ pkg-config lndir unzip ];
     buildInputs = [
-      cpio file which zip perl zlib cups freetype alsa-lib
-      libjpeg giflib libX11 libICE libXext libXrender libXtst libXt libXtst
-      libXi libXinerama libXcursor libXrandr fontconfig openjdk-bootstrap
+      cpio
+      file
+      which
+      zip
+      perl
+      zlib
+      cups
+      freetype
+      alsa-lib
+      libjpeg
+      giflib
+      libX11
+      libICE
+      libXext
+      libXrender
+      libXtst
+      libXt
+      libXtst
+      libXi
+      libXinerama
+      libXcursor
+      libXrandr
+      fontconfig
+      openjdk-bootstrap
     ] ++ lib.optionals (!headless && enableGnome2) [
-      gtk2 gnome_vfs GConf glib
+      gtk2
+      gnome_vfs
+      GConf
+      glib
     ];
 
     patches = [
@@ -52,9 +71,8 @@ let
       ./read-truststore-from-env-jdk8.patch
       ./currency-date-range-jdk8.patch
       ./fix-library-path-jdk8.patch
-    ] ++ lib.optionals (!headless && enableGnome2) [
-      ./swing-use-gtk-jdk8.patch
-    ];
+    ] ++ lib.optionals (!headless && enableGnome2)
+      [ ./swing-use-gtk-jdk8.patch ];
 
     # Hotspot cares about the host(!) version otherwise
     DISABLE_HOTSPOT_OS_VERSION_CHECK = "ok";
@@ -94,10 +112,17 @@ let
       "-Wno-error"
     ]);
 
-    NIX_LDFLAGS= toString (lib.optionals (!headless) [
-      "-lfontconfig" "-lcups" "-lXinerama" "-lXrandr" "-lmagic"
+    NIX_LDFLAGS = toString (lib.optionals (!headless) [
+      "-lfontconfig"
+      "-lcups"
+      "-lXinerama"
+      "-lXrandr"
+      "-lmagic"
     ] ++ lib.optionals (!headless && enableGnome2) [
-      "-lgtk-x11-2.0" "-lgio-2.0" "-lgnomevfs-2" "-lgconf-2"
+      "-lgtk-x11-2.0"
+      "-lgio-2.0"
+      "-lgnomevfs-2"
+      "-lgconf-2"
     ]);
 
     # -j flag is explicitly rejected by the build system:
@@ -163,7 +188,9 @@ let
       (
         cd $jre/lib/openjdk/jre/lib/security
         rm cacerts
-        perl ${./generate-cacerts.pl} $jre/lib/openjdk/jre/bin/keytool ${cacert}/etc/ssl/certs/ca-bundle.crt
+        perl ${
+          ./generate-cacerts.pl
+        } $jre/lib/openjdk/jre/bin/keytool ${cacert}/etc/ssl/certs/ca-bundle.crt
       )
 
       ln -s $out/lib/openjdk/bin $out/bin

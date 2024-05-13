@@ -1,24 +1,15 @@
-{ lib
-, stdenv
-, fetchurl
-, flex
-, bison
-, bluez
-, libnl
-, libxcrypt
-, pkg-config
-, withBluez ? false
-, withRemote ? false
+{ lib, stdenv, fetchurl, flex, bison, bluez, libnl, libxcrypt, pkg-config
+, withBluez ? false, withRemote ? false
 
-# for passthru.tests
-# , ettercap
-# , nmap
-# , ostinato
-# , tcpreplay
-# , vde2
-# , wireshark
-# , python3
-# , haskellPackages
+  # for passthru.tests
+  # , ettercap
+  # , nmap
+  # , ostinato
+  # , tcpreplay
+  # , vde2
+  # , wireshark
+  # , python3
+  # , haskellPackages
 }:
 
 stdenv.mkDerivation rec {
@@ -39,13 +30,11 @@ stdenv.mkDerivation rec {
 
   # We need to force the autodetection because detection doesn't
   # work in pure build environments.
-  configureFlags = [
-    "--with-pcap=${if stdenv.isLinux then "linux" else "bpf"}"
-  ] ++ lib.optionals stdenv.isDarwin [
-    "--disable-universal"
-  ] ++ lib.optionals withRemote [
-    "--enable-remote"
-  ] ++ lib.optionals (stdenv.hostPlatform == stdenv.buildPlatform)
+  configureFlags =
+    [ "--with-pcap=${if stdenv.isLinux then "linux" else "bpf"}" ]
+    ++ lib.optionals stdenv.isDarwin [ "--disable-universal" ]
+    ++ lib.optionals withRemote [ "--enable-remote" ]
+    ++ lib.optionals (stdenv.hostPlatform == stdenv.buildPlatform)
     [ "ac_cv_linux_vers=2" ];
 
   postInstall = ''

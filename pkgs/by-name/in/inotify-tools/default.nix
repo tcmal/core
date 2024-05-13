@@ -1,4 +1,5 @@
-{ lib, stdenv, autoreconfHook, fetchFromGitHub, nix-update-script, fanotifySupport ? true }:
+{ lib, stdenv, autoreconfHook, fetchFromGitHub, nix-update-script
+, fanotifySupport ? true }:
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "inotify-tools";
@@ -11,15 +12,11 @@ stdenv.mkDerivation (finalAttrs: {
     hash = "sha256-6kM2JzxRcwUjUmbUWGnQ+gAvZcn7C32/enRwiYiuQGU=";
   };
 
-  configureFlags = [
-    (lib.enableFeature fanotifySupport "fanotify")
-  ];
+  configureFlags = [ (lib.enableFeature fanotifySupport "fanotify") ];
 
   nativeBuildInputs = [ autoreconfHook ];
 
-  passthru = {
-    updateScript = nix-update-script { };
-  };
+  passthru = { updateScript = nix-update-script { }; };
 
   meta = with lib; {
     homepage = "https://github.com/inotify-tools/inotify-tools/wiki";

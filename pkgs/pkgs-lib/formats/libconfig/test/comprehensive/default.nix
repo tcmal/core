@@ -2,9 +2,7 @@
 let
   libconfig = formats.libconfig { };
 
-  include_expr = {
-    val = 1;
-  };
+  include_expr = { val = 1; };
 
   include_file = writeText "libconfig-test-include" ''
     val=1;
@@ -21,11 +19,12 @@ let
     list2d = [ 1 [ 1 1.2 "foo" ] [ "bar" 1.2 1 ] ];
     # > An array may have zero or more elements, but the elements must all be scalar values of the same type.
     array1d = libconfig.lib.mkArray [ 1 5 2 ];
-    array2d = [
-      (libconfig.lib.mkArray [ 1 2 ])
-      (libconfig.lib.mkArray [ 2 1 ])
-    ];
-    nasty_string = "\"@\n\\\t^*\b\f\n\0\";'''$";
+    array2d =
+      [ (libconfig.lib.mkArray [ 1 2 ]) (libconfig.lib.mkArray [ 2 1 ]) ];
+    nasty_string = ''
+      "@
+      \	^*bf
+      0";''''$'';
 
     weirderTypes = {
       _includes = [ include_file ];
@@ -51,26 +50,25 @@ let
   };
 
   libconfig-test-cfg = libconfig.generate "libconfig-test.cfg" expression;
-in
-  stdenvNoCC.mkDerivation {
-    name = "pkgs.formats.libconfig-test-comprehensive";
+in stdenvNoCC.mkDerivation {
+  name = "pkgs.formats.libconfig-test-comprehensive";
 
-    dontUnpack = true;
-    dontBuild = true;
+  dontUnpack = true;
+  dontBuild = true;
 
-    doCheck = true;
-    checkPhase = ''
-      cp ${./expected.txt} expected.txt
-      substituteInPlace expected.txt \
-          --subst-var-by include_file "${include_file}"
-      diff -U3 ./expected.txt ${libconfig-test-cfg}
-    '';
+  doCheck = true;
+  checkPhase = ''
+    cp ${./expected.txt} expected.txt
+    substituteInPlace expected.txt \
+        --subst-var-by include_file "${include_file}"
+    diff -U3 ./expected.txt ${libconfig-test-cfg}
+  '';
 
-    installPhase = ''
-      mkdir $out
-      cp expected.txt $out
-      cp ${libconfig-test-cfg} $out/libconfig-test.cfg
-      cp ${libconfig-test-cfg.passthru.json} $out/libconfig-test.json
-    '';
-  }
+  installPhase = ''
+    mkdir $out
+    cp expected.txt $out
+    cp ${libconfig-test-cfg} $out/libconfig-test.cfg
+    cp ${libconfig-test-cfg.passthru.json} $out/libconfig-test.json
+  '';
+}
 

@@ -1,8 +1,4 @@
-{ lib
-, stdenv
-, fetchurl
-, enableShared ? !stdenv.hostPlatform.isStatic
-, windows
+{ lib, stdenv, fetchurl, enableShared ? !stdenv.hostPlatform.isStatic, windows
 }:
 
 stdenv.mkDerivation (finalAttrs: {
@@ -10,7 +6,8 @@ stdenv.mkDerivation (finalAttrs: {
   pname = "libpfm";
 
   src = fetchurl {
-    url = "mirror://sourceforge/perfmon2/libpfm4/libpfm-${finalAttrs.version}.tar.gz";
+    url =
+      "mirror://sourceforge/perfmon2/libpfm4/libpfm-${finalAttrs.version}.tar.gz";
     sha256 = "sha256-0YuXdkx1VSjBBR03bjNUXQ62DG6/hWgENoE/pbBMw9E=";
   };
 

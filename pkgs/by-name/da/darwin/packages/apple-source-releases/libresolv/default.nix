@@ -1,9 +1,9 @@
-{ lib, appleDerivation', stdenv, stdenvNoCC, Libinfo, configdHeaders, mDNSResponder
-, headersOnly ? false
-}:
+{ lib, appleDerivation', stdenv, stdenvNoCC, Libinfo, configdHeaders
+, mDNSResponder, headersOnly ? false }:
 
 appleDerivation' (if headersOnly then stdenvNoCC else stdenv) {
-  buildInputs = lib.optionals (!headersOnly) [ Libinfo configdHeaders mDNSResponder ];
+  buildInputs =
+    lib.optionals (!headersOnly) [ Libinfo configdHeaders mDNSResponder ];
 
   buildPhase = lib.optionalString (!headersOnly) ''
     $CC -I. -c dns_util.c

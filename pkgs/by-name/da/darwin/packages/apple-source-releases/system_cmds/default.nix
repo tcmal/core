@@ -1,32 +1,7 @@
-{
-  lib,
-  stdenv,
-  stdenvNoCC,
-  appleDerivation,
-  fetchFromGitHub,
-  runCommand,
-  gawk,
-  meson,
-  ninja,
-  pkg-config,
-  libdispatch,
-  libmalloc,
-  libplatform,
-  Librpcsvc,
-  libutil,
-  ncurses,
-  openbsm,
-  pam,
-  xnu,
-  CoreFoundation,
-  CoreSymbolication,
-  DirectoryService,
-  IOKit,
-  Kernel,
-  Libc,
-  OpenDirectory,
-  WebKit,
-}:
+{ lib, stdenv, stdenvNoCC, appleDerivation, fetchFromGitHub, runCommand, gawk
+, meson, ninja, pkg-config, libdispatch, libmalloc, libplatform, Librpcsvc
+, libutil, ncurses, openbsm, pam, xnu, CoreFoundation, CoreSymbolication
+, DirectoryService, IOKit, Kernel, Libc, OpenDirectory, WebKit, }:
 
 let
   OpenDirectoryPrivate = stdenvNoCC.mkDerivation (finalAttrs: {
@@ -97,14 +72,8 @@ let
       runHook postInstall
     '';
   };
-in
-appleDerivation (finalAttrs: {
-  nativeBuildInputs = [
-    gawk
-    meson
-    ninja
-    pkg-config
-  ];
+in appleDerivation (finalAttrs: {
+  nativeBuildInputs = [ gawk meson ninja pkg-config ];
 
   buildInputs = [
     libdispatch
@@ -149,13 +118,11 @@ appleDerivation (finalAttrs: {
     cp '${./meson.options}' meson.options
   '';
 
-  mesonFlags = [ (lib.mesonOption "sdk_version" stdenv.hostPlatform.darwinSdkVersion) ];
+  mesonFlags =
+    [ (lib.mesonOption "sdk_version" stdenv.hostPlatform.darwinSdkVersion) ];
 
   meta = {
     platforms = lib.platforms.darwin;
-    maintainers = with lib.maintainers; [
-      shlevy
-      matthewbauer
-    ];
+    maintainers = with lib.maintainers; [ shlevy matthewbauer ];
   };
 })

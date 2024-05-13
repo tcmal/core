@@ -20,7 +20,7 @@ stdenv.mkDerivation {
 
   buildInputs = [ libyaml ];
 
-  makeFlags = [ "-f" "Makefile.boot" "PREFIX=${placeholder "out"}"];
+  makeFlags = [ "-f" "Makefile.boot" "PREFIX=${placeholder "out"}" ];
 
   meta = with lib; {
     homepage = "https://github.com/thefloweringash/rewrite-tbd/";

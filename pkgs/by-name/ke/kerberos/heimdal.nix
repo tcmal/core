@@ -1,47 +1,20 @@
-{ lib
-, stdenv
-, fetchFromGitHub
-, autoreconfHook
-, pkg-config
-, python3
-, perl
-, bison
-, flex
-, texinfo
-, perlPackages
+{ lib, stdenv, fetchFromGitHub, autoreconfHook, pkg-config, python3, perl, bison
+, flex, texinfo, perlPackages
 
-, openldap
-, libcap_ng
-, sqlite
-, openssl
-, db
-, libedit
-, pam
-, krb5
-, libmicrohttpd
+, openldap, libcap_ng, sqlite, openssl, db, libedit, pam, krb5, libmicrohttpd
 , cjson
 
-, CoreFoundation
-, Security
-, SystemConfiguration
+, CoreFoundation, Security, SystemConfiguration
 
-, curl
-, jdk
-, unzip
-, which
+, curl, jdk, unzip, which
 
 , nixosTests
 
-, withCJSON ? true
-, withCapNG ? stdenv.isLinux
-# libmicrohttpd should theoretically work for darwin as well, but something is broken.
-# It affects tests check-bx509d and check-httpkadmind.
-, withMicroHTTPD ? stdenv.isLinux
-, withOpenLDAP ? true
-, withOpenLDAPAsHDBModule ? false
-, withOpenSSL ? true
-, withSQLite3 ? true
-}:
+, withCJSON ? true, withCapNG ? stdenv.isLinux
+  # libmicrohttpd should theoretically work for darwin as well, but something is broken.
+  # It affects tests check-bx509d and check-httpkadmind.
+, withMicroHTTPD ? stdenv.isLinux, withOpenLDAP ? true
+, withOpenLDAPAsHDBModule ? false, withOpenSSL ? true, withSQLite3 ? true }:
 
 assert lib.assertMsg (withOpenLDAPAsHDBModule -> withOpenLDAP) ''
   OpenLDAP needs to be enabled in order to build the OpenLDAP HDB Module.
@@ -60,20 +33,15 @@ stdenv.mkDerivation {
 
   outputs = [ "out" "dev" "man" "info" ];
 
-  nativeBuildInputs = [
-    autoreconfHook
-    pkg-config
-    python3
-    perl
-    bison
-    flex
-    texinfo
-  ]
-  ++ (with perlPackages; [ JSON ]);
+  nativeBuildInputs =
+    [ autoreconfHook pkg-config python3 perl bison flex texinfo ]
+    ++ (with perlPackages; [ JSON ]);
 
-  buildInputs = [ db libedit pam ]
-    ++ lib.optionals (stdenv.isDarwin) [ CoreFoundation Security SystemConfiguration ]
-    ++ lib.optionals (withCJSON) [ cjson ]
+  buildInputs = [ db libedit pam ] ++ lib.optionals (stdenv.isDarwin) [
+    CoreFoundation
+    Security
+    SystemConfiguration
+  ] ++ lib.optionals (withCJSON) [ cjson ]
     ++ lib.optionals (withCapNG) [ libcap_ng ]
     ++ lib.optionals (withMicroHTTPD) [ libmicrohttpd ]
     ++ lib.optionals (withOpenLDAP) [ openldap ]
@@ -81,12 +49,7 @@ stdenv.mkDerivation {
     ++ lib.optionals (withSQLite3) [ sqlite ];
 
   doCheck = true;
-  nativeCheckInputs = [
-    curl
-    jdk
-    unzip
-    which
-  ];
+  nativeCheckInputs = [ curl jdk unzip which ];
 
   configureFlags = [
     "--with-libedit-include=${libedit.dev}/include"
@@ -96,17 +59,12 @@ stdenv.mkDerivation {
 
     "--without-x"
     "--disable-afs-string-to-key"
-  ] ++ lib.optionals (withCapNG) [
-    "--with-capng"
-  ] ++ lib.optionals (withCJSON) [
-    "--with-cjson=${cjson}"
-  ] ++ lib.optionals (withOpenLDAP) [
-    "--with-openldap=${openldap.dev}"
-  ] ++ lib.optionals (withOpenLDAPAsHDBModule) [
-    "--enable-hdb-openldap-module"
-  ] ++ lib.optionals (withSQLite3) [
-    "--with-sqlite3=${sqlite.dev}"
-  ];
+  ] ++ lib.optionals (withCapNG) [ "--with-capng" ]
+    ++ lib.optionals (withCJSON) [ "--with-cjson=${cjson}" ]
+    ++ lib.optionals (withOpenLDAP) [ "--with-openldap=${openldap.dev}" ]
+    ++ lib.optionals (withOpenLDAPAsHDBModule)
+    [ "--enable-hdb-openldap-module" ]
+    ++ lib.optionals (withSQLite3) [ "--with-sqlite3=${sqlite.dev}" ];
 
   # (check-ldap) slapd resides within ${openldap}/libexec,
   #              which is not part of $PATH by default.

@@ -1,10 +1,5 @@
-{ lib, stdenv, linuxHeaders
-, libopcodes, libopcodes_2_38
-, libbfd, libbfd_2_38
-, elfutils, readline
-, zlib
-, python3, bison, flex
-}:
+{ lib, stdenv, linuxHeaders, libopcodes, libopcodes_2_38, libbfd, libbfd_2_38
+, elfutils, readline, zlib, python3, bison, flex }:
 
 stdenv.mkDerivation rec {
   pname = "bpftools";
@@ -19,10 +14,13 @@ stdenv.mkDerivation rec {
   ];
 
   nativeBuildInputs = [ python3 bison flex ];
-  buildInputs = (if (lib.versionAtLeast version "5.20")
-                 then [ libopcodes libbfd ]
-                 else [ libopcodes_2_38 libbfd_2_38 ])
-    ++ [ elfutils zlib readline ];
+  buildInputs = (if (lib.versionAtLeast version "5.20") then [
+    libopcodes
+    libbfd
+  ] else [
+    libopcodes_2_38
+    libbfd_2_38
+  ]) ++ [ elfutils zlib readline ];
 
   preConfigure = ''
     patchShebangs scripts/bpf_doc.py
@@ -43,10 +41,10 @@ stdenv.mkDerivation rec {
   '';
 
   meta = with lib; {
-    homepage    = "https://github.com/libbpf/bpftool";
+    homepage = "https://github.com/libbpf/bpftool";
     description = "Debugging/program analysis tools for the eBPF subsystem";
-    license     = [ licenses.gpl2 licenses.bsd2 ];
-    platforms   = platforms.linux;
+    license = [ licenses.gpl2 licenses.bsd2 ];
+    platforms = platforms.linux;
     maintainers = with maintainers; [ thoughtpolice ];
   };
 }

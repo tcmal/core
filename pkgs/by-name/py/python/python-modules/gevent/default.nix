@@ -1,20 +1,6 @@
-{ lib
-, fetchPypi
-, buildPythonPackage
-, isPyPy
-, python
-, libev
-, cffi
-, cython
-, greenlet
-, importlib-metadata
-, setuptools
-, wheel
-, zope-event
-, zope-interface
-, pythonOlder
-, c-ares
-, libuv
+{ lib, fetchPypi, buildPythonPackage, isPyPy, python, libev, cffi, cython
+, greenlet, importlib-metadata, setuptools, wheel, zope-event, zope-interface
+, pythonOlder, c-ares, libuv
 
 # for passthru.tests
 # , dulwich
@@ -35,35 +21,18 @@ buildPythonPackage rec {
     hash = "sha256-Qy/Hb2gKz3zxiMLuD106tztjwfAxFMfNijTOu+WqIFY=";
   };
 
-  nativeBuildInputs = [
-    cython
-    setuptools
-    wheel
-  ] ++ lib.optionals (!isPyPy) [
-    cffi
-  ];
+  nativeBuildInputs = [ cython setuptools wheel ]
+    ++ lib.optionals (!isPyPy) [ cffi ];
 
-  buildInputs = [
-    libev
-    libuv
-    c-ares
-  ];
+  buildInputs = [ libev libuv c-ares ];
 
-  propagatedBuildInputs = [
-    importlib-metadata
-    zope-event
-    zope-interface
-  ] ++ lib.optionals (!isPyPy) [
-    greenlet
-  ];
+  propagatedBuildInputs = [ importlib-metadata zope-event zope-interface ]
+    ++ lib.optionals (!isPyPy) [ greenlet ];
 
   # Bunch of failures.
   doCheck = false;
 
-  pythonImportsCheck = [
-    "gevent"
-    "gevent.events"
-  ];
+  pythonImportsCheck = [ "gevent" "gevent.events" ];
 
   # passthru.tests = {
   #   inherit

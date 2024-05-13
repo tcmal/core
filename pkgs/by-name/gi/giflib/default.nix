@@ -1,11 +1,5 @@
-{ stdenv
-, lib
-, fetchurl
-, fetchpatch
-, fixDarwinDylibNames
-, pkgsStatic
-, imagemagick_light
-}:
+{ stdenv, lib, fetchurl, fetchpatch, fixDarwinDylibNames, pkgsStatic
+, imagemagick_light }:
 
 stdenv.mkDerivation rec {
   pname = "giflib";
@@ -16,28 +10,23 @@ stdenv.mkDerivation rec {
     hash = "sha256-vn/70FfK3r4qoURUL9kMaDjGoIO16KkEi47jtmsp1fs=";
   };
 
-  patches = [
-    ./CVE-2021-40633.patch
-  ] ++ lib.optionals stdenv.hostPlatform.isMinGW [
-    # Build dll libraries.
-    (fetchurl {
-      url = "https://aur.archlinux.org/cgit/aur.git/plain/001-mingw-build.patch?h=mingw-w64-giflib&id=b7311edf54824ac797c7916cd3ddc3a4b2368a19";
-      hash = "sha256-bBx7lw7FWtxZJ+E9AAbKIpCGcJnS5lrGpjYcv/zBtKk=";
-    })
+  patches = [ ./CVE-2021-40633.patch ]
+    ++ lib.optionals stdenv.hostPlatform.isMinGW [
+      # Build dll libraries.
+      (fetchurl {
+        url =
+          "https://aur.archlinux.org/cgit/aur.git/plain/001-mingw-build.patch?h=mingw-w64-giflib&id=b7311edf54824ac797c7916cd3ddc3a4b2368a19";
+        hash = "sha256-bBx7lw7FWtxZJ+E9AAbKIpCGcJnS5lrGpjYcv/zBtKk=";
+      })
 
-    # Install executables.
-    ./mingw-install-exes.patch
-  ];
+      # Install executables.
+      ./mingw-install-exes.patch
+    ];
 
-  nativeBuildInputs = [
-    imagemagick_light
-  ] ++ lib.optionals stdenv.isDarwin [
-    fixDarwinDylibNames
-  ];
+  nativeBuildInputs = [ imagemagick_light ]
+    ++ lib.optionals stdenv.isDarwin [ fixDarwinDylibNames ];
 
-  makeFlags = [
-    "PREFIX=${builtins.placeholder "out"}"
-  ];
+  makeFlags = [ "PREFIX=${builtins.placeholder "out"}" ];
 
   postPatch = lib.optionalString stdenv.hostPlatform.isStatic ''
     # Upstream build system does not support NOT building shared libraries.
@@ -48,9 +37,7 @@ stdenv.mkDerivation rec {
     sed -i '/ln -sf $(LIBGIFSOMAJOR)/ d' Makefile
   '';
 
-  passthru.tests = {
-    static = pkgsStatic.giflib;
-  };
+  passthru.tests = { static = pkgsStatic.giflib; };
 
   meta = {
     description = "A library for reading and writing gif images";

@@ -1,16 +1,6 @@
-{ stdenv
-, lib
-, name
-, src
-, doTest ? true
-, doTestCompile ? true
-, doJavadoc ? false
-, doCheckstyle ? false
-, doRelease ? false
-, includeTestClasses ? true
-, extraMvnFlags ? ""
-, ...
-} @ args :
+{ stdenv, lib, name, src, doTest ? true, doTestCompile ? true, doJavadoc ? false
+, doCheckstyle ? false, doRelease ? false, includeTestClasses ? true
+, extraMvnFlags ? "", ... }@args:
 
 let
   mvnFlags = lib.escapeShellArgs [
@@ -18,11 +8,16 @@ let
     (lib.optionalString (!doTest) "-Dmaven.test.skip.exec=true")
     "${extraMvnFlags}"
   ];
-in
 
-stdenv.mkDerivation ( {
+in stdenv.mkDerivation ({
   inherit name src;
-  phases = "setupPhase unpackPhase patchPhase mvnCompile ${lib.optionalString doTestCompile "mvnTestCompile mvnTestJar"} ${lib.optionalString doTest "mvnTest"} ${lib.optionalString doJavadoc "mvnJavadoc"} ${lib.optionalString doCheckstyle "mvnCheckstyle"} mvnJar mvnAssembly mvnRelease finalPhase";
+  phases = "setupPhase unpackPhase patchPhase mvnCompile ${
+      lib.optionalString doTestCompile "mvnTestCompile mvnTestJar"
+    } ${lib.optionalString doTest "mvnTest"} ${
+      lib.optionalString doJavadoc "mvnJavadoc"
+    } ${
+      lib.optionalString doCheckstyle "mvnCheckstyle"
+    } mvnJar mvnAssembly mvnRelease finalPhase";
 
   setupPhase = ''
     runHook preSetupPhase
@@ -89,7 +84,7 @@ stdenv.mkDerivation ( {
     echo "$releaseName" > $out/nix-support/hydra-release-name
 
     ${lib.optionalString doRelease ''
-    echo "file zip $out/release/$releaseName.zip" >> $out/nix-support/hydra-build-products
+      echo "file zip $out/release/$releaseName.zip" >> $out/nix-support/hydra-build-products
     ''}
   '';
 
@@ -99,5 +94,4 @@ stdenv.mkDerivation ( {
       echo "report site $out/site" >> $out/nix-support/hydra-build-products
     fi
   '';
-} // args
-)
+} // args)

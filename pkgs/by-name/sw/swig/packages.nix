@@ -1,8 +1,7 @@
 { ... }:
 res: pkgs: super:
 
-with pkgs;
-{
+with pkgs; {
   swig1 = callPackage ./. { };
   swig2 = callPackage ./2.x.nix { };
   swig3 = callPackage ./3.x.nix { };

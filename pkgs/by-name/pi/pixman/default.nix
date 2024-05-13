@@ -1,11 +1,4 @@
-{ lib
-, stdenv
-, fetchurl
-, meson
-, ninja
-, pkg-config
-, libpng
-, glib /*just passthru*/
+{ lib, stdenv, fetchurl, meson, ninja, pkg-config, libpng, glib # just passthru
 
 # for passthru.tests
 # , cairo
@@ -51,7 +44,8 @@ stdenv.mkDerivation (finalAttrs: {
     "-Diwmmxt=disabled"
   ]
   # Disable until https://gitlab.freedesktop.org/pixman/pixman/-/issues/46 is resolved
-  ++ lib.optional (stdenv.isAarch64 && !stdenv.cc.isGNU) "-Da64-neon=disabled";
+    ++ lib.optional (stdenv.isAarch64 && !stdenv.cc.isGNU)
+    "-Da64-neon=disabled";
 
   preConfigure = ''
     # https://gitlab.freedesktop.org/pixman/pixman/-/issues/62

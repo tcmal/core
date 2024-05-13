@@ -1,20 +1,13 @@
 { ... }:
 res: pkgs: super:
 
-with pkgs;
-{
+with pkgs; {
   cmake = callPackage ./. { };
 
   # can't use override - it triggers infinite recursion
-  cmakeMinimal = callPackage ./. {
-    isMinimalBuild = true;
-  };
+  cmakeMinimal = callPackage ./. { isMinimalBuild = true; };
 
-  cmakeCurses = cmake.override {
-    uiToolkits = [ "ncurses" ];
-  };
+  cmakeCurses = cmake.override { uiToolkits = [ "ncurses" ]; };
 
-  cmakeWithGui = cmake.override {
-    uiToolkits = [ "ncurses" "qt5" ];
-  };
+  cmakeWithGui = cmake.override { uiToolkits = [ "ncurses" "qt5" ]; };
 }

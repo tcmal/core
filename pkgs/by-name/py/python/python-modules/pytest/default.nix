@@ -1,31 +1,13 @@
-{ lib
-, buildPythonPackage
-, callPackage
-, pythonOlder
-, fetchPypi
-, writeText
+{ lib, buildPythonPackage, callPackage, pythonOlder, fetchPypi, writeText
 
 # build-system
-, setuptools
-, setuptools-scm
+, setuptools, setuptools-scm
 
 # dependencies
-, attrs
-, exceptiongroup
-, iniconfig
-, packaging
-, pluggy
-, tomli
+, attrs, exceptiongroup, iniconfig, packaging, pluggy, tomli
 
 # optional-dependencies
-, argcomplete
-, hypothesis
-, mock
-, nose
-, pygments
-, requests
-, xmlschema
-}:
+, argcomplete, hypothesis, mock, nose, pygments, requests, xmlschema }:
 
 buildPythonPackage rec {
   pname = "pytest";
@@ -37,24 +19,12 @@ buildPythonPackage rec {
     hash = "sha256-rJeBQadZSJSIF9NgKXt6rg/LnW/2vJ7G1RS4XVplwEQ=";
   };
 
-  outputs = [
-    "out"
-    "testout"
-  ];
+  outputs = [ "out" "testout" ];
 
-  nativeBuildInputs = [
-    setuptools
-    setuptools-scm
-  ];
+  nativeBuildInputs = [ setuptools setuptools-scm ];
 
-  propagatedBuildInputs = [
-    iniconfig
-    packaging
-    pluggy
-  ] ++ lib.optionals (pythonOlder "3.11") [
-    exceptiongroup
-    tomli
-  ];
+  propagatedBuildInputs = [ iniconfig packaging pluggy ]
+    ++ lib.optionals (pythonOlder "3.11") [ exceptiongroup tomli ];
 
   passthru.optional-dependencies = {
     testing = [
@@ -99,9 +69,7 @@ buildPythonPackage rec {
     preDistPhases+=" pytestRemoveBytecodePhase"
   '';
 
-  pythonImportsCheck = [
-    "pytest"
-  ];
+  pythonImportsCheck = [ "pytest" ];
 
   meta = with lib; {
     description = "Framework for writing tests";

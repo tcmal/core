@@ -1,6 +1,4 @@
-{ lib, stdenv, fetchurl, zlib
-, testers
-}:
+{ lib, stdenv, fetchurl, zlib, testers }:
 
 assert stdenv.hostPlatform == stdenv.buildPlatform -> zlib != null;
 
@@ -28,7 +26,8 @@ stdenv.mkDerivation (finalAttrs: {
   };
 
   meta = with lib; {
-    description = "The official reference implementation for the PNG file format";
+    description =
+      "The official reference implementation for the PNG file format";
     homepage = "http://www.libpng.org/pub/png/libpng.html";
     license = licenses.libpng;
     maintainers = [ ];

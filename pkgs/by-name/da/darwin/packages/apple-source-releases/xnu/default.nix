@@ -1,13 +1,9 @@
-{ appleDerivation', lib, stdenv, stdenvNoCC, buildPackages
-, bootstrap_cmds, bison, flex
-, gnum4, unifdef, perl, python3
-, headersOnly ? true
-}:
+{ appleDerivation', lib, stdenv, stdenvNoCC, buildPackages, bootstrap_cmds
+, bison, flex, gnum4, unifdef, perl, python3, headersOnly ? true }:
 
-appleDerivation' (if headersOnly then stdenvNoCC else stdenv) (
-  let arch = if stdenv.isx86_64 then "x86_64" else "arm64";
-  in
-  {
+appleDerivation' (if headersOnly then stdenvNoCC else stdenv)
+(let arch = if stdenv.isx86_64 then "x86_64" else "arm64";
+in {
   depsBuildBuild = [ buildPackages.stdenv.cc ];
 
   nativeBuildInputs = [ bootstrap_cmds bison flex gnum4 unifdef perl python3 ];
@@ -78,10 +74,11 @@ appleDerivation' (if headersOnly then stdenvNoCC else stdenv) (
 
   env.NIX_CFLAGS_COMPILE = "-Wno-error";
 
-  preBuild = let macosVersion =
-    "10.0 10.1 10.2 10.3 10.4 10.5 10.6 10.7 10.8 10.9 10.10 10.11" +
-    lib.optionalString stdenv.isAarch64 " 10.12 10.13 10.14 10.15 11.0";
-   in ''
+  preBuild = let
+    macosVersion =
+      "10.0 10.1 10.2 10.3 10.4 10.5 10.6 10.7 10.8 10.9 10.10 10.11"
+      + lib.optionalString stdenv.isAarch64 " 10.12 10.13 10.14 10.15 11.0";
+  in ''
     # This is a bit of a hack...
     mkdir -p sdk/usr/local/libexec
 

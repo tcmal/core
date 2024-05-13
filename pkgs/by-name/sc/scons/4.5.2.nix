@@ -9,15 +9,12 @@ let
     rev = version;
     hash = "sha256-vxJsz24jDsPcttwPXq9+ztc/N7W4Gkydgykk/FLgZLo=";
   };
-in
-python3.pkgs.buildPythonApplication {
+in python3.pkgs.buildPythonApplication {
   inherit pname version src;
 
   outputs = [ "out" "man" ];
 
-  patches = [
-    ./env.patch
-  ];
+  patches = [ ./env.patch ];
 
   postPatch = ''
     substituteInPlace setup.cfg \

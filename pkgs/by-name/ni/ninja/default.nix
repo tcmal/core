@@ -1,17 +1,6 @@
-{ lib
-, stdenv
-, fetchFromGitHub
-, fetchpatch
-, asciidoc
-, docbook_xml_dtd_45
-, docbook_xsl
-, installShellFiles
-, libxslt
-, python3
-, re2c
-, buildPackages
-, buildDocs ? true
-}:
+{ lib, stdenv, fetchFromGitHub, fetchpatch, asciidoc, docbook_xml_dtd_45
+, docbook_xsl, installShellFiles, libxslt, python3, re2c, buildPackages
+, buildDocs ? true }:
 
 stdenv.mkDerivation rec {
   pname = "ninja";
@@ -26,23 +15,20 @@ stdenv.mkDerivation rec {
 
   depsBuildBuild = [ buildPackages.stdenv.cc ];
 
-  nativeBuildInputs = [
-    python3
-    re2c
-    installShellFiles
-  ]
-  ++ lib.optionals buildDocs [
-    asciidoc
-    docbook_xml_dtd_45
-    docbook_xsl
-    libxslt.bin
-  ];
+  nativeBuildInputs = [ python3 re2c installShellFiles ]
+    ++ lib.optionals buildDocs [
+      asciidoc
+      docbook_xml_dtd_45
+      docbook_xsl
+      libxslt.bin
+    ];
 
   patches = lib.optionals stdenv.is32bit [
     # Otherwise ninja may fail on some files in a larger FS.
     (fetchpatch {
       name = "stat64.patch";
-      url = "https://github.com/ninja-build/ninja/commit/7bba11ae704efc84cac5fde5e9be53f653f237d1.diff";
+      url =
+        "https://github.com/ninja-build/ninja/commit/7bba11ae704efc84cac5fde5e9be53f653f237d1.diff";
       hash = "sha256-tINS57xLh1lwnYFWCQs5OudfgtIShaOh5zbmv7w5BnQ=";
     })
   ];

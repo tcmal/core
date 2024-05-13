@@ -1,6 +1,7 @@
-let requiredVersion = import ./minver.nix; in
+let requiredVersion = import ./minver.nix;
 
-if ! builtins ? nixVersion || builtins.compareVersions requiredVersion builtins.nixVersion == 1 then
+in if !builtins ? nixVersion
+|| builtins.compareVersions requiredVersion builtins.nixVersion == 1 then
 
   abort ''
 

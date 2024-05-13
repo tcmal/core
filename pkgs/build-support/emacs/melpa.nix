@@ -4,7 +4,8 @@
 { lib, stdenv, fetchFromGitHub, emacs, texinfo, writeText, gcc }:
 
 let
-  genericBuild = import ./generic.nix { inherit lib stdenv emacs texinfo writeText gcc; };
+  genericBuild =
+    import ./generic.nix { inherit lib stdenv emacs texinfo writeText gcc; };
 
   packageBuild = stdenv.mkDerivation {
     name = "package-build";
@@ -20,35 +21,20 @@ let
     dontConfigure = true;
     dontBuild = true;
 
-    installPhase = "
-      mkdir -p $out
-      cp -r * $out
-    ";
+    installPhase = "\n      mkdir -p $out\n      cp -r * $out\n    ";
   };
 
-in
-
-{ /*
-    pname: Nix package name without special symbols and without version or
-    "emacs-" prefix.
-  */
-  pname
-  /*
-    ename: Original Emacs package name, possibly containing special symbols.
-  */
-, ename ? null
-, version
-, recipe
-, meta ? {}
-, ...
-}@args:
+in {
+/* pname: Nix package name without special symbols and without version or
+   "emacs-" prefix.
+*/
+pname
+# ename: Original Emacs package name, possibly containing special symbols.
+, ename ? null, version, recipe, meta ? { }, ... }@args:
 
 genericBuild ({
 
-  ename =
-    if ename == null
-    then pname
-    else ename;
+  ename = if ename == null then pname else ename;
 
   elpa2nix = ./elpa2nix.el;
   melpa2nix = ./melpa2nix.el;
@@ -83,7 +69,7 @@ genericBuild ({
         $ename $version $commit
 
     runHook postBuild
-    '';
+  '';
 
   installPhase = ''
     runHook preInstall
@@ -106,4 +92,4 @@ genericBuild ({
   } // meta;
 }
 
-// removeAttrs args [ "meta" ])
+  // removeAttrs args [ "meta" ])

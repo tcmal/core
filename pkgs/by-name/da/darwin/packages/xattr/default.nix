@@ -1,11 +1,4 @@
-{ lib
-, stdenv
-, fetchFromGitHub
-, buildPythonPackage
-, python
-, ed
-, unifdef
-}:
+{ lib, stdenv, fetchFromGitHub, buildPythonPackage, python, ed, unifdef }:
 
 buildPythonPackage rec {
   pname = "xattr";
@@ -21,11 +14,7 @@ buildPythonPackage rec {
   sourceRoot = "${src.name}/Modules/xattr-0.6.4";
   format = "other";
 
-  nativeBuildInputs = [
-    ed
-    unifdef
-    python.pkgs.setuptools
-  ];
+  nativeBuildInputs = [ ed unifdef python.pkgs.setuptools ];
 
   makeFlags = [
     "OBJROOT=$(PWD)"
@@ -71,7 +60,8 @@ buildPythonPackage rec {
 
   meta = with lib; {
     description = "Display and manipulate extended attributes";
-    license = [ licenses.psfl licenses.mit ]; # see $doc/share/xattr/OpenSourceLicenses
+    license =
+      [ licenses.psfl licenses.mit ]; # see $doc/share/xattr/OpenSourceLicenses
     maintainers = [ maintainers.sternenseemann ];
     homepage = "https://opensource.apple.com/source/python_modules/";
     platforms = lib.platforms.darwin;

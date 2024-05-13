@@ -1,13 +1,5 @@
-{ lib
-, buildPythonPackage
-, fetchPypi
-, pythonOlder
-, setuptools
-, setuptools-scm
-, typing-extensions
-, toml
-, zipp
-}:
+{ lib, buildPythonPackage, fetchPypi, pythonOlder, setuptools, setuptools-scm
+, typing-extensions, toml, zipp }:
 
 buildPythonPackage rec {
   pname = "importlib-metadata";
@@ -27,19 +19,13 @@ buildPythonPackage rec {
     setuptools-scm
   ];
 
-  propagatedBuildInputs = [
-    toml
-    zipp
-  ] ++ lib.optionals (pythonOlder "3.8") [
-    typing-extensions
-  ];
+  propagatedBuildInputs = [ toml zipp ]
+    ++ lib.optionals (pythonOlder "3.8") [ typing-extensions ];
 
   # Cyclic dependencies due to pyflakefs
   doCheck = false;
 
-  pythonImportsCheck = [
-    "importlib_metadata"
-  ];
+  pythonImportsCheck = [ "importlib_metadata" ];
 
   meta = with lib; {
     description = "Read metadata from Python packages";

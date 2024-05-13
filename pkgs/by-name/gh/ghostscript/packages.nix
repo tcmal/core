@@ -1,9 +1,7 @@
-
 { ... }:
 res: pkgs: super:
 
-with pkgs;
-{
+with pkgs; {
   ghostscript = callPackage ./. { };
   ghostscriptX = ghostscript.override {
     cupsSupport = true;

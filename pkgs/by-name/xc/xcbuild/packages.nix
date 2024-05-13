@@ -1,8 +1,7 @@
 { ... }:
 res: pkgs: super:
 
-with pkgs;
-{
+with pkgs; {
   xcodebuild = callPackage ./wrapper.nix {
     inherit (darwin.apple_sdk.frameworks) CoreServices CoreGraphics ImageIO;
   };
@@ -10,5 +9,5 @@ with pkgs;
   xcbuildHook = makeSetupHook {
     name = "xcbuild-hook";
     propagatedBuildInputs = [ xcbuild ];
-  } ./setup-hook.sh  ;
+  } ./setup-hook.sh;
 }

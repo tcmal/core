@@ -1,8 +1,4 @@
-{ lib
-, stdenv
-, python
-, flit-core
-}:
+{ lib, stdenv, python, flit-core }:
 
 stdenv.mkDerivation rec {
   pname = "${python.libPrefix}-bootstrap-${flit-core.pname}";

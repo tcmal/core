@@ -15,9 +15,11 @@ stdenv.mkDerivation rec {
 
   meta = with lib; {
     homepage = "https://libcpuid.sourceforge.net/";
-    description = "A small C library for x86 CPU detection and feature extraction";
+    description =
+      "A small C library for x86 CPU detection and feature extraction";
     mainProgram = "cpuid_tool";
-    changelog = "https://raw.githubusercontent.com/anrieff/libcpuid/master/ChangeLog";
+    changelog =
+      "https://raw.githubusercontent.com/anrieff/libcpuid/master/ChangeLog";
     license = licenses.bsd2;
     maintainers = with maintainers; [ orivej artuuge ];
     platforms = platforms.x86;

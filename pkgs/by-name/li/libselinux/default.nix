@@ -1,8 +1,6 @@
 { lib, stdenv, fetchurl, fetchpatch, buildPackages, pcre2, pkg-config, libsepol
-, enablePython ? !stdenv.hostPlatform.isStatic
-, swig ? null, python3 ? null, python3Packages
-, fts
-}:
+, enablePython ? !stdenv.hostPlatform.isStatic, swig ? null, python3 ? null
+, python3Packages, fts }:
 
 assert enablePython -> swig != null && python3 != null;
 
@@ -31,7 +29,8 @@ stdenv.mkDerivation rec {
     # This is a static email, so we shouldn't have to worry about
     # normalizing the patch.
     (fetchurl {
-      url = "https://lore.kernel.org/selinux/20211113141616.361640-1-hi@alyssa.is/raw";
+      url =
+        "https://lore.kernel.org/selinux/20211113141616.361640-1-hi@alyssa.is/raw";
       sha256 = "16a2s2ji9049892i15yyqgp4r20hi1hij4c1s4s8law9jsx65b3n";
       postFetch = ''
         mv "$out" $TMPDIR/patch
@@ -41,7 +40,8 @@ stdenv.mkDerivation rec {
     })
 
     (fetchurl {
-      url = "https://git.yoctoproject.org/meta-selinux/plain/recipes-security/selinux/libselinux/0003-libselinux-restore-drop-the-obsolete-LSF-transitiona.patch?id=62b9c816a5000dc01b28e78213bde26b58cbca9d";
+      url =
+        "https://git.yoctoproject.org/meta-selinux/plain/recipes-security/selinux/libselinux/0003-libselinux-restore-drop-the-obsolete-LSF-transitiona.patch?id=62b9c816a5000dc01b28e78213bde26b58cbca9d";
       sha256 = "sha256-RiEUibLVzfiRU6N/J187Cs1iPAih87gCZrlyRVI2abU=";
     })
   ];
@@ -72,15 +72,13 @@ stdenv.mkDerivation rec {
 
     "LIBSEPOLA=${lib.getLib libsepol}/lib/libsepol.a"
     "ARCH=${stdenv.hostPlatform.linuxArch}"
-  ] ++ optionals (fts != null) [
-    "FTS_LDLIBS=-lfts"
-  ] ++ optionals stdenv.hostPlatform.isStatic [
-    "DISABLE_SHARED=y"
-  ] ++ optionals enablePython [
-    "PYTHON=${python3.pythonOnBuildForHost.interpreter}"
-    "PYTHONLIBDIR=$(py)/${python3.sitePackages}"
-    "PYTHON_SETUP_ARGS=--no-build-isolation"
-  ];
+  ] ++ optionals (fts != null) [ "FTS_LDLIBS=-lfts" ]
+    ++ optionals stdenv.hostPlatform.isStatic [ "DISABLE_SHARED=y" ]
+    ++ optionals enablePython [
+      "PYTHON=${python3.pythonOnBuildForHost.interpreter}"
+      "PYTHONLIBDIR=$(py)/${python3.sitePackages}"
+      "PYTHON_SETUP_ARGS=--no-build-isolation"
+    ];
 
   postPatch = lib.optionalString stdenv.hostPlatform.isMusl ''
     substituteInPlace src/procattr.c \
@@ -93,7 +91,7 @@ stdenv.mkDerivation rec {
 
   installTargets = [ "install" ] ++ optional enablePython "install-pywrap";
 
-  meta = removeAttrs libsepol.meta ["outputsToInstall"] // {
+  meta = removeAttrs libsepol.meta [ "outputsToInstall" ] // {
     description = "SELinux core library";
   };
 }

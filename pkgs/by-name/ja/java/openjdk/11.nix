@@ -1,12 +1,9 @@
-{ stdenv, lib, fetchpatch, fetchFromGitHub, bash, pkg-config, autoconf, cpio, file, which, unzip
-, zip, perl, cups, freetype, harfbuzz, alsa-lib, libjpeg, giflib, libpng, zlib, lcms2
-, libX11, libICE, libXrender, libXext, libXt, libXtst, libXi, libXinerama
-, libXcursor, libXrandr, fontconfig, openjdk11-bootstrap
-, setJavaClassPath
-, headless ? false
-, enableJavaFX ? false, openjfx
-, enableGnome2 ? true, gtk3, gnome_vfs, glib, GConf
-}:
+{ stdenv, lib, fetchpatch, fetchFromGitHub, bash, pkg-config, autoconf, cpio
+, file, which, unzip, zip, perl, cups, freetype, harfbuzz, alsa-lib, libjpeg
+, giflib, libpng, zlib, lcms2, libX11, libICE, libXrender, libXext, libXt
+, libXtst, libXi, libXinerama, libXcursor, libXrandr, fontconfig
+, openjdk11-bootstrap, setJavaClassPath, headless ? false, enableJavaFX ? false
+, openjfx, enableGnome2 ? true, gtk3, gnome_vfs, glib, GConf }:
 
 let
   major = "11";
@@ -30,11 +27,39 @@ let
 
     nativeBuildInputs = [ pkg-config autoconf unzip ];
     buildInputs = [
-      cpio file which zip perl zlib cups freetype harfbuzz alsa-lib libjpeg giflib
-      libpng zlib lcms2 libX11 libICE libXrender libXext libXtst libXt libXtst
-      libXi libXinerama libXcursor libXrandr fontconfig openjdk-bootstrap
+      cpio
+      file
+      which
+      zip
+      perl
+      zlib
+      cups
+      freetype
+      harfbuzz
+      alsa-lib
+      libjpeg
+      giflib
+      libpng
+      zlib
+      lcms2
+      libX11
+      libICE
+      libXrender
+      libXext
+      libXtst
+      libXt
+      libXtst
+      libXi
+      libXinerama
+      libXcursor
+      libXrandr
+      fontconfig
+      openjdk-bootstrap
     ] ++ lib.optionals (!headless && enableGnome2) [
-      gtk3 gnome_vfs GConf glib
+      gtk3
+      gnome_vfs
+      GConf
+      glib
     ];
 
     patches = [
@@ -48,12 +73,12 @@ let
       #   https://github.com/openjdk/jdk/pull/12992
       (fetchpatch {
         name = "gnumake-4.4.1";
-        url = "https://github.com/openjdk/jdk/commit/9341d135b855cc208d48e47d30cd90aafa354c36.patch";
+        url =
+          "https://github.com/openjdk/jdk/commit/9341d135b855cc208d48e47d30cd90aafa354c36.patch";
         hash = "sha256-Qcm3ZmGCOYLZcskNjj7DYR85R4v07vYvvavrVOYL8vg=";
       })
-    ] ++ lib.optionals (!headless && enableGnome2) [
-      ./swing-use-gtk-jdk10.patch
-    ];
+    ] ++ lib.optionals (!headless && enableGnome2)
+      [ ./swing-use-gtk-jdk10.patch ];
 
     preConfigure = ''
       chmod +x configure
@@ -76,7 +101,8 @@ let
       "--disable-warnings-as-errors"
     ] ++ lib.optional stdenv.isx86_64 "--with-jvm-features=zgc"
       ++ lib.optional headless "--enable-headless-only"
-      ++ lib.optional (!headless && enableJavaFX) "--with-import-modules=${openjfx}";
+      ++ lib.optional (!headless && enableJavaFX)
+      "--with-import-modules=${openjfx}";
 
     separateDebugInfo = true;
 
@@ -86,9 +112,16 @@ let
     env.NIX_CFLAGS_COMPILE = "-Wformat";
 
     NIX_LDFLAGS = toString (lib.optionals (!headless) [
-      "-lfontconfig" "-lcups" "-lXinerama" "-lXrandr" "-lmagic"
+      "-lfontconfig"
+      "-lcups"
+      "-lXinerama"
+      "-lXrandr"
+      "-lmagic"
     ] ++ lib.optionals (!headless && enableGnome2) [
-      "-lgtk-3" "-lgio-2.0" "-lgnomevfs-2" "-lgconf-2"
+      "-lgtk-3"
+      "-lgio-2.0"
+      "-lgnomevfs-2"
+      "-lgconf-2"
     ]);
 
     # -j flag is explicitly rejected by the build system:

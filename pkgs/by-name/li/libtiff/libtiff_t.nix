@@ -1,16 +1,8 @@
-{ lib
-, stdenv
-, fetchzip
+{ lib, stdenv, fetchzip
 
-, autoreconfHook
-, pkg-config
-, sphinx
+, autoreconfHook, pkg-config, sphinx
 
-, libdeflate
-, libjpeg
-, xz
-, zlib
-}:
+, libdeflate, libjpeg, xz, zlib }:
 
 # This is a fork created by the hylafaxplus developer to
 # restore tools dropped by original libtiff in version 4.6.0.
@@ -50,19 +42,15 @@ stdenv.mkDerivation (finalAttrs: {
   nativeBuildInputs = [ autoreconfHook pkg-config sphinx ];
 
   # TODO: opengl support (bogus configure detection)
-  propagatedBuildInputs = [
-    libdeflate
-    libjpeg
-    xz
-    zlib
-  ];
+  propagatedBuildInputs = [ libdeflate libjpeg xz zlib ];
 
   enableParallelBuilding = true;
 
   doCheck = true;
 
   meta = with lib; {
-    description = "Library and utilities for working with the TIFF image file format (fork containing tools dropped in original libtiff version)";
+    description =
+      "Library and utilities for working with the TIFF image file format (fork containing tools dropped in original libtiff version)";
     homepage = "http://www.libtiff.org";
     changelog = "http://www.libtiff.org/releases/v${finalAttrs.version}.html";
     maintainers = with maintainers; [ yarny ];

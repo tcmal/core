@@ -1,14 +1,5 @@
-{
-  lib,
-  buildPythonPackage,
-  elementpath,
-  fetchFromGitHub,
-  jinja2,
-  lxml,
-  pytestCheckHook,
-  pythonOlder,
-  setuptools,
-}:
+{ lib, buildPythonPackage, elementpath, fetchFromGitHub, jinja2, lxml
+, pytestCheckHook, pythonOlder, setuptools, }:
 
 buildPythonPackage rec {
   pname = "xmlschema";
@@ -28,18 +19,15 @@ buildPythonPackage rec {
 
   dependencies = [ elementpath ];
 
-  nativeCheckInputs = [
-    jinja2
-    lxml
-    pytestCheckHook
-  ];
+  nativeCheckInputs = [ jinja2 lxml pytestCheckHook ];
 
   pythonImportsCheck = [ "xmlschema" ];
 
   meta = with lib; {
     description = "XML Schema validator and data conversion library for Python";
     homepage = "https://github.com/sissaschool/xmlschema";
-    changelog = "https://github.com/sissaschool/xmlschema/blob/${src.rev}/CHANGELOG.rst";
+    changelog =
+      "https://github.com/sissaschool/xmlschema/blob/${src.rev}/CHANGELOG.rst";
     license = licenses.mit;
     maintainers = with maintainers; [ jonringer ];
   };

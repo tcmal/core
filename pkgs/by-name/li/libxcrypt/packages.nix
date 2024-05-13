@@ -1,8 +1,7 @@
 { ... }:
 res: pkgs: super:
 
-with pkgs;
-{
+with pkgs; {
   libxcrypt = callPackage ./. {
     fetchurl = stdenv.fetchurlBoot;
     perl = buildPackages.perl.override {

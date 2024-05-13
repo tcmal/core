@@ -14,7 +14,5 @@ stdenv.mkDerivation {
     mkdir -p $out/share/info
     cp ./python.info $out/share/info
   '';
-  meta = {
-    maintainers = [ ];
-  };
+  meta = { maintainers = [ ]; };
 }

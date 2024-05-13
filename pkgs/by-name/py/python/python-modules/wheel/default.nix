@@ -1,8 +1,4 @@
-{ lib
-, buildPythonPackage
-, fetchFromGitHub
-, flit-core
-}:
+{ lib, buildPythonPackage, fetchFromGitHub, flit-core }:
 
 buildPythonPackage rec {
   pname = "wheel";
@@ -22,9 +18,7 @@ buildPythonPackage rec {
     '';
   };
 
-  nativeBuildInputs = [
-    flit-core
-  ];
+  nativeBuildInputs = [ flit-core ];
 
   # No tests in archive
   doCheck = false;

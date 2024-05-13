@@ -20,7 +20,8 @@ rustPlatform.buildRustPackage rec {
 
   OPENSSL_NO_VENDOR = 1;
 
-  doCheck = false; # tries to access network to test broken web link functionality
+  doCheck =
+    false; # tries to access network to test broken web link functionality
 
   passthru.tests.version = testers.testVersion { package = mdbook-linkcheck; };
 

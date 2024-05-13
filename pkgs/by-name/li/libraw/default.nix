@@ -1,9 +1,4 @@
-{ lib
-, stdenv
-, fetchFromGitHub
-, autoreconfHook
-, lcms2
-, pkg-config
+{ lib, stdenv, fetchFromGitHub, autoreconfHook, lcms2, pkg-config
 
 # for passthru.tests
 # , deepin
@@ -39,7 +34,8 @@ stdenv.mkDerivation rec {
   # };
 
   meta = with lib; {
-    description = "Library for reading RAW files obtained from digital photo cameras (CRW/CR2, NEF, RAF, DNG, and others)";
+    description =
+      "Library for reading RAW files obtained from digital photo cameras (CRW/CR2, NEF, RAF, DNG, and others)";
     homepage = "https://www.libraw.org/";
     license = with licenses; [ cddl lgpl2Plus ];
     platforms = platforms.unix;

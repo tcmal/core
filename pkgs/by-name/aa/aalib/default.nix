@@ -1,4 +1,4 @@
-{lib, stdenv, fetchurl, ncurses, automake}:
+{ lib, stdenv, fetchurl, ncurses, automake }:
 
 stdenv.mkDerivation rec {
   pname = "aalib";
@@ -12,7 +12,9 @@ stdenv.mkDerivation rec {
   outputs = [ "bin" "dev" "out" "man" "info" ];
   setOutputFlags = false; # Doesn't support all the flags
 
-  patches = [ ./clang.patch ] # Fix implicit `int` on `main` error with newer versions of clang
+  patches = [
+    ./clang.patch
+  ] # Fix implicit `int` on `main` error with newer versions of clang
     ++ lib.optionals stdenv.isDarwin [ ./darwin.patch ];
 
   # The fuloong2f is not supported by aalib still

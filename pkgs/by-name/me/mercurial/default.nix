@@ -1,13 +1,11 @@
-{ lib, stdenv, fetchurl, fetchpatch, python3Packages, makeWrapper, gettext, installShellFiles
-, re2Support ? true
-# depends on rust-cpython which won't support python312
-# https://github.com/dgrunwald/rust-cpython/commit/e815555629e557be084813045ca1ddebc2f76ef9
-, rustSupport ? (stdenv.hostPlatform.isLinux && python3Packages.pythonOlder "3.12"), cargo, rustPlatform, rustc
-, fullBuild ? false
-, gitSupport ? fullBuild
-, guiSupport ? fullBuild, tk
-, highlightSupport ? fullBuild
-, ApplicationServices
+{ lib, stdenv, fetchurl, fetchpatch, python3Packages, makeWrapper, gettext
+, installShellFiles, re2Support ? true
+  # depends on rust-cpython which won't support python312
+  # https://github.com/dgrunwald/rust-cpython/commit/e815555629e557be084813045ca1ddebc2f76ef9
+, rustSupport ?
+  (stdenv.hostPlatform.isLinux && python3Packages.pythonOlder "3.12"), cargo
+, rustPlatform, rustc, fullBuild ? false, gitSupport ? fullBuild
+, guiSupport ? fullBuild, tk, highlightSupport ? fullBuild, ApplicationServices
 # for passthru.tests
 # , runCommand
 # , unzip
@@ -32,30 +30,31 @@ let
 
     format = "other";
 
-    passthru = { inherit python; }; # pass it so that the same version can be used in hg2git
+    passthru = {
+      inherit python;
+    }; # pass it so that the same version can be used in hg2git
 
-    cargoDeps = if rustSupport then rustPlatform.fetchCargoTarball {
-      inherit src;
-      name = "mercurial-${version}";
-      sha256 = "sha256-G5tzwoIGOgpVI35rYXDeelnBgTbAiq7BDcXCHQzqSrs=";
-      sourceRoot = "mercurial-${version}/rust";
-    } else null;
+    cargoDeps = if rustSupport then
+      rustPlatform.fetchCargoTarball {
+        inherit src;
+        name = "mercurial-${version}";
+        sha256 = "sha256-G5tzwoIGOgpVI35rYXDeelnBgTbAiq7BDcXCHQzqSrs=";
+        sourceRoot = "mercurial-${version}/rust";
+      }
+    else
+      null;
     cargoRoot = if rustSupport then "rust" else null;
 
     propagatedBuildInputs = lib.optional re2Support fb-re2
       ++ lib.optional gitSupport pygit2
       ++ lib.optional highlightSupport pygments;
-    nativeBuildInputs = [ makeWrapper gettext installShellFiles python3Packages.setuptools ]
-      ++ lib.optionals rustSupport [
-           rustPlatform.cargoSetupHook
-           cargo
-           rustc
-         ];
+    nativeBuildInputs =
+      [ makeWrapper gettext installShellFiles python3Packages.setuptools ]
+      ++ lib.optionals rustSupport [ rustPlatform.cargoSetupHook cargo rustc ];
     buildInputs = [ docutils ]
       ++ lib.optionals stdenv.isDarwin [ ApplicationServices ];
 
-    makeFlags = [ "PREFIX=$(out)" ]
-      ++ lib.optional rustSupport "PURE=--rust";
+    makeFlags = [ "PREFIX=$(out)" ] ++ lib.optional rustSupport "PURE=--rust";
 
     postInstall = (lib.optionalString guiSupport ''
       mkdir -p $out/etc/mercurial
@@ -89,10 +88,12 @@ let
     # };
 
     meta = with lib; {
-      description = "A fast, lightweight SCM system for very large distributed projects";
+      description =
+        "A fast, lightweight SCM system for very large distributed projects";
       homepage = "https://www.mercurial-scm.org";
       downloadPage = "https://www.mercurial-scm.org/release/";
-      changelog = "https://wiki.mercurial-scm.org/Release${versions.majorMinor version}";
+      changelog =
+        "https://wiki.mercurial-scm.org/Release${versions.majorMinor version}";
       license = licenses.gpl2Plus;
       maintainers = with maintainers; [ eelco lukegb pacien techknowlogick ];
       platforms = platforms.unix;
@@ -166,20 +167,18 @@ let
   #   make check
   #   touch $out
   # '';
-in
-  self.overridePythonAttrs (origAttrs: {
-    passthru = origAttrs.passthru // rec {
-      # withExtensions takes a function which takes the python packages set and
-      # returns a list of extensions to install.
-      #
-      # for instance: mercurial.withExtension (pm: [ pm.hg-evolve ])
-      withExtensions = f: let
+in self.overridePythonAttrs (origAttrs: {
+  passthru = origAttrs.passthru // rec {
+    # withExtensions takes a function which takes the python packages set and
+    # returns a list of extensions to install.
+    #
+    # for instance: mercurial.withExtension (pm: [ pm.hg-evolve ])
+    withExtensions = f:
+      let
         python = self.python;
-        mercurialHighPrio = ps: (ps.toPythonModule self).overrideAttrs (oldAttrs: {
-          meta = oldAttrs.meta // {
-            priority = 50;
-          };
-        });
+        mercurialHighPrio = ps:
+          (ps.toPythonModule self).overrideAttrs
+          (oldAttrs: { meta = oldAttrs.meta // { priority = 50; }; });
         plugins = (f python.pkgs) ++ [ (mercurialHighPrio python.pkgs) ];
         env = python.withPackages (ps: plugins);
       in stdenv.mkDerivation {
@@ -201,7 +200,9 @@ in
 
           mkdir -p $out/bin
 
-          for bindir in ${lib.concatStringsSep " " (map (d: "${lib.getBin d}/bin") plugins)}; do
+          for bindir in ${
+            lib.concatStringsSep " " (map (d: "${lib.getBin d}/bin") plugins)
+          }; do
             for bin in $bindir/*; do
               ln -s ${env}/bin/$(basename $bin) $out/bin/
             done
@@ -221,8 +222,8 @@ in
         '';
       };
 
-      # tests = origAttrs.passthru.tests // {
-      #   withExtensions = withExtensions (pm: [ pm.hg-evolve ]);
-      # };
-    };
-  })
+    # tests = origAttrs.passthru.tests // {
+    #   withExtensions = withExtensions (pm: [ pm.hg-evolve ]);
+    # };
+  };
+})

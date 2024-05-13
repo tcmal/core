@@ -1,15 +1,10 @@
 # This function compiles a source tarball in a virtual machine image
 # that contains a Debian-like (i.e. dpkg-based) OS.
 
-{ name ? "debian-build"
-, diskImage
-, src, lib, stdenv, vmTools, checkinstall
-, fsTranslation ? false
-, # Features provided by this package.
-  debProvides ? []
-, # Features required by this package.
-  debRequires ? []
-, ... } @ args:
+{ name ? "debian-build", diskImage, src, lib, stdenv, vmTools, checkinstall
+, fsTranslation ? false, # Features provided by this package.
+debProvides ? [ ], # Features required by this package.
+debRequires ? [ ], ... }@args:
 
 vmTools.runInLinuxImage (stdenv.mkDerivation (
 
@@ -21,10 +16,11 @@ vmTools.runInLinuxImage (stdenv.mkDerivation (
     prePhases = "installExtraDebsPhase sysInfoPhase";
   }
 
-  // removeAttrs args ["vmTools" "lib"] //
+  // removeAttrs args [ "vmTools" "lib" ] //
 
   {
-    name = name + "-" + diskImage.name + (lib.optionalString (src ? version) "-${src.version}");
+    name = name + "-" + diskImage.name
+      + (lib.optionalString (src ? version) "-${src.version}");
 
     # !!! cut&paste from rpm-build.nix
     postHook = ''
@@ -58,8 +54,12 @@ vmTools.runInLinuxImage (stdenv.mkDerivation (
         --fstrans=${if fsTranslation then "yes" else "no"} \
         --requires="${lib.concatStringsSep "," debRequires}" \
         --provides="${lib.concatStringsSep "," debProvides}" \
-        ${if (src ? version) then "--pkgversion=$(echo ${src.version} | tr _ -)"
-                             else "--pkgversion=0.0.0"} \
+        ${
+          if (src ? version) then
+            "--pkgversion=$(echo ${src.version} | tr _ -)"
+          else
+            "--pkgversion=0.0.0"
+        } \
         ''${debMaintainer:+--maintainer="'$debMaintainer'"} \
         ''${debName:+--pkgname="'$debName'"} \
         $checkInstallFlags \

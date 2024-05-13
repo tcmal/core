@@ -1,11 +1,6 @@
-{ lib, mkDerivation
-, include
-, bsdSetupHook, netbsdSetupHook
-, makeMinimal, install, tsort, lorder, statHook, rsync, uudecode, config, genassym
-, defaultMakeFlags
-, common
-}:
-{
+{ lib, mkDerivation, include, bsdSetupHook, netbsdSetupHook, makeMinimal
+, install, tsort, lorder, statHook, rsync, uudecode, config, genassym
+, defaultMakeFlags, common }: {
   path = "sys";
   version = "9.2";
   sha256 = "03s18q8d9giipf05bx199fajc2qwikji0djz7hw63d2lya6bfnpj";
@@ -25,11 +20,10 @@
     ./sys-headers-incsdir.patch
   ];
 
-  postPatch =
-    ''
-      substituteInPlace sys/arch/i386/stand/efiboot/Makefile.efiboot \
-        --replace "-nocombreloc" "-z nocombreloc"
-    '' +
+  postPatch = ''
+    substituteInPlace sys/arch/i386/stand/efiboot/Makefile.efiboot \
+      --replace "-nocombreloc" "-z nocombreloc"
+  '' +
     # multiple header dirs, see above
     include.postPatch;
 
@@ -37,8 +31,17 @@
 
   propagatedBuildInputs = [ include ];
   nativeBuildInputs = [
-    bsdSetupHook netbsdSetupHook
-    makeMinimal install tsort lorder statHook rsync uudecode config genassym
+    bsdSetupHook
+    netbsdSetupHook
+    makeMinimal
+    install
+    tsort
+    lorder
+    statHook
+    rsync
+    uudecode
+    config
+    genassym
   ];
 
   postConfigure = ''

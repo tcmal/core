@@ -1,13 +1,12 @@
 { runCommand, git, lib }:
 
-lib.makeOverridable (
-src:
+lib.makeOverridable (src:
 
-let
-  srcStr = toString src;
+  let
+    srcStr = toString src;
 
-  # Adds the current directory (respecting ignored files) to the git store, and returns the hash
-  gitHashFile = runCommand "put-in-git" {
+    # Adds the current directory (respecting ignored files) to the git store, and returns the hash
+    gitHashFile = runCommand "put-in-git" {
       nativeBuildInputs = [ git ];
       dummy = builtins.currentTime; # impure, do every time
       preferLocalBuild = true;
@@ -27,9 +26,9 @@ let
       mv $DOT_GIT/index-user $DOT_GIT/index # restore index
     '';
 
-  gitHash = builtins.readFile gitHashFile; # cache against git hash
+    gitHash = builtins.readFile gitHashFile; # cache against git hash
 
-  nixPath = runCommand "put-in-nix" {
+    nixPath = runCommand "put-in-nix" {
       nativeBuildInputs = [ git ];
       preferLocalBuild = true;
     } ''
@@ -40,5 +39,4 @@ let
         | tar xf - -C $out
     '';
 
-in nixPath
-)
+  in nixPath)

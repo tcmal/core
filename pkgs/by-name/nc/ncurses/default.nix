@@ -1,23 +1,15 @@
-{ lib
-, stdenv
-, fetchurl
-, buildPackages
-, ncurses
-, pkg-config
-, abiVersion ? "6"
+{ lib, stdenv, fetchurl, buildPackages, ncurses, pkg-config, abiVersion ? "6"
 , enableStatic ? stdenv.hostPlatform.isStatic
-, withCxx ? !stdenv.hostPlatform.useAndroidPrebuilt
-, mouseSupport ? false, gpm
-, unicodeSupport ? true
-, testers
-}:
+, withCxx ? !stdenv.hostPlatform.useAndroidPrebuilt, mouseSupport ? false, gpm
+, unicodeSupport ? true, testers }:
 
 stdenv.mkDerivation (finalAttrs: {
   version = "6.4";
   pname = "ncurses" + lib.optionalString (abiVersion == "5") "-abi5-compat";
 
   src = fetchurl {
-    url = "https://invisible-island.net/archives/ncurses/ncurses-${finalAttrs.version}.tar.gz";
+    url =
+      "https://invisible-island.net/archives/ncurses/ncurses-${finalAttrs.version}.tar.gz";
     hash = "sha256-aTEoPZrIfFBz8wtikMTHXyFjK7T8NgOsgQCBK+0kgVk=";
   };
 
@@ -39,31 +31,33 @@ stdenv.mkDerivation (finalAttrs: {
     ++ lib.optionals stdenv.hostPlatform.isWindows [
       "--enable-sp-funcs"
       "--enable-term-driver"
-  ] ++ lib.optionals (stdenv.hostPlatform.isUnix && stdenv.hostPlatform.isStatic) [
+    ] ++ lib.optionals
+    (stdenv.hostPlatform.isUnix && stdenv.hostPlatform.isStatic) [
       # For static binaries, the point is to have a standalone binary with
       # minimum dependencies. So here we make sure that binaries using this
       # package won't depend on a terminfo database located in the Nix store.
-      "--with-terminfo-dirs=${lib.concatStringsSep ":" [
-        "/etc/terminfo" # Debian, Fedora, Gentoo
-        "/lib/terminfo" # Debian
-        "/usr/share/terminfo" # upstream default, probably all FHS-based distros
-        "/run/current-system/sw/share/terminfo" # NixOS
-      ]}"
-  ] ++ lib.optionals (stdenv.buildPlatform != stdenv.hostPlatform) [
-    "--with-build-cc=${buildPackages.stdenv.cc}/bin/${buildPackages.stdenv.cc.targetPrefix}cc"
-  ];
+      "--with-terminfo-dirs=${
+        lib.concatStringsSep ":" [
+          "/etc/terminfo" # Debian, Fedora, Gentoo
+          "/lib/terminfo" # Debian
+          "/usr/share/terminfo" # upstream default, probably all FHS-based distros
+          "/run/current-system/sw/share/terminfo" # NixOS
+        ]
+      }"
+    ] ++ lib.optionals (stdenv.buildPlatform != stdenv.hostPlatform) [
+      "--with-build-cc=${buildPackages.stdenv.cc}/bin/${buildPackages.stdenv.cc.targetPrefix}cc"
+    ];
 
   # Only the C compiler, and explicitly not C++ compiler needs this flag on solaris:
   CFLAGS = lib.optionalString stdenv.isSunOS "-D_XOPEN_SOURCE_EXTENDED";
 
   strictDeps = true;
 
-  nativeBuildInputs = [
-    pkg-config
-  ] ++ lib.optionals (stdenv.buildPlatform != stdenv.hostPlatform) [
-   # for `tic`, build already depends on for build `cc` so it's weird the build doesn't just build `tic`.
-    ncurses
-  ];
+  nativeBuildInputs = [ pkg-config ]
+    ++ lib.optionals (stdenv.buildPlatform != stdenv.hostPlatform) [
+      # for `tic`, build already depends on for build `cc` so it's weird the build doesn't just build `tic`.
+      ncurses
+    ];
 
   buildInputs = lib.optional (mouseSupport && stdenv.isLinux) gpm;
 
@@ -77,8 +71,7 @@ stdenv.mkDerivation (finalAttrs: {
       "--mandir=$man/share/man"
       "--with-pkg-config-libdir=$PKG_CONFIG_LIBDIR"
     )
-  ''
-  + lib.optionalString stdenv.isSunOS ''
+  '' + lib.optionalString stdenv.isSunOS ''
     sed -i -e '/-D__EXTENSIONS__/ s/-D_XOPEN_SOURCE=\$cf_XOPEN_SOURCE//' \
            -e '/CPPFLAGS="$CPPFLAGS/s/ -D_XOPEN_SOURCE_EXTENDED//' \
         configure
@@ -90,8 +83,11 @@ stdenv.mkDerivation (finalAttrs: {
   doCheck = false;
 
   postFixup = let
-    abiVersion-extension = if stdenv.isDarwin then "${abiVersion}.$dylibtype" else "$dylibtype.${abiVersion}"; in
-  ''
+    abiVersion-extension = if stdenv.isDarwin then
+      "${abiVersion}.$dylibtype"
+    else
+      "$dylibtype.${abiVersion}";
+  in ''
     # Determine what suffixes our libraries have
     suffix="$(awk -F': ' 'f{print $3; f=0} /default library suffix/{f=1}' config.log)"
   ''
@@ -141,9 +137,9 @@ stdenv.mkDerivation (finalAttrs: {
         ln -svf ''${library}$suffix.pc $dev/lib/pkgconfig/$library$newsuffix.pc
       done
     done
-    ''
-    # Unconditional patches. Leading newline is to avoid mass rebuilds.
-    + ''
+  ''
+  # Unconditional patches. Leading newline is to avoid mass rebuilds.
+  + ''
 
     # add pkg-config aliases for libraries that are built-in to libncurses(w)
     for library in tinfo tic; do
@@ -165,9 +161,10 @@ stdenv.mkDerivation (finalAttrs: {
     moveToOutput "bin/infocmp" "$out"
   '';
 
-  preFixup = lib.optionalString (!stdenv.hostPlatform.isCygwin && !enableStatic) ''
-    rm "$out"/lib/*.a
-  '';
+  preFixup =
+    lib.optionalString (!stdenv.hostPlatform.isCygwin && !enableStatic) ''
+      rm "$out"/lib/*.a
+    '';
 
   meta = with lib; {
     homepage = "https://www.gnu.org/software/ncurses/";
@@ -185,12 +182,8 @@ stdenv.mkDerivation (finalAttrs: {
     '';
     license = licenses.mit;
     pkgConfigModules = let
-      base = [
-        "form"
-        "menu"
-        "ncurses"
-        "panel"
-      ] ++ lib.optional withCxx "ncurses++";
+      base = [ "form" "menu" "ncurses" "panel" ]
+        ++ lib.optional withCxx "ncurses++";
     in base ++ lib.optionals unicodeSupport (map (p: p + "w") base);
     platforms = platforms.all;
   };

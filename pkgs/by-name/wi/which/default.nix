@@ -16,8 +16,7 @@ stdenv.mkDerivation rec {
     # Enable 64-bit file API. Otherwise `which` fails to find tools
     # on filesystems with 64-bit inodes (like `btrfs`) when running
     # binaries from 32-bit systems (like `i686-linux`).
-    lib.optional stdenv.hostPlatform.is32bit "-D_FILE_OFFSET_BITS=64"
-  );
+    lib.optional stdenv.hostPlatform.is32bit "-D_FILE_OFFSET_BITS=64");
 
   meta = {
     homepage = "https://www.gnu.org/software/which/";

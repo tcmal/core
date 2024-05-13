@@ -1,17 +1,12 @@
-{ lib
-, stdenvNoCC
-, fetchzip
-, runtimeShell
-, bashInteractive
-, glibcLocales
-}:
+{ lib, stdenvNoCC, fetchzip, runtimeShell, bashInteractive, glibcLocales }:
 
 stdenvNoCC.mkDerivation rec {
   pname = "blesh";
   version = "0.4.0-devel3";
 
   src = fetchzip {
-    url = "https://github.com/akinomyoga/ble.sh/releases/download/v${version}/ble-${version}.tar.xz";
+    url =
+      "https://github.com/akinomyoga/ble.sh/releases/download/v${version}/ble-${version}.tar.xz";
     sha256 = "sha256-kGLp8RaInYSrJEi3h5kWEOMAbZV/gEPFUjOLgBuMhCI=";
   };
 
@@ -53,7 +48,8 @@ stdenvNoCC.mkDerivation rec {
 
   meta = with lib; {
     homepage = "https://github.com/akinomyoga/ble.sh";
-    description = "Bash Line Editor -- a full-featured line editor written in pure Bash";
+    description =
+      "Bash Line Editor -- a full-featured line editor written in pure Bash";
     mainProgram = "blesh-share";
     license = licenses.bsd3;
     maintainers = with maintainers; [ aiotter ];

@@ -1,31 +1,12 @@
-{ lib
-, stdenv
-, buildPythonPackage
-, pythonOlder
-, fetchFromGitHub
-, substituteAll
+{ lib, stdenv, buildPythonPackage, pythonOlder, fetchFromGitHub, substituteAll
 , llhttp
 # build_requires
-, cython
-, setuptools
+, cython, setuptools
 # install_requires
-, attrs
-, multidict
-, async-timeout
-, yarl
-, frozenlist
-, aiosignal
-, aiodns
-, brotli
+, attrs, multidict, async-timeout, yarl, frozenlist, aiosignal, aiodns, brotli
 # tests_require
-, freezegun
-, gunicorn
-, pytest-mock
-, pytest7CheckHook
-, python-on-whales
-, re-assert
-, trustme
-}:
+, freezegun, gunicorn, pytest-mock, pytest7CheckHook, python-on-whales
+, re-assert, trustme }:
 
 buildPythonPackage rec {
   pname = "aiohttp";
@@ -57,25 +38,14 @@ buildPythonPackage rec {
     touch .git  # tools/gen.py uses .git to find the project root
   '';
 
-  nativeBuildInputs = [
-    cython
-    setuptools
-  ];
+  nativeBuildInputs = [ cython setuptools ];
 
   preBuild = ''
     make cythonize
   '';
 
-  propagatedBuildInputs = [
-    attrs
-    multidict
-    async-timeout
-    yarl
-    frozenlist
-    aiosignal
-    aiodns
-    brotli
-  ];
+  propagatedBuildInputs =
+    [ attrs multidict async-timeout yarl frozenlist aiosignal aiodns brotli ];
 
   # NOTE: pytest-xdist cannot be added because it is flaky. See https://github.com/NixOS/nixpkgs/issues/230597 for more info.
   nativeCheckInputs = [
@@ -106,12 +76,11 @@ buildPythonPackage rec {
     "test_static_file_if_modified_since_past_date"
     # don't run benchmarks
     "test_import_time"
-  ] ++ lib.optionals stdenv.is32bit [
-    "test_cookiejar"
-  ] ++ lib.optionals stdenv.isDarwin [
-    "test_addresses"  # https://github.com/aio-libs/aiohttp/issues/3572, remove >= v4.0.0
-    "test_close"
-  ];
+  ] ++ lib.optionals stdenv.is32bit [ "test_cookiejar" ]
+    ++ lib.optionals stdenv.isDarwin [
+      "test_addresses" # https://github.com/aio-libs/aiohttp/issues/3572, remove >= v4.0.0
+      "test_close"
+    ];
 
   disabledTestPaths = [
     "tests/test_proxy_functional.py" # FIXME package proxy.py
@@ -129,7 +98,8 @@ buildPythonPackage rec {
   '';
 
   meta = with lib; {
-    changelog = "https://github.com/aio-libs/aiohttp/blob/v${version}/CHANGES.rst";
+    changelog =
+      "https://github.com/aio-libs/aiohttp/blob/v${version}/CHANGES.rst";
     description = "Asynchronous HTTP Client/Server for Python and asyncio";
     license = licenses.asl20;
     homepage = "https://github.com/aio-libs/aiohttp";

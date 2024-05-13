@@ -5,7 +5,8 @@ stdenv.mkDerivation rec {
   version = "0.2.12";
 
   src = fetchurl {
-    url = "https://libspectre.freedesktop.org/releases/${pname}-${version}.tar.gz";
+    url =
+      "https://libspectre.freedesktop.org/releases/${pname}-${version}.tar.gz";
     hash = "sha256-VadRfNNXK9JWXfDPRQlEoE1Sc7J567NpqJU5GVfw+WA=";
   };
 
@@ -18,9 +19,7 @@ stdenv.mkDerivation rec {
 
   doCheck = true;
 
-  checkInputs = [
-    cairo
-  ];
+  checkInputs = [ cairo ];
 
   meta = {
     homepage = "http://libspectre.freedesktop.org/";

@@ -1,8 +1,7 @@
 { ... }:
 res: pkgs: super:
 
-with pkgs;
-{
+with pkgs; {
   imlib2 = callPackage ./. { };
   imlib2Full = imlib2.override {
     # Compilation error on Darwin with librsvg. For more information see:
@@ -13,7 +12,5 @@ with pkgs;
     jxlSupport = true;
     psSupport = true;
   };
-  imlib2-nox = imlib2.override {
-    x11Support = false;
-  };
+  imlib2-nox = imlib2.override { x11Support = false; };
 }

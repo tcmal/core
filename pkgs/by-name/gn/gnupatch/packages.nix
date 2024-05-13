@@ -1,8 +1,7 @@
 { ... }:
 res: pkgs: super:
 
-with pkgs;
-{
+with pkgs; {
   gnupatch = callPackage ./. { };
   patch = gnupatch;
 }

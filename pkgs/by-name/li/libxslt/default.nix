@@ -1,64 +1,43 @@
-{ lib
-, stdenv
-, fetchurl
-, pkg-config
-, autoreconfHook
-, libxml2
-, findXMLCatalogs
-, gettext
-, python
-, ncurses
-, libxcrypt
-, libgcrypt
-, cryptoSupport ? false
+{ lib, stdenv, fetchurl, pkg-config, autoreconfHook, libxml2, findXMLCatalogs
+, gettext, python, ncurses, libxcrypt, libgcrypt, cryptoSupport ? false
 , pythonSupport ? libxml2.pythonSupport
-# , gnome
+  # , gnome
 }:
 
 stdenv.mkDerivation rec {
   pname = "libxslt";
   version = "1.1.39";
 
-  outputs = [ "bin" "dev" "out" "doc" "devdoc" ] ++ lib.optional pythonSupport "py";
+  outputs = [ "bin" "dev" "out" "doc" "devdoc" ]
+    ++ lib.optional pythonSupport "py";
   outputMan = "bin";
 
   src = fetchurl {
-    url = "mirror://gnome/sources/${pname}/${lib.versions.majorMinor version}/${pname}-${version}.tar.xz";
+    url = "mirror://gnome/sources/${pname}/${
+        lib.versions.majorMinor version
+      }/${pname}-${version}.tar.xz";
     hash = "sha256-KiCtYhFIM5sHWcTU6WcZNi3uZMmgltu6YlugU4RjSfA=";
   };
 
   strictDeps = true;
 
-  nativeBuildInputs = [
-    pkg-config
-    autoreconfHook
-  ];
+  nativeBuildInputs = [ pkg-config autoreconfHook ];
 
-  buildInputs = [
-    libxml2.dev libxcrypt
-  ] ++ lib.optionals stdenv.isDarwin [
-    gettext
-  ] ++ lib.optionals pythonSupport [
-    libxml2.py
-    python
-    ncurses
-  ] ++ lib.optionals cryptoSupport [
-    libgcrypt
-  ];
+  buildInputs = [ libxml2.dev libxcrypt ]
+    ++ lib.optionals stdenv.isDarwin [ gettext ]
+    ++ lib.optionals pythonSupport [ libxml2.py python ncurses ]
+    ++ lib.optionals cryptoSupport [ libgcrypt ];
 
-  propagatedBuildInputs = [
-    findXMLCatalogs
-  ];
+  propagatedBuildInputs = [ findXMLCatalogs ];
 
   configureFlags = [
     "--without-debug"
     "--without-mem-debug"
     "--without-debugger"
     (lib.withFeature pythonSupport "python")
-    (lib.optionalString pythonSupport "PYTHON=${python.pythonOnBuildForHost.interpreter}")
-  ] ++ lib.optionals (!cryptoSupport) [
-    "--without-crypto"
-  ];
+    (lib.optionalString pythonSupport
+      "PYTHON=${python.pythonOnBuildForHost.interpreter}")
+  ] ++ lib.optionals (!cryptoSupport) [ "--without-crypto" ];
 
   enableParallelBuilding = true;
 
@@ -86,6 +65,7 @@ stdenv.mkDerivation rec {
     license = licenses.mit;
     platforms = platforms.all;
     maintainers = with maintainers; [ eelco jtojnar ];
-    broken = pythonSupport && !libxml2.pythonSupport; # see #73102 for why this is not an assert
+    broken = pythonSupport
+      && !libxml2.pythonSupport; # see #73102 for why this is not an assert
   };
 }

@@ -1,25 +1,15 @@
-{ lib, stdenv
-, fetchurl
-, autoreconfHook
-, docbook_xsl
-, docbook_xml_dtd_43
-, gtk-doc
-, lzip
-, libidn2
-, libunistring
-, libxslt
-, pkg-config
-, python3
+{ lib, stdenv, fetchurl, autoreconfHook, docbook_xsl, docbook_xml_dtd_43
+, gtk-doc, lzip, libidn2, libunistring, libxslt, pkg-config, python3
 # , valgrind
-, publicsuffix-list
-}:
+, publicsuffix-list }:
 
 stdenv.mkDerivation rec {
   pname = "libpsl";
   version = "0.21.5";
 
   src = fetchurl {
-    url = "https://github.com/rockdaboot/libpsl/releases/download/${version}/libpsl-${version}.tar.lz";
+    url =
+      "https://github.com/rockdaboot/libpsl/releases/download/${version}/libpsl-${version}.tar.lz";
     hash = "sha256-mp9qjG7bplDPnqVUdc0XLdKEhzFoBOnHMgLZdXLNOi0=";
   };
 
@@ -37,15 +27,9 @@ stdenv.mkDerivation rec {
     libxslt
   ];
 
-  buildInputs = [
-    libidn2
-    libunistring
-    libxslt
-  ];
+  buildInputs = [ libidn2 libunistring libxslt ];
 
-  propagatedBuildInputs = [
-    publicsuffix-list
-  ];
+  propagatedBuildInputs = [ publicsuffix-list ];
 
   postPatch = ''
     patchShebangs src/psl-make-dafsa
@@ -77,7 +61,8 @@ stdenv.mkDerivation rec {
       the domain in a user interface or sorting domain lists by site.
     '';
     homepage = "https://rockdaboot.github.io/libpsl/";
-    changelog = "https://raw.githubusercontent.com/rockdaboot/${pname}/${pname}-${version}/NEWS";
+    changelog =
+      "https://raw.githubusercontent.com/rockdaboot/${pname}/${pname}-${version}/NEWS";
     license = licenses.mit;
     maintainers = [ maintainers.c0bw3b ];
     mainProgram = "psl";

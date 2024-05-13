@@ -4,9 +4,11 @@
 { lib, writeText, inherit-local }:
 
 rec {
-  withPackages = pkgs': let
+  withPackages = pkgs':
+    let
       pkgs = builtins.filter (x: x != null) pkgs';
-      extras = map (x: x.emacsBufferSetup pkgs) (builtins.filter (builtins.hasAttr "emacsBufferSetup") pkgs);
+      extras = map (x: x.emacsBufferSetup pkgs)
+        (builtins.filter (builtins.hasAttr "emacsBufferSetup") pkgs);
     in writeText "dir-locals.el" ''
       (require 'inherit-local "${inherit-local}/share/emacs/site-lisp/elpa/inherit-local-${inherit-local.version}/inherit-local.elc")
 
@@ -42,10 +44,16 @@ rec {
       (inherit-local 'process-environment)
       ; setenv modifies in place, so copy the environment first
       (setq process-environment (copy-tree process-environment))
-      (setenv "PATH" (concat "${lib.makeSearchPath "bin" pkgs}:" (getenv "PATH")))
-      (inherit-local-permanent exec-path (append '(${builtins.concatStringsSep " " (map (p: "\"${p}/bin\"") pkgs)}) exec-path))
+      (setenv "PATH" (concat "${
+        lib.makeSearchPath "bin" pkgs
+      }:" (getenv "PATH")))
+      (inherit-local-permanent exec-path (append '(${
+        builtins.concatStringsSep " " (map (p: ''"${p}/bin"'') pkgs)
+      }) exec-path))
 
-      (inherit-local-permanent eshell-path-env (concat "${lib.makeSearchPath "bin" pkgs}:" (if (boundp 'eshell-path-env) eshell-path-env (getenv "PATH"))))
+      (inherit-local-permanent eshell-path-env (concat "${
+        lib.makeSearchPath "bin" pkgs
+      }:" (if (boundp 'eshell-path-env) eshell-path-env (getenv "PATH"))))
 
       (setq nixpkgs--is-nixpkgs-buffer t)
       (inherit-local 'nixpkgs--is-nixpkgs-buffer)
@@ -55,23 +63,22 @@ rec {
   # nix-buffer function for a project with a bunch of haskell packages
   # in one directory
   haskellMonoRepo = { project-root # The monorepo root
-                    , haskellPackages # The composed haskell packages set that contains all of the packages
-                    }: { root }:
+    , haskellPackages # The composed haskell packages set that contains all of the packages
+    }:
+    { root }:
     let # The haskell paths.
-        haskell-paths = lib.filesystem.haskellPathsInDir project-root;
-        # Find the haskell package that the 'root' is in, if any.
-        haskell-path-parent =
-          let filtered = builtins.filter (name:
-            lib.hasPrefix (toString (project-root + "/${name}")) (toString root)
-          ) (builtins.attrNames haskell-paths);
-          in
-            if filtered == [] then null else builtins.head filtered;
-        # We're in the directory of a haskell package
-        is-haskell-package = haskell-path-parent != null;
-        haskell-package = haskellPackages.${haskell-path-parent};
-        # GHC environment with all needed deps for the haskell package
-        haskell-package-env =
-          builtins.head haskell-package.env.nativeBuildInputs;
-    in
-      lib.optionalAttrs is-haskell-package (withPackages [ haskell-package-env ]);
+      haskell-paths = lib.filesystem.haskellPathsInDir project-root;
+      # Find the haskell package that the 'root' is in, if any.
+      haskell-path-parent = let
+        filtered = builtins.filter (name:
+          lib.hasPrefix (toString (project-root + "/${name}")) (toString root))
+          (builtins.attrNames haskell-paths);
+      in if filtered == [ ] then null else builtins.head filtered;
+      # We're in the directory of a haskell package
+      is-haskell-package = haskell-path-parent != null;
+      haskell-package = haskellPackages.${haskell-path-parent};
+      # GHC environment with all needed deps for the haskell package
+      haskell-package-env = builtins.head haskell-package.env.nativeBuildInputs;
+    in lib.optionalAttrs is-haskell-package
+    (withPackages [ haskell-package-env ]);
 }

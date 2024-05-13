@@ -4,7 +4,9 @@
 
 self: super:
 
-with self; with super; {
+with self;
+with super;
+{
   # attrs = callPackage ./python2-modules/attrs { };
 
   # backports-functools-lru-cache = callPackage ./python2-modules/backports-functools-lru-cache { };

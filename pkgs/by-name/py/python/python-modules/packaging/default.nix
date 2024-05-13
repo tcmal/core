@@ -1,15 +1,10 @@
-{ lib
-, buildPythonPackage
-, fetchPypi
-, pythonOlder
+{ lib, buildPythonPackage, fetchPypi, pythonOlder
 
 # build-system
 , flit-core
 
 # tests
-, pretend
-, pytestCheckHook
-}:
+, pretend, pytestCheckHook }:
 
 let
   packaging = buildPythonPackage rec {
@@ -24,14 +19,9 @@ let
       hash = "sha256-64LF4+ViCQdHZuaIW7BLjDigwBXQowA26+fs40yZiek=";
     };
 
-    nativeBuildInputs = [
-      flit-core
-    ];
+    nativeBuildInputs = [ flit-core ];
 
-    nativeCheckInputs = [
-      pytestCheckHook
-      pretend
-    ];
+    nativeCheckInputs = [ pytestCheckHook pretend ];
 
     pythonImportsCheck = [
       "packaging"
@@ -48,7 +38,8 @@ let
     passthru.tests = packaging.overridePythonAttrs (_: { doCheck = true; });
 
     meta = with lib; {
-      changelog = "https://github.com/pypa/packaging/blob/${version}/CHANGELOG.rst";
+      changelog =
+        "https://github.com/pypa/packaging/blob/${version}/CHANGELOG.rst";
       description = "Core utilities for Python packages";
       downloadPage = "https://github.com/pypa/packaging";
       homepage = "https://packaging.pypa.io/";
@@ -56,5 +47,4 @@ let
       # maintainers = teams.python.members ++ (with maintainers; [ bennofs ]);
     };
   };
-in
-packaging
+in packaging

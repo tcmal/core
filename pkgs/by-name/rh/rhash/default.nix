@@ -1,9 +1,5 @@
-{ lib
-, stdenv
-, fetchFromGitHub
-, which
-, enableStatic ? stdenv.hostPlatform.isStatic
-}:
+{ lib, stdenv, fetchFromGitHub, which
+, enableStatic ? stdenv.hostPlatform.isStatic }:
 
 stdenv.mkDerivation rec {
   version = "1.4.4";
@@ -34,16 +30,13 @@ stdenv.mkDerivation rec {
 
   checkTarget = "test-full";
 
-  installTargets = [
-    "install"
-    "install-lib-headers"
-  ] ++ lib.optionals (!enableStatic) [
-    "install-lib-so-link"
-  ];
+  installTargets = [ "install" "install-lib-headers" ]
+    ++ lib.optionals (!enableStatic) [ "install-lib-so-link" ];
 
   meta = with lib; {
     homepage = "https://rhash.sourceforge.net/";
-    description = "Console utility and library for computing and verifying hash sums of files";
+    description =
+      "Console utility and library for computing and verifying hash sums of files";
     license = licenses.bsd0;
     platforms = platforms.all;
     maintainers = with maintainers; [ andrewrk ];

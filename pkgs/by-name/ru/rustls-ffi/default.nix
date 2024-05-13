@@ -1,12 +1,6 @@
-{ lib
-, stdenv
-, fetchFromGitHub
-, rustPlatform
-, Security
+{ lib, stdenv, fetchFromGitHub, rustPlatform, Security
 # for passthru.tests
-, apacheHttpd
-, curl
-}:
+, apacheHttpd, curl }:
 
 rustPlatform.buildRustPackage rec {
   pname = "rustls-ffi";

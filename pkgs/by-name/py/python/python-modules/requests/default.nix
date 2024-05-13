@@ -1,20 +1,6 @@
-{ lib
-, stdenv
-, brotlicffi
-, buildPythonPackage
-, certifi
-, chardet
-, charset-normalizer
-, fetchPypi
-, fetchpatch
-, idna
-, pysocks
-, pytest-mock
-, pytest-xdist
-, pytestCheckHook
-, pythonOlder
-, urllib3
-}:
+{ lib, stdenv, brotlicffi, buildPythonPackage, certifi, chardet
+, charset-normalizer, fetchPypi, fetchpatch, idna, pysocks, pytest-mock
+, pytest-xdist, pytestCheckHook, pythonOlder, urllib3 }:
 
 buildPythonPackage rec {
   pname = "requests";
@@ -30,30 +16,16 @@ buildPythonPackage rec {
     hash = "sha256-lCxadY+Y15Dq7Ropy27vx/+w0c968Fw9J5Flbb1q0eE=";
   };
 
-  dependencies = [
-    brotlicffi
-    certifi
-    charset-normalizer
-    idna
-    urllib3
-  ];
+  dependencies = [ brotlicffi certifi charset-normalizer idna urllib3 ];
 
   optional-dependencies = {
-    security = [];
-    socks = [
-      pysocks
-    ];
-    use_chardet_on_py3 = [
-      chardet
-    ];
+    security = [ ];
+    socks = [ pysocks ];
+    use_chardet_on_py3 = [ chardet ];
   };
 
-  nativeCheckInputs = [
-    pytest-mock
-    pytest-xdist
-    pytestCheckHook
-  ]
-  ++ optional-dependencies.socks;
+  nativeCheckInputs = [ pytest-mock pytest-xdist pytestCheckHook ]
+    ++ optional-dependencies.socks;
 
   disabledTests = [
     # Disable tests that require network access and use httpbin
@@ -80,9 +52,7 @@ buildPythonPackage rec {
     "tests/test_lowlevel.py"
   ];
 
-  pythonImportsCheck = [
-    "requests"
-  ];
+  pythonImportsCheck = [ "requests" ];
 
   meta = with lib; {
     description = "HTTP library for Python";

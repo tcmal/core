@@ -21,9 +21,7 @@ stdenv.mkDerivation rec {
   nativeBuildInputs = [ gettext perlPackages.perl perlPackages.LocaleGettext ];
   buildInputs = [ perlPackages.LocaleGettext libintl ];
 
-  configureFlags = [
-    "--enable-nls"
-  ];
+  configureFlags = [ "--enable-nls" ];
 
   doCheck = false; # target `check' is missing
 
@@ -36,7 +34,8 @@ stdenv.mkDerivation rec {
     cat > $out/bin/help2man <<EOF
     #! $SHELL -e
     export PERL5LIB=\''${PERL5LIB:+:}${perlPackages.LocaleGettext}/${perlPackages.perl.libPrefix}
-    ${lib.optionalString stdenv.hostPlatform.isCygwin ''export PATH=\''${PATH:+:}${gettext}/bin''}
+    ${lib.optionalString stdenv.hostPlatform.isCygwin
+    "export PATH=\\\${PATH:+:}${gettext}/bin"}
     exec -a \$0 $out/bin/.help2man-wrapped "\$@"
     EOF
     chmod +x $out/bin/help2man

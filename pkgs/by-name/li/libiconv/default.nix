@@ -1,8 +1,5 @@
-{ fetchurl, stdenv, lib
-, enableStatic ? stdenv.hostPlatform.isStatic
-, enableShared ? !stdenv.hostPlatform.isStatic
-, enableDarwinABICompat ? false
-}:
+{ fetchurl, stdenv, lib, enableStatic ? stdenv.hostPlatform.isStatic
+, enableShared ? !stdenv.hostPlatform.isStatic, enableDarwinABICompat ? false }:
 
 # assert !stdenv.hostPlatform.isLinux || stdenv.hostPlatform != stdenv.buildPlatform; # TODO: improve on cross
 
@@ -17,17 +14,12 @@ stdenv.mkDerivation rec {
 
   enableParallelBuilding = true;
 
-  setupHooks = [
-    ../../../build-support/setup-hooks/role.bash
-    ./setup-hook.sh
-  ];
+  setupHooks = [ ../../../build-support/setup-hooks/role.bash ./setup-hook.sh ];
 
-  postPatch =
-    lib.optionalString ((stdenv.hostPlatform != stdenv.buildPlatform && stdenv.hostPlatform.isMinGW) || stdenv.cc.nativeLibc)
-      ''
-        sed '/^_GL_WARN_ON_USE (gets/d' -i srclib/stdio.in.h
-      ''
-    + lib.optionalString (!enableShared) ''
+  postPatch = lib.optionalString ((stdenv.hostPlatform != stdenv.buildPlatform
+    && stdenv.hostPlatform.isMinGW) || stdenv.cc.nativeLibc) ''
+      sed '/^_GL_WARN_ON_USE (gets/d' -i srclib/stdio.in.h
+    '' + lib.optionalString (!enableShared) ''
       sed -i -e '/preload/d' Makefile.in
     ''
     # The system libiconv is based on libiconv 1.11 with some ABI differences. The following changes

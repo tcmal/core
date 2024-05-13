@@ -1,8 +1,4 @@
-{ lib
-, stdenv
-, fetchurl
-, libgpg-error
-, enableCapabilities ? false, libcap
+{ lib, stdenv, fetchurl, libgpg-error, enableCapabilities ? false, libcap
 , buildPackages
 # for passthru.tests
 # , gnupg
@@ -31,13 +27,14 @@ stdenv.mkDerivation rec {
 
   depsBuildBuild = [ buildPackages.stdenv.cc ];
 
-  buildInputs = [ libgpg-error ]
-    ++ lib.optional enableCapabilities libcap;
+  buildInputs = [ libgpg-error ] ++ lib.optional enableCapabilities libcap;
 
   strictDeps = true;
 
   configureFlags = [ "--with-libgpg-error-prefix=${libgpg-error.dev}" ]
-      ++ lib.optional (stdenv.hostPlatform.isMusl || (stdenv.hostPlatform.isDarwin && stdenv.hostPlatform.isAarch64)) "--disable-asm"; # for darwin see https://dev.gnupg.org/T5157
+    ++ lib.optional (stdenv.hostPlatform.isMusl
+      || (stdenv.hostPlatform.isDarwin && stdenv.hostPlatform.isAarch64))
+    "--disable-asm"; # for darwin see https://dev.gnupg.org/T5157
 
   # Necessary to generate correct assembly when compiling for aarch32 on
   # aarch64
@@ -64,12 +61,11 @@ stdenv.mkDerivation rec {
 
   meta = with lib; {
     homepage = "https://www.gnu.org/software/libgcrypt/";
-    changelog = "https://git.gnupg.org/cgi-bin/gitweb.cgi?p=${pname}.git;a=blob;f=NEWS;hb=refs/tags/${pname}-${version}";
+    changelog =
+      "https://git.gnupg.org/cgi-bin/gitweb.cgi?p=${pname}.git;a=blob;f=NEWS;hb=refs/tags/${pname}-${version}";
     description = "General-purpose cryptographic library";
     license = licenses.lgpl2Plus;
     platforms = platforms.all;
-    knownVulnerabilities = [
-      "CVE-2021-40528"
-    ];
+    knownVulnerabilities = [ "CVE-2021-40528" ];
   };
 }

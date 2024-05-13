@@ -1,25 +1,13 @@
-{
-  _7zz
-  , cacert
-  , curl
-  , fetchurl
-  , git
-  , lib
-  , makeBinaryWrapper
-  , php
-  , stdenvNoCC
-  , unzip
-  , xz
-  , version
-  , pharHash
-}:
+{ _7zz, cacert, curl, fetchurl, git, lib, makeBinaryWrapper, php, stdenvNoCC
+, unzip, xz, version, pharHash }:
 
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "composer-phar";
   inherit version;
 
   src = fetchurl {
-    url = "https://github.com/composer/composer/releases/download/${finalAttrs.version}/composer.phar";
+    url =
+      "https://github.com/composer/composer/releases/download/${finalAttrs.version}/composer.phar";
     hash = pharHash;
   };
 
@@ -40,7 +28,8 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   '';
 
   meta = {
-    changelog = "https://github.com/composer/composer/releases/tag/${finalAttrs.version}";
+    changelog =
+      "https://github.com/composer/composer/releases/tag/${finalAttrs.version}";
     description = "Dependency Manager for PHP, shipped from the PHAR file";
     homepage = "https://getcomposer.org/";
     license = lib.licenses.mit;

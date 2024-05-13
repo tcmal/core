@@ -6,16 +6,10 @@
 
 { lib, fetchurl, patchutils }:
 
-{ relative ? null
-, stripLen ? 0
+{ relative ? null, stripLen ? 0
 , decode ? "cat" # custom command to decode patch e.g. base64 -d
-, extraPrefix ? null
-, excludes ? []
-, includes ? []
-, revert ? false
-, postFetch ? ""
-, ...
-}@args:
+, extraPrefix ? null, excludes ? [ ], includes ? [ ], revert ? false
+, postFetch ? "", ... }@args:
 let
   args' = if relative != null then {
     stripLen = 1 + lib.length (lib.splitString "/" relative) + stripLen;
@@ -23,12 +17,9 @@ let
   } else {
     inherit stripLen extraPrefix;
   };
-in let
-  inherit (args') stripLen extraPrefix;
-in
-lib.throwIfNot (excludes == [] || includes == [])
-  "fetchpatch: cannot use excludes and includes simultaneously"
-fetchurl ({
+in let inherit (args') stripLen extraPrefix;
+in lib.throwIfNot (excludes == [ ] || includes == [ ])
+"fetchpatch: cannot use excludes and includes simultaneously" fetchurl ({
   postFetch = ''
     tmpfile="$TMPDIR/patch"
 
@@ -40,7 +31,9 @@ fetchurl ({
     set +e
     ${decode} < "$out" > "$tmpfile"
     if [ $? -ne 0 ] || [ ! -s "$tmpfile" ]; then
-        echo 'Failed to decode patch with command "'${lib.escapeShellArg decode}'"' >&2
+        echo 'Failed to decode patch with command "'${
+          lib.escapeShellArg decode
+        }'"' >&2
         echo 'Fetched file was (limited to 128 bytes):' >&2
         od -A x -t x1z -v -N 128 "$out" >&2
         exit 1
@@ -49,17 +42,22 @@ fetchurl ({
     mv "$tmpfile" "$out"
 
     "${patchutils}/bin/lsdiff" \
-      ${lib.optionalString (relative != null) "-p1 -i ${lib.escapeShellArg relative}/'*'"} \
+      ${
+        lib.optionalString (relative != null)
+        "-p1 -i ${lib.escapeShellArg relative}/'*'"
+      } \
       "$out" \
     | sort -u | sed -e 's/[*?]/\\&/g' \
     | xargs -I{} \
       "${patchutils}/bin/filterdiff" \
       --include={} \
       --strip=${toString stripLen} \
-      ${lib.optionalString (extraPrefix != null) ''
+      ${
+        lib.optionalString (extraPrefix != null) ''
           --addoldprefix=a/${lib.escapeShellArg extraPrefix} \
           --addnewprefix=b/${lib.escapeShellArg extraPrefix} \
-      ''} \
+        ''
+      } \
       --clean "$out" > "$tmpfile"
 
     if [ ! -s "$tmpfile" ]; then
@@ -72,8 +70,14 @@ fetchurl ({
 
     ${patchutils}/bin/filterdiff \
       -p1 \
-      ${builtins.toString (builtins.map (x: "-x ${lib.escapeShellArg x}") excludes)} \
-      ${builtins.toString (builtins.map (x: "-i ${lib.escapeShellArg x}") includes)} \
+      ${
+        builtins.toString
+        (builtins.map (x: "-x ${lib.escapeShellArg x}") excludes)
+      } \
+      ${
+        builtins.toString
+        (builtins.map (x: "-i ${lib.escapeShellArg x}") includes)
+      } \
       "$tmpfile" > "$out"
 
     if [ ! -s "$out" ]; then
@@ -88,6 +92,12 @@ fetchurl ({
     mv "$tmpfile" "$out"
   '' + postFetch;
 } // builtins.removeAttrs args [
-  "relative" "stripLen" "decode" "extraPrefix" "excludes" "includes" "revert"
+  "relative"
+  "stripLen"
+  "decode"
+  "extraPrefix"
+  "excludes"
+  "includes"
+  "revert"
   "postFetch"
 ])

@@ -1,8 +1,4 @@
-{ lib
-, stdenv
-, fetchurl
-, ncurses
-}:
+{ lib, stdenv, fetchurl, ncurses }:
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "libedit";
@@ -15,13 +11,9 @@ stdenv.mkDerivation (finalAttrs: {
 
   outputs = [ "out" "dev" "man" ];
 
-  patches = [
-    ./01-cygwin.patch
-  ];
+  patches = [ ./01-cygwin.patch ];
 
-  propagatedBuildInputs = [
-    ncurses
-  ];
+  propagatedBuildInputs = [ ncurses ];
 
   # GCC automatically include `stdc-predefs.h` while Clang does not do this by
   # default. While Musl is ISO 10646 compliant, it does not define
@@ -32,11 +24,11 @@ stdenv.mkDerivation (finalAttrs: {
   # https://reviews.llvm.org/D137043
   env.NIX_CFLAGS_COMPILE =
     lib.optionalString (stdenv.targetPlatform.isMusl && stdenv.cc.isClang)
-      "-D__STDC_ISO_10646__=201103L";
+    "-D__STDC_ISO_10646__=201103L";
 
   postFixup = ''
     find $out/lib -type f | \
-      grep '\.\(la\|pc\)''$' | \
+      grep '\.\(la\|pc\)$' | \
       xargs sed -i -e 's,-lncurses[a-z]*,-L${ncurses.out}/lib -lncursesw,g'
   '';
 
@@ -44,10 +36,10 @@ stdenv.mkDerivation (finalAttrs: {
     homepage = "http://www.thrysoee.dk/editline/";
     description = "A port of the NetBSD Editline library (libedit)";
     longDescription = ''
-       This is an autotool- and libtoolized port of the NetBSD Editline library
-       (libedit). This Berkeley-style licensed command line editor library
-       provides generic line editing, history, and tokenization functions,
-       similar to those found in GNU Readline.
+      This is an autotool- and libtoolized port of the NetBSD Editline library
+      (libedit). This Berkeley-style licensed command line editor library
+      provides generic line editing, history, and tokenization functions,
+      similar to those found in GNU Readline.
     '';
     license = with lib.licenses; [ bsd3 ];
     maintainers = with lib.maintainers; [ AndersonTorres ];

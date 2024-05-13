@@ -12,28 +12,19 @@
 , libwebpdemuxSupport ? true # Build libwebpdemux
 , libwebpdecoderSupport ? true # Build libwebpdecoder
 
-# for passthru.tests
-, freeimage
-, gd
-, graphicsmagick
-, haskellPackages
-, imagemagick
-, imlib2
-, libjxl
-, opencv
-, python3
-, vips
-}:
+  # for passthru.tests
+, freeimage, gd, graphicsmagick, haskellPackages, imagemagick, imlib2, libjxl
+, opencv, python3, vips }:
 
 stdenv.mkDerivation rec {
   pname = "libwebp";
   version = "1.3.2";
 
   src = fetchFromGitHub {
-    owner  = "webmproject";
-    repo   = pname;
-    rev    = "v${version}";
-    hash   = "sha256-UYO2Fmm8nzQR8VBC26wEwWd3qZTD+6MHKcmKBoNcpEE=";
+    owner = "webmproject";
+    repo = pname;
+    rev = "v${version}";
+    hash = "sha256-UYO2Fmm8nzQR8VBC26wEwWd3qZTD+6MHKcmKBoNcpEE=";
   };
 
   configureFlags = [
@@ -52,8 +43,7 @@ stdenv.mkDerivation rec {
   ];
 
   nativeBuildInputs = [ autoreconfHook libtool ];
-  buildInputs = [ ]
-    ++ lib.optionals openglSupport [ freeglut libGL libGLU ]
+  buildInputs = [ ] ++ lib.optionals openglSupport [ freeglut libGL libGLU ]
     ++ lib.optionals pngSupport [ libpng ]
     ++ lib.optionals jpegSupport [ libjpeg ]
     ++ lib.optionals tiffSupport [ libtiff ]

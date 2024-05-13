@@ -1,4 +1,5 @@
-{ lib, stdenv, makeWrapper, binutils-unwrapped, cctools, llvm, clang-unwrapped, dualAs ? false }:
+{ lib, stdenv, makeWrapper, binutils-unwrapped, cctools, llvm, clang-unwrapped
+, dualAs ? false }:
 
 # Make sure both underlying packages claim to have prepended their binaries
 # with the same targetPrefix.
@@ -7,16 +8,25 @@ assert binutils-unwrapped.targetPrefix == cctools.targetPrefix;
 let
   inherit (binutils-unwrapped) targetPrefix;
   cmds = [
-    "ar" "ranlib" "as" "install_name_tool"
-    "ld" "strip" "otool" "lipo" "nm" "strings" "size"
+    "ar"
+    "ranlib"
+    "as"
+    "install_name_tool"
+    "ld"
+    "strip"
+    "otool"
+    "lipo"
+    "nm"
+    "strings"
+    "size"
     "codesign_allocate"
   ];
   isCCToolsLLVM = lib.getName cctools == "cctools-llvm";
-in
 
-# TODO: loop over targetPrefixed binaries too
-stdenv.mkDerivation {
-  pname = "${targetPrefix}cctools-binutils-darwin" + lib.optionalString dualAs "-dualas";
+  # TODO: loop over targetPrefixed binaries too
+in stdenv.mkDerivation {
+  pname = "${targetPrefix}cctools-binutils-darwin"
+    + lib.optionalString dualAs "-dualas";
   inherit (cctools) version;
   outputs = [ "out" "man" ];
   buildCommand = ''
@@ -49,8 +59,7 @@ stdenv.mkDerivation {
         ln -sv "$path" "$dest_path"
       done
     done
-  ''
-  + lib.optionalString (!isCCToolsLLVM) (
+  '' + lib.optionalString (!isCCToolsLLVM) (
     # cctools-port has a `libexec` folder for `as`, but cctools-llvm uses the clang
     # assembler on both platforms. Only link it when cctools is cctools-port.
     ''
@@ -91,10 +100,11 @@ stdenv.mkDerivation {
       mv $out/bin/${targetPrefix}as $out/bin/${targetPrefix}gas
       makeWrapper "${clang-unwrapped}/bin/clang" "$out/bin/${targetPrefix}as" \
         --add-flags "-x assembler -integrated-as -c"
-    ''
-  );
+    '');
 
-  nativeBuildInputs = lib.optionals (!isCCToolsLLVM && (stdenv.isAarch64 || dualAs)) [ makeWrapper ];
+  nativeBuildInputs =
+    lib.optionals (!isCCToolsLLVM && (stdenv.isAarch64 || dualAs))
+    [ makeWrapper ];
 
   passthru = {
     inherit targetPrefix;

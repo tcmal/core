@@ -1,8 +1,4 @@
-{ lib
-, callPackage
-, boost-build
-, fetchurl
-}:
+{ lib, callPackage, boost-build, fetchurl }:
 
 let
   makeBoost = file:
@@ -13,8 +9,7 @@ let
           # the derivation we are building to get a matching b2 version.
           useBoost = self;
         };
-      }
-    );
+      });
 in {
   boost175 = makeBoost ./1.75.nix;
   boost177 = makeBoost ./1.77.nix;

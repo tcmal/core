@@ -1,19 +1,13 @@
-{ lib
-, stdenv
-, fetchurl
-, guileSupport ? false, guile
+{ lib, stdenv, fetchurl, guileSupport ? false, guile
 # avoid guile depend on bootstrap to prevent dependency cycles
-, inBootstrap ? false
-, pkg-config
+, inBootstrap ? false, pkg-config
 # for passthru.tests
 # , gnumake
 }:
 
-let
-  guileEnabled = guileSupport && !inBootstrap;
-in
+let guileEnabled = guileSupport && !inBootstrap;
 
-stdenv.mkDerivation rec {
+in stdenv.mkDerivation rec {
   pname = "gnumake";
   version = "4.4.1";
 
@@ -55,7 +49,8 @@ stdenv.mkDerivation rec {
   # };
 
   meta = with lib; {
-    description = "A tool to control the generation of non-source files from sources";
+    description =
+      "A tool to control the generation of non-source files from sources";
     longDescription = ''
       Make is a tool which controls the generation of executables and
       other non-source files of a program from the program's source files.

@@ -1,6 +1,4 @@
-{ lib
-, fetchurl
-}:
+{ lib, fetchurl }:
 
 let
   meta = {
@@ -19,8 +17,7 @@ let
     maintainers = with lib.maintainers; [ AndersonTorres ];
     platforms = lib.platforms.unix;
   };
-in
-{
+in {
   ed = let
     pname = "ed";
     version = "1.20.1";
@@ -28,9 +25,7 @@ in
       url = "mirror://gnu/ed/ed-${version}.tar.lz";
       hash = "sha256-saRjspehQfmHbEsfzQFHf2Rc3tkhaAkOmjXbKvS6u8o=";
     };
-  in import ./generic.nix {
-    inherit pname version src meta;
-  };
+  in import ./generic.nix { inherit pname version src meta; };
 
   edUnstable = let
     pname = "ed";
@@ -39,7 +34,5 @@ in
       url = "http://download.savannah.gnu.org/releases/ed/ed-${version}.tar.lz";
       hash = "sha256-bHTDeMhVNNo3qqDNoBNaBA+DHDa4WJpfQNcTvAUPgsY=";
     };
-  in import ./generic.nix {
-    inherit pname version src meta;
-  };
+  in import ./generic.nix { inherit pname version src meta; };
 }

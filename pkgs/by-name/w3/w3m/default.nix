@@ -1,12 +1,7 @@
-{ lib, stdenv, fetchFromGitHub, fetchpatch
-, ncurses, boehmgc, gettext, zlib
-, sslSupport ? true, openssl
-, graphicsSupport ? !stdenv.isDarwin, imlib2
-, x11Support ? graphicsSupport, libX11
-, mouseSupport ? !stdenv.isDarwin, gpm-ncurses
-, perl, man, pkg-config, buildPackages, w3m
-, testers
-}:
+{ lib, stdenv, fetchFromGitHub, fetchpatch, ncurses, boehmgc, gettext, zlib
+, sslSupport ? true, openssl, graphicsSupport ? !stdenv.isDarwin, imlib2
+, x11Support ? graphicsSupport, libX11, mouseSupport ? !stdenv.isDarwin
+, gpm-ncurses, perl, man, pkg-config, buildPackages, w3m, testers }:
 
 let
   mktable = buildPackages.stdenv.mkDerivation {
@@ -42,23 +37,23 @@ in stdenv.mkDerivation rec {
     ./RAND_egd.libressl.patch
     (fetchpatch {
       name = "https.patch";
-      url = "https://aur.archlinux.org/cgit/aur.git/plain/https.patch?h=w3m-mouse&id=5b5f0fbb59f674575e87dd368fed834641c35f03";
+      url =
+        "https://aur.archlinux.org/cgit/aur.git/plain/https.patch?h=w3m-mouse&id=5b5f0fbb59f674575e87dd368fed834641c35f03";
       sha256 = "08skvaha1hjyapsh8zw5dgfy433mw2hk7qy9yy9avn8rjqj7kjxk";
     })
   ];
 
-  postPatch = lib.optionalString (stdenv.hostPlatform != stdenv.buildPlatform) ''
-    ln -s ${mktable}/bin/mktable mktable
-    # stop make from recompiling mktable
-    sed -ie 's!mktable.*:.*!mktable:!' Makefile.in
-  '';
+  postPatch =
+    lib.optionalString (stdenv.hostPlatform != stdenv.buildPlatform) ''
+      ln -s ${mktable}/bin/mktable mktable
+      # stop make from recompiling mktable
+      sed -ie 's!mktable.*:.*!mktable:!' Makefile.in
+    '';
 
   nativeBuildInputs = [ pkg-config gettext ];
-  buildInputs = [ ncurses boehmgc zlib ]
-    ++ lib.optional sslSupport openssl
+  buildInputs = [ ncurses boehmgc zlib ] ++ lib.optional sslSupport openssl
     ++ lib.optional mouseSupport gpm-ncurses
-    ++ lib.optional graphicsSupport imlib2
-    ++ lib.optional x11Support libX11;
+    ++ lib.optional graphicsSupport imlib2 ++ lib.optional x11Support libX11;
 
   postInstall = lib.optionalString graphicsSupport ''
     ln -s $out/libexec/w3m/w3mimgdisplay $out/bin
@@ -66,12 +61,10 @@ in stdenv.mkDerivation rec {
 
   hardeningDisable = [ "format" ];
 
-  configureFlags =
-    [ "--with-ssl=${openssl.dev}" "--with-gc=${boehmgc.dev}" ]
-    ++ lib.optionals (stdenv.buildPlatform != stdenv.hostPlatform) [
-      "ac_cv_func_setpgrp_void=yes"
-    ]
-    ++ lib.optional graphicsSupport "--enable-image=${lib.optionalString x11Support "x11,"}fb"
+  configureFlags = [ "--with-ssl=${openssl.dev}" "--with-gc=${boehmgc.dev}" ]
+    ++ lib.optionals (stdenv.buildPlatform != stdenv.hostPlatform)
+    [ "ac_cv_func_setpgrp_void=yes" ] ++ lib.optional graphicsSupport
+    "--enable-image=${lib.optionalString x11Support "x11,"}fb"
     ++ lib.optional (graphicsSupport && !x11Support) "--without-x";
 
   preConfigure = ''

@@ -1,12 +1,5 @@
-{ lib
-, buildPerlPackage
-, fetchFromGitHub
-, makeWrapper
-, openssh
-, GitRepository
-, URI
-, XMLParser
-}:
+{ lib, buildPerlPackage, fetchFromGitHub, makeWrapper, openssh, GitRepository
+, URI, XMLParser }:
 
 buildPerlPackage {
   pname = "ham-unstable";
@@ -39,7 +32,8 @@ buildPerlPackage {
   '';
 
   meta = with lib; {
-    description = "A tool to manage big projects consisting of multiple loosely-coupled git repositories";
+    description =
+      "A tool to manage big projects consisting of multiple loosely-coupled git repositories";
     homepage = "https://github.com/kernkonzept/ham";
     license = licenses.bsd2;
     maintainers = with maintainers; [ aw ];

@@ -1,10 +1,11 @@
-{ lib, stdenv, version, runCommand, monorepoSrc, llvm, buildPackages, buildLlvmTools, ninja, cmake, python3 }:
+{ lib, stdenv, version, runCommand, monorepoSrc, llvm, buildPackages
+, buildLlvmTools, ninja, cmake, python3 }:
 
 stdenv.mkDerivation rec {
   pname = "libclc";
   inherit version;
 
-  src = runCommand "${pname}-src-${version}" {} ''
+  src = runCommand "${pname}-src-${version}" { } ''
     mkdir -p "$out"
     cp -r ${monorepoSrc}/cmake "$out"
     cp -r ${monorepoSrc}/${pname} "$out"
@@ -14,9 +15,7 @@ stdenv.mkDerivation rec {
 
   outputs = [ "out" "dev" ];
 
-  patches = [
-    ./libclc/libclc-gnu-install-dirs.patch
-  ];
+  patches = [ ./libclc/libclc-gnu-install-dirs.patch ];
 
   # cmake expects all required binaries to be in the same place, so it will not be able to find clang without the patch
   postPatch = ''
@@ -30,7 +29,11 @@ stdenv.mkDerivation rec {
       --replace 'find_program( LLVM_OPT opt PATHS ''${LLVM_TOOLS_BINARY_DIR} NO_DEFAULT_PATH )' \
                 'find_program( LLVM_OPT opt PATHS "${buildLlvmTools.llvm}/bin" NO_DEFAULT_PATH )' \
       --replace 'find_program( LLVM_SPIRV llvm-spirv PATHS ''${LLVM_TOOLS_BINARY_DIR} NO_DEFAULT_PATH )' \
-                'find_program( LLVM_SPIRV llvm-spirv PATHS "${buildPackages.spirv-llvm-translator.override { inherit (buildLlvmTools) llvm; }}/bin" NO_DEFAULT_PATH )'
+                'find_program( LLVM_SPIRV llvm-spirv PATHS "${
+                  buildPackages.spirv-llvm-translator.override {
+                    inherit (buildLlvmTools) llvm;
+                  }
+                }/bin" NO_DEFAULT_PATH )'
   '' + lib.optionalString (stdenv.hostPlatform != stdenv.buildPlatform) ''
     substituteInPlace CMakeLists.txt \
       --replace 'COMMAND prepare_builtins' 'COMMAND ${buildLlvmTools.libclc.dev}/bin/prepare_builtins'
@@ -46,7 +49,8 @@ stdenv.mkDerivation rec {
 
   meta = with lib; {
     homepage = "http://libclc.llvm.org/";
-    description = "Implementation of the library requirements of the OpenCL C programming language";
+    description =
+      "Implementation of the library requirements of the OpenCL C programming language";
     mainProgram = "prepare_builtins";
     license = licenses.mit;
     platforms = platforms.all;

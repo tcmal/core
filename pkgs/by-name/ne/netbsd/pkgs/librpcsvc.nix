@@ -1,10 +1,5 @@
-{ lib
-, mkDerivation
-, defaultMakeFlags
-, bsdSetupHook, netbsdSetupHook
-, makeMinimal
-, install, tsort, lorder, rpcgen, statHook
-}:
+{ lib, mkDerivation, defaultMakeFlags, bsdSetupHook, netbsdSetupHook
+, makeMinimal, install, tsort, lorder, rpcgen, statHook }:
 
 mkDerivation {
   path = "lib/librpcsvc";
@@ -13,9 +8,14 @@ mkDerivation {
   makeFlags = defaultMakeFlags ++ [ "INCSDIR=$(out)/include/rpcsvc" ];
   meta.platforms = lib.platforms.netbsd;
   nativeBuildInputs = [
-    bsdSetupHook netbsdSetupHook
+    bsdSetupHook
+    netbsdSetupHook
     makeMinimal
-    install tsort lorder rpcgen statHook
+    install
+    tsort
+    lorder
+    rpcgen
+    statHook
   ];
 }
 

@@ -1,8 +1,7 @@
 { ... }:
 res: pkgs: super:
 
-with pkgs;
-{
+with pkgs; {
   # also known as libturbojpeg
   libjpeg_turbo = callPackage ./. { };
   libjpeg = libjpeg_turbo;

@@ -1,11 +1,11 @@
-{ stdenv, lib, fetchurl, fetchpatch, fixDarwinDylibNames, testers, buildPackages }:
+{ stdenv, lib, fetchurl, fetchpatch, fixDarwinDylibNames, testers, buildPackages
+}:
 
 let
   make-icu = (import ./make-icu.nix) {
     inherit stdenv lib buildPackages fetchurl fixDarwinDylibNames testers;
   };
-in
-{
+in {
   icu74 = make-icu {
     version = "74.2";
     hash = "sha256-aNsIIhKpbW9T411g9H04uWLp+dIHp0z6x4Apro/14Iw=";
@@ -52,7 +52,8 @@ in
     patches = [
       # https://bugzilla.mozilla.org/show_bug.cgi?id=1499398
       (fetchpatch {
-        url = "https://github.com/unicode-org/icu/commit/8baff8f03e07d8e02304d0c888d0bb21ad2eeb01.patch";
+        url =
+          "https://github.com/unicode-org/icu/commit/8baff8f03e07d8e02304d0c888d0bb21ad2eeb01.patch";
         sha256 = "1awfa98ljcf95a85cssahw6bvdnpbq5brf1kgspy14w4mlmhd0jb";
       })
     ];

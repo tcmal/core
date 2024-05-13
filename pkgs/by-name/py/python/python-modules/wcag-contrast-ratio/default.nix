@@ -1,9 +1,4 @@
-{ lib
-, buildPythonPackage
-, fetchPypi
-, hypothesis
-, pytestCheckHook
-}:
+{ lib, buildPythonPackage, fetchPypi, hypothesis, pytestCheckHook }:
 
 buildPythonPackage rec {
   pname = "wcag-contrast-ratio";
@@ -15,19 +10,15 @@ buildPythonPackage rec {
     hash = "sha256-aRkrjlwKfQ3F/xGH7rPjmBQWM6S95RxpyH9Y/oftNhw=";
   };
 
-  nativeCheckInputs = [
-    hypothesis
-    pytestCheckHook
-  ];
+  nativeCheckInputs = [ hypothesis pytestCheckHook ];
 
-  pytestFlagsArray = [
-    "test.py"
-  ];
+  pytestFlagsArray = [ "test.py" ];
 
   pythonImportsCheck = [ "wcag_contrast_ratio" ];
 
   meta = with lib; {
-    description = "Library for computing contrast ratios, as required by WCAG 2.0";
+    description =
+      "Library for computing contrast ratios, as required by WCAG 2.0";
     homepage = "https://github.com/gsnedders/wcag-contrast-ratio";
     license = licenses.mit;
     maintainers = with maintainers; [ ];

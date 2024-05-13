@@ -1,20 +1,20 @@
-{ lib, stdenv, fetchurl, fetchpatch
-, autoreconfHook
+{ lib, stdenv, fetchurl, fetchpatch, autoreconfHook
 
-, doCheck ? true # test suite depends on dejagnu which cannot be used during bootstrapping
-, dejagnu
-}:
+, doCheck ?
+  true # test suite depends on dejagnu which cannot be used during bootstrapping
+, dejagnu }:
 
 stdenv.mkDerivation rec {
   pname = "libffi";
   version = "3.3";
 
   src = fetchurl {
-    url = "https://github.com/libffi/libffi/releases/download/v${version}/${pname}-${version}.tar.gz";
+    url =
+      "https://github.com/libffi/libffi/releases/download/v${version}/${pname}-${version}.tar.gz";
     hash = "sha256-cvunkicD3fp6Ao1ROsFahcjVTI1n9V+lpIAohdxlIFY=";
   };
 
-  patches = [];
+  patches = [ ];
 
   outputs = [ "out" "dev" "man" "info" ];
 
@@ -37,7 +37,8 @@ stdenv.mkDerivation rec {
     NIX_HARDENING_ENABLE=''${NIX_HARDENING_ENABLE/fortify/}
   '';
 
-  dontStrip = stdenv.hostPlatform != stdenv.buildPlatform; # Don't run the native `strip' when cross-compiling.
+  dontStrip = stdenv.hostPlatform
+    != stdenv.buildPlatform; # Don't run the native `strip' when cross-compiling.
 
   inherit doCheck;
 

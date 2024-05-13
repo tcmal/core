@@ -6,9 +6,7 @@
 # For example, in the Nixpkgs repo:
 # nix-build -E 'with import ./. {}; mkBinaryCache { rootPaths = [hello]; }'
 
-{ name ? "binary-cache"
-, rootPaths
-}:
+{ name ? "binary-cache", rootPaths }:
 
 stdenv.mkDerivation {
   inherit name;

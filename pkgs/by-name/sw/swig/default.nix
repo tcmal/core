@@ -15,9 +15,9 @@ stdenv.mkDerivation rec {
 
   configureFlags = [ "--disable-ccache" ];
 
-
   meta = with lib; {
-    description = "SWIG, an interface compiler that connects C/C++ code to higher-level languages";
+    description =
+      "SWIG, an interface compiler that connects C/C++ code to higher-level languages";
     mainProgram = "swig";
     homepage = "https://swig.org/";
     # Different types of licenses available: http://www.swig.org/Release/LICENSE .

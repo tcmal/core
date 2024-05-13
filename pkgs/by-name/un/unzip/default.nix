@@ -1,14 +1,13 @@
-{ lib, stdenv, fetchurl
-, bzip2
-, enableNLS ? false, libnatspec
-}:
+{ lib, stdenv, fetchurl, bzip2, enableNLS ? false, libnatspec }:
 
 stdenv.mkDerivation rec {
   pname = "unzip";
   version = "6.0";
 
   src = fetchurl {
-    url = "mirror://sourceforge/infozip/unzip${lib.replaceStrings ["."] [""] version}.tar.gz";
+    url = "mirror://sourceforge/infozip/unzip${
+        lib.replaceStrings [ "." ] [ "" ] version
+      }.tar.gz";
     sha256 = "0dxx11knh3nk95p2gg2ak777dd11pr7jx5das2g49l262scrcv83";
   };
 
@@ -28,17 +27,20 @@ stdenv.mkDerivation rec {
     ./CVE-2018-18384.patch
     ./dont-hardcode-cc.patch
     (fetchurl {
-      url = "https://github.com/madler/unzip/commit/41beb477c5744bc396fa1162ee0c14218ec12213.patch";
+      url =
+        "https://github.com/madler/unzip/commit/41beb477c5744bc396fa1162ee0c14218ec12213.patch";
       name = "CVE-2019-13232-1.patch";
       sha256 = "04jzd6chg9fw4l5zadkfsrfm5llrd7vhd1dgdjjd29nrvkrjyn14";
     })
     (fetchurl {
-      url = "https://github.com/madler/unzip/commit/47b3ceae397d21bf822bc2ac73052a4b1daf8e1c.patch";
+      url =
+        "https://github.com/madler/unzip/commit/47b3ceae397d21bf822bc2ac73052a4b1daf8e1c.patch";
       name = "CVE-2019-13232-2.patch";
       sha256 = "0iy2wcjyvzwrjk02iszwcpg85fkjxs1bvb9isvdiywszav4yjs32";
     })
     (fetchurl {
-      url = "https://github.com/madler/unzip/commit/6d351831be705cc26d897db44f878a978f4138fc.patch";
+      url =
+        "https://github.com/madler/unzip/commit/6d351831be705cc26d897db44f878a978f4138fc.patch";
       name = "CVE-2019-13232-3.patch";
       sha256 = "1jvs7dkdqs97qnsqc6hk088alhv8j4c638k65dbib9chh40jd7pf";
     })
@@ -63,13 +65,12 @@ stdenv.mkDerivation rec {
     # Clang 16 makes implicit declarations an error by default for C99 and newer, causing the
     # configure script to fail to detect errno and the directory libraries on Darwin.
     ./implicit-declarations-fix.patch
-  ] ++ lib.optional enableNLS
-    (fetchurl {
-      url = "https://gitweb.gentoo.org/repo/gentoo.git/plain/app-arch/unzip/files/unzip-6.0-natspec.patch?id=56bd759df1d0c750a065b8c845e93d5dfa6b549d";
-      name = "unzip-6.0-natspec.patch";
-      sha256 = "67ab260ae6adf8e7c5eda2d1d7846929b43562943ec4aff629bd7018954058b1";
-    });
-
+  ] ++ lib.optional enableNLS (fetchurl {
+    url =
+      "https://gitweb.gentoo.org/repo/gentoo.git/plain/app-arch/unzip/files/unzip-6.0-natspec.patch?id=56bd759df1d0c750a065b8c845e93d5dfa6b549d";
+    name = "unzip-6.0-natspec.patch";
+    sha256 = "67ab260ae6adf8e7c5eda2d1d7846929b43562943ec4aff629bd7018954058b1";
+  });
 
   nativeBuildInputs = [ bzip2 ];
   buildInputs = [ bzip2 ] ++ lib.optional enableNLS libnatspec;
@@ -85,21 +86,20 @@ stdenv.mkDerivation rec {
   ]
   # `lchmod` is not available on Linux, so we remove it to fix "not supported" errors (when the zip file contains symlinks).
   # Alpine (musl) and Debian (glibc) also add this flag.
-  ++ lib.optionals stdenv.isLinux [ "LOCAL_UNZIP=-DNO_LCHMOD" ];
+    ++ lib.optionals stdenv.isLinux [ "LOCAL_UNZIP=-DNO_LCHMOD" ];
 
   preConfigure = ''
     sed -i -e 's@CF="-O3 -Wall -I. -DASM_CRC $(LOC)"@CF="-O3 -Wall -I. -DASM_CRC -DLARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 $(LOC)"@' unix/Makefile
   '';
 
-  installFlags = [
-    "prefix=${placeholder "out"}"
-  ];
+  installFlags = [ "prefix=${placeholder "out"}" ];
 
   setupHook = ./setup-hook.sh;
 
   meta = {
     homepage = "http://www.info-zip.org";
-    description = "An extraction utility for archives compressed in .zip format";
+    description =
+      "An extraction utility for archives compressed in .zip format";
     license = lib.licenses.info-zip;
     platforms = lib.platforms.all;
     mainProgram = "unzip";

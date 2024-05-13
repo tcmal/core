@@ -49,7 +49,5 @@ appleDerivation {
     wrapProgram "$out/bin/bsdmake" --add-flags "-m $out/share/mk"
   '';
 
-  meta = {
-    platforms = lib.platforms.darwin;
-  };
+  meta = { platforms = lib.platforms.darwin; };
 }

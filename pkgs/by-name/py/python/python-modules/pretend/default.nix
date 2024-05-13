@@ -1,9 +1,4 @@
-{ lib
-, buildPythonPackage
-, fetchFromGitHub
-, pytestCheckHook
-, pythonOlder
-}:
+{ lib, buildPythonPackage, fetchFromGitHub, pytestCheckHook, pythonOlder }:
 
 buildPythonPackage rec {
   pname = "pretend";
@@ -19,13 +14,9 @@ buildPythonPackage rec {
     hash = "sha256-OqMfeIMFNBBLq6ejR3uOCIHZ9aA4zew7iefVlAsy1JQ=";
   };
 
-  nativeCheckInputs = [
-    pytestCheckHook
-  ];
+  nativeCheckInputs = [ pytestCheckHook ];
 
-  pythonImportsCheck = [
-    "pretend"
-  ];
+  pythonImportsCheck = [ "pretend" ];
 
   meta = with lib; {
     description = "Module for stubbing";

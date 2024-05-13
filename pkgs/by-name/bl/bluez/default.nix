@@ -1,20 +1,6 @@
-{ lib
-, stdenv
-, alsa-lib
-, dbus
-, docutils
-, ell
-, enableExperimental ? false
-, fetchurl
-, glib
-, json_c
-, libical
-, pkg-config
-, python3
-, readline
-, systemdMinimal
-, udev
-}:
+{ lib, stdenv, alsa-lib, dbus, docutils, ell, enableExperimental ? false
+, fetchurl, glib, json_c, libical, pkg-config, python3, readline, systemdMinimal
+, udev }:
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "bluez";
@@ -29,30 +15,16 @@ stdenv.mkDerivation (finalAttrs: {
     # Disable one failing test with musl libc, also seen by alpine
     # https://github.com/bluez/bluez/issues/726
     lib.optional (stdenv.hostPlatform.isMusl && stdenv.hostPlatform.isx86_64)
-      (fetchurl {
-        url = "https://git.alpinelinux.org/aports/plain/main/bluez/disable_aics_unit_testcases.patch?id=8e96f7faf01a45f0ad8449c1cd825db63a8dfd48";
-        hash = "sha256-1PJkipqBO3qxxOqRFQKfpWlne1kzTCgtnTFYI1cFQt4=";
-      })
-  ;
+    (fetchurl {
+      url =
+        "https://git.alpinelinux.org/aports/plain/main/bluez/disable_aics_unit_testcases.patch?id=8e96f7faf01a45f0ad8449c1cd825db63a8dfd48";
+      hash = "sha256-1PJkipqBO3qxxOqRFQKfpWlne1kzTCgtnTFYI1cFQt4=";
+    });
 
-  buildInputs = [
-    alsa-lib
-    dbus
-    ell
-    glib
-    json_c
-    libical
-    python3
-    readline
-    udev
-  ];
+  buildInputs = [ alsa-lib dbus ell glib json_c libical python3 readline udev ];
 
-  nativeBuildInputs = [
-    docutils
-    pkg-config
-    python3.pkgs.pygments
-    python3.pkgs.wrapPython
-  ];
+  nativeBuildInputs =
+    [ docutils pkg-config python3.pkgs.pygments python3.pkgs.wrapPython ];
 
   outputs = [ "out" "dev" "test" ];
 
@@ -61,16 +33,16 @@ stdenv.mkDerivation (finalAttrs: {
       --replace /sbin/udevadm ${systemdMinimal}/bin/udevadm \
       --replace "hid2hci " "$out/lib/udev/hid2hci "
   '' +
-  # Disable some tests:
-  # - test-mesh-crypto depends on the following kernel settings:
-  #   CONFIG_CRYPTO_[USER|USER_API|USER_API_AEAD|USER_API_HASH|AES|CCM|AEAD|CMAC]
-  ''
-    if [[ ! -f unit/test-mesh-crypto.c ]]; then
-      echo "unit/test-mesh-crypto.c no longer exists"
-      false
-    fi
-    echo 'int main() { return 77; }' > unit/test-mesh-crypto.c
-  '';
+    # Disable some tests:
+    # - test-mesh-crypto depends on the following kernel settings:
+    #   CONFIG_CRYPTO_[USER|USER_API|USER_API_AEAD|USER_API_HASH|AES|CCM|AEAD|CMAC]
+    ''
+      if [[ ! -f unit/test-mesh-crypto.c ]]; then
+        echo "unit/test-mesh-crypto.c no longer exists"
+        false
+      fi
+      echo 'int main() { return 77; }' > unit/test-mesh-crypto.c
+    '';
 
   configureFlags = [
     "--localstatedir=/var"
@@ -91,31 +63,26 @@ stdenv.mkDerivation (finalAttrs: {
     # superseded by new D-Bus APIs
     (lib.enableFeature true "deprecated")
     (lib.withFeatureAs true "dbusconfdir" "${placeholder "out"}/share")
-    (lib.withFeatureAs true "dbussessionbusdir" "${placeholder "out"}/share/dbus-1/services")
-    (lib.withFeatureAs true "dbussystembusdir" "${placeholder "out"}/share/dbus-1/system-services")
-    (lib.withFeatureAs true "systemdsystemunitdir" "${placeholder "out"}/etc/systemd/system")
-    (lib.withFeatureAs true "systemduserunitdir" "${placeholder "out"}/etc/systemd/user")
+    (lib.withFeatureAs true "dbussessionbusdir"
+      "${placeholder "out"}/share/dbus-1/services")
+    (lib.withFeatureAs true "dbussystembusdir"
+      "${placeholder "out"}/share/dbus-1/system-services")
+    (lib.withFeatureAs true "systemdsystemunitdir"
+      "${placeholder "out"}/etc/systemd/system")
+    (lib.withFeatureAs true "systemduserunitdir"
+      "${placeholder "out"}/etc/systemd/user")
     (lib.withFeatureAs true "udevdir" "${placeholder "out"}/lib/udev")
   ];
 
-  makeFlags = [
-    "rulesdir=${placeholder "out"}/lib/udev/rules.d"
-  ];
+  makeFlags = [ "rulesdir=${placeholder "out"}/lib/udev/rules.d" ];
 
   # Work around `make install' trying to create /var/lib/bluetooth.
-  installFlags = [
-    "statedir=$(TMPDIR)/var/lib/bluetooth"
-  ];
+  installFlags = [ "statedir=$(TMPDIR)/var/lib/bluetooth" ];
 
   doCheck = stdenv.hostPlatform.isx86_64;
 
-  postInstall = let
-    pythonPath = with python3.pkgs; [
-      dbus-python
-      pygobject3
-    ];
-  in
-  ''
+  postInstall = let pythonPath = with python3.pkgs; [ dbus-python pygobject3 ];
+  in ''
     mkdir -p $test/{bin,test}
     cp -a test $test
     pushd $test/test
@@ -158,7 +125,8 @@ stdenv.mkDerivation (finalAttrs: {
   meta = {
     homepage = "https://www.bluez.org/";
     description = "Official Linux Bluetooth protocol stack";
-    changelog = "https://git.kernel.org/pub/scm/bluetooth/bluez.git/tree/ChangeLog?h=${finalAttrs.version}";
+    changelog =
+      "https://git.kernel.org/pub/scm/bluetooth/bluez.git/tree/ChangeLog?h=${finalAttrs.version}";
     license = with lib.licenses; [ bsd2 gpl2Plus lgpl21Plus mit ];
     mainProgram = "btinfo";
     maintainers = with lib.maintainers; [ AndersonTorres ];

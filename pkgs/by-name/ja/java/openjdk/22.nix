@@ -1,50 +1,12 @@
-{ stdenv
-, lib
-, fetchurl
-, fetchpatch
-, fetchFromGitHub
-, bash
-, pkg-config
-, autoconf
-, cpio
-, file
-, which
-, unzip
-, zip
-, perl
-, cups
-, freetype
-, alsa-lib
-, libjpeg
-, giflib
-, libpng
-, zlib
-, lcms2
-, libX11
-, libICE
-, libXrender
-, libXext
-, libXt
-, libXtst
-, libXi
-, libXinerama
-, libXcursor
-, libXrandr
-, fontconfig
-, openjdk22-bootstrap
-, ensureNewerSourcesForZipFilesHook
-, setJavaClassPath
-  # TODO(@sternenseemann): gtk3 fails to evaluate in pkgsCross.ghcjs.buildPackages
-  # which should be fixable, this is a no-rebuild workaround for GHC.
-, headless ? stdenv.targetPlatform.isGhcjs
-, enableJavaFX ? false
-, openjfx
-, enableGnome2 ? true
-, gtk3
-, gnome_vfs
-, glib
-, GConf
-}:
+{ stdenv, lib, fetchurl, fetchpatch, fetchFromGitHub, bash, pkg-config, autoconf
+, cpio, file, which, unzip, zip, perl, cups, freetype, alsa-lib, libjpeg, giflib
+, libpng, zlib, lcms2, libX11, libICE, libXrender, libXext, libXt, libXtst
+, libXi, libXinerama, libXcursor, libXrandr, fontconfig, openjdk22-bootstrap
+, ensureNewerSourcesForZipFilesHook, setJavaClassPath
+# TODO(@sternenseemann): gtk3 fails to evaluate in pkgsCross.ghcjs.buildPackages
+# which should be fixable, this is a no-rebuild workaround for GHC.
+, headless ? stdenv.targetPlatform.isGhcjs, enableJavaFX ? false, openjfx
+, enableGnome2 ? true, gtk3, gnome_vfs, glib, GConf }:
 
 let
   version = {
@@ -67,7 +29,8 @@ let
       hash = "sha256-itjvIedPwJl/l3a2gIVpNMs1zkbrjioVqbCj1Z1nCJE=";
     };
 
-    nativeBuildInputs = [ pkg-config autoconf unzip ensureNewerSourcesForZipFilesHook ];
+    nativeBuildInputs =
+      [ pkg-config autoconf unzip ensureNewerSourcesForZipFilesHook ];
     buildInputs = [
       cpio
       file
@@ -115,7 +78,8 @@ let
       # so grab the work-around from
       # https://src.fedoraproject.org/rpms/java-openjdk/pull-request/24
       (fetchurl {
-        url = "https://src.fedoraproject.org/rpms/java-openjdk/raw/06c001c7d87f2e9fe4fedeef2d993bcd5d7afa2a/f/rh1673833-remove_removal_of_wformat_during_test_compilation.patch";
+        url =
+          "https://src.fedoraproject.org/rpms/java-openjdk/raw/06c001c7d87f2e9fe4fedeef2d993bcd5d7afa2a/f/rh1673833-remove_removal_of_wformat_during_test_compilation.patch";
         sha256 = "082lmc30x64x583vqq00c8y0wqih3y4r0mp1c4bqq36l22qv6b6r";
       })
 
@@ -123,12 +87,12 @@ let
       #   https://github.com/openjdk/jdk/pull/12992
       (fetchpatch {
         name = "gnumake-4.4.1";
-        url = "https://github.com/openjdk/jdk/commit/9341d135b855cc208d48e47d30cd90aafa354c36.patch";
+        url =
+          "https://github.com/openjdk/jdk/commit/9341d135b855cc208d48e47d30cd90aafa354c36.patch";
         hash = "sha256-Qcm3ZmGCOYLZcskNjj7DYR85R4v07vYvvavrVOYL8vg=";
       })
-    ] ++ lib.optionals (!headless && enableGnome2) [
-      ./swing-use-gtk-jdk13.patch
-    ];
+    ] ++ lib.optionals (!headless && enableGnome2)
+      [ ./swing-use-gtk-jdk13.patch ];
 
     postPatch = ''
       chmod +x configure
@@ -139,7 +103,6 @@ let
     # and special-case WSL, and we don't want it to do that,
     # so pass the correct platform names explicitly
     configurePlatforms = [ "build" "host" ];
-
 
     # https://openjdk.org/groups/build/doc/building.html
     configureFlags = [
@@ -155,9 +118,9 @@ let
       "--with-zlib=system"
       "--with-lcms=system"
       "--with-stdc++lib=dynamic"
-    ]
-    ++ lib.optional headless "--enable-headless-only"
-    ++ lib.optional (!headless && enableJavaFX) "--with-import-modules=${openjfx}";
+    ] ++ lib.optional headless "--enable-headless-only"
+      ++ lib.optional (!headless && enableJavaFX)
+      "--with-import-modules=${openjfx}";
 
     separateDebugInfo = true;
 
@@ -256,5 +219,4 @@ let
       inherit gtk3;
     };
   };
-in
-openjdk
+in openjdk

@@ -1,9 +1,6 @@
 { ... }:
 res: pkgs: super:
 
-with pkgs;
-{
-  qrencode = callPackage ./. {
-    inherit (darwin) libobjc;
-  };
+with pkgs; {
+  qrencode = callPackage ./. { inherit (darwin) libobjc; };
 }

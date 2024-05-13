@@ -1,36 +1,15 @@
-{ lib
-, stdenv
-, fetchFromGitLab
-, autoreconfHook
-, pkg-config
-, cairo
-, expat
-, flex
-, fontconfig
-, gd
-, gts
-, libjpeg
-, libpng
-, libtool
-, pango
-, bash
-, bison
-, xorg
-, ApplicationServices
-, Foundation
-, python3
-, withXorg ? true
+{ lib, stdenv, fetchFromGitLab, autoreconfHook, pkg-config, cairo, expat, flex
+, fontconfig, gd, gts, libjpeg, libpng, libtool, pango, bash, bison, xorg
+, ApplicationServices, Foundation, python3, withXorg ? true
 
-# for passthru.tests
-# , exiv2
-# , fltk
-# , graphicsmagick
+  # for passthru.tests
+  # , exiv2
+  # , fltk
+  # , graphicsmagick
 }:
 
-let
-  inherit (lib) optional optionals optionalString;
-in
-stdenv.mkDerivation rec {
+let inherit (lib) optional optionals optionalString;
+in stdenv.mkDerivation rec {
   pname = "graphviz";
   version = "10.0.1";
 
@@ -41,25 +20,11 @@ stdenv.mkDerivation rec {
     hash = "sha256-KAqJUVqPld3F2FHlUlfbw848GPXXOmyRQkab8jlH1NM=";
   };
 
-  nativeBuildInputs = [
-    autoreconfHook
-    pkg-config
-    python3
-    bison
-    flex
-  ];
+  nativeBuildInputs = [ autoreconfHook pkg-config python3 bison flex ];
 
-  buildInputs = [
-    libpng
-    libjpeg
-    expat
-    fontconfig
-    gd
-    gts
-    pango
-    bash
-  ] ++ optionals withXorg (with xorg; [ libXrender libXaw libXpm ])
-  ++ optionals stdenv.isDarwin [ ApplicationServices Foundation ];
+  buildInputs = [ libpng libjpeg expat fontconfig gd gts pango bash ]
+    ++ optionals withXorg (with xorg; [ libXrender libXaw libXpm ])
+    ++ optionals stdenv.isDarwin [ ApplicationServices Foundation ];
 
   hardeningDisable = [ "fortify" ];
 
@@ -70,10 +35,11 @@ stdenv.mkDerivation rec {
 
   enableParallelBuilding = true;
 
-  CPPFLAGS = optionalString (withXorg && stdenv.isDarwin)
-    "-I${cairo.dev}/include/cairo";
+  CPPFLAGS =
+    optionalString (withXorg && stdenv.isDarwin) "-I${cairo.dev}/include/cairo";
 
-  doCheck = false; # fails with "Graphviz test suite requires ksh93" which is not in nixpkgs
+  doCheck =
+    false; # fails with "Graphviz test suite requires ksh93" which is not in nixpkgs
 
   preAutoreconf = ''
     # components under this directory require a tool `CompileXIB` to build

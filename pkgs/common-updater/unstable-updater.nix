@@ -1,33 +1,24 @@
-{ lib
-, writeShellApplication
-, coreutils
-, git
-, nix
-, common-updater-scripts
-}:
+{ lib, writeShellApplication, coreutils, git, nix, common-updater-scripts }:
 
 # This is an updater for unstable packages that should always use the latest
 # commit.
 { url ? null # The git url, if empty it will be set to src.gitRepoUrl
-, branch ? null
-, hardcodeZeroVersion ? false # Use a made-up version "0" instead of latest tag. Use when there is no previous release, or the project's tagging system is incompatible with what we expect from versions
-, tagFormat ? "*" # A `git describe --tags --match '<format>'` pattern that tags must match to be considered
+, branch ? null, hardcodeZeroVersion ?
+  false # Use a made-up version "0" instead of latest tag. Use when there is no previous release, or the project's tagging system is incompatible with what we expect from versions
+, tagFormat ?
+  "*" # A `git describe --tags --match '<format>'` pattern that tags must match to be considered
 , tagPrefix ? null # strip this prefix from a tag name
-, tagConverter ? null # A command to convert more complex tag formats. It receives the git tag via stdin and should convert it into x.y.z format to stdout
-, shallowClone ? true
-}:
+, tagConverter ?
+  null # A command to convert more complex tag formats. It receives the git tag via stdin and should convert it into x.y.z format to stdout
+, shallowClone ? true }:
 
-assert lib.asserts.assertMsg (tagPrefix == null || tagConverter == null) "Can only use either tagPrefix or tagConverter!";
+assert lib.asserts.assertMsg (tagPrefix == null || tagConverter == null)
+  "Can only use either tagPrefix or tagConverter!";
 
 let
   updateScript = writeShellApplication {
     name = "unstable-update-script";
-    runtimeInputs = [
-      common-updater-scripts
-      coreutils
-      git
-      nix
-    ];
+    runtimeInputs = [ common-updater-scripts coreutils git nix ];
     text = ''
       set -ex
 
@@ -153,19 +144,12 @@ let
     '';
   };
 
-in
-[
+in [
   (lib.getExe updateScript)
   "--url=${builtins.toString url}"
   "--tag-format=${tagFormat}"
-] ++ lib.optionals (branch != null) [
-  "--branch=${branch}"
-] ++ lib.optionals (tagPrefix != null) [
-  "--tag-prefix=${tagPrefix}"
-] ++ lib.optionals (tagConverter != null) [
-  "--tag-converter=${tagConverter}"
-] ++ lib.optionals hardcodeZeroVersion [
-  "--hardcode-zero-version"
-] ++ lib.optionals shallowClone [
-  "--shallow-clone"
-]
+] ++ lib.optionals (branch != null) [ "--branch=${branch}" ]
+++ lib.optionals (tagPrefix != null) [ "--tag-prefix=${tagPrefix}" ]
+++ lib.optionals (tagConverter != null) [ "--tag-converter=${tagConverter}" ]
+++ lib.optionals hardcodeZeroVersion [ "--hardcode-zero-version" ]
+++ lib.optionals shallowClone [ "--shallow-clone" ]

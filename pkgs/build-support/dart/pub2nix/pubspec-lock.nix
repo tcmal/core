@@ -1,23 +1,18 @@
-{ lib
-, callPackage
-, fetchurl
-, fetchgit
-, runCommand
-}:
+{ lib, callPackage, fetchurl, fetchgit, runCommand }:
 
 {
-  # The source directory of the package.
-  src
+# The source directory of the package.
+src
 
-  # The package subdirectory within src.
-  # Useful if the package references sibling packages with relative paths.
+# The package subdirectory within src.
+# Useful if the package references sibling packages with relative paths.
 , packageRoot ? "."
 
   # The pubspec.lock file, in attribute set form.
 , pubspecLock
 
-  # Hashes for Git dependencies.
-  # Pub does not record these itself, so they must be manually provided.
+# Hashes for Git dependencies.
+# Pub does not record these itself, so they must be manually provided.
 , gitHashes ? { }
 
   # Functions to generate SDK package sources.
@@ -30,11 +25,11 @@
   # source, and source files are given in an attribute set argument.
   #
   # The passthru of the source derivation should be propagated.
-, customSourceBuilders ? { }
-}:
+, customSourceBuilders ? { } }:
 
 let
-  dependencyVersions = builtins.mapAttrs (name: details: details.version) pubspecLock.packages;
+  dependencyVersions =
+    builtins.mapAttrs (name: details: details.version) pubspecLock.packages;
 
   dependencyTypes = {
     "direct main" = "main";
@@ -43,8 +38,11 @@ let
     "transitive" = "transitive";
   };
 
-  dependencies = lib.foldlAttrs
-    (dependencies: name: details: dependencies // { ${dependencyTypes.${details.dependency}} = dependencies.${dependencyTypes.${details.dependency}} ++ [ name ]; })
+  dependencies = lib.foldlAttrs (dependencies: name: details:
+    dependencies // {
+      ${dependencyTypes.${details.dependency}} =
+        dependencies.${dependencyTypes.${details.dependency}} ++ [ name ];
+    })
     (lib.genAttrs (builtins.attrValues dependencyTypes) (dependencyType: [ ]))
     pubspecLock.packages;
 
@@ -54,47 +52,56 @@ let
     let
       archive = fetchurl {
         name = "pub-${name}-${details.version}.tar.gz";
-        url = "${details.description.url}/packages/${details.description.name}/versions/${details.version}.tar.gz";
+        url =
+          "${details.description.url}/packages/${details.description.name}/versions/${details.version}.tar.gz";
         sha256 = details.description.sha256;
       };
-    in
-    runCommand "pub-${name}-${details.version}" { passthru.packageRoot = "."; } ''
+    in runCommand "pub-${name}-${details.version}" {
+      passthru.packageRoot = ".";
+    } ''
       mkdir -p "$out"
       tar xf '${archive}' -C "$out"
     '';
 
-  mkGitDependencySource = name: details: (fetchgit {
-    name = "pub-${name}-${details.version}";
-    url = details.description.url;
-    rev = details.description.resolved-ref;
-    hash = gitHashes.${name} or (throw "A Git hash is required for ${name}! Set to an empty string to obtain it.");
-  }).overrideAttrs ({ passthru ? { }, ... }: {
-    passthru = passthru // {
-      packageRoot = details.description.path;
-    };
-  });
-
-  mkPathDependencySource = name: details:
-    assert lib.assertMsg details.description.relative "Only relative paths are supported - ${name} has an absolue path!";
-    (if lib.isDerivation src then src else (runCommand "pub-${name}-${details.version}" { } ''cp -r '${src}' "$out"'')).overrideAttrs ({ passthru ? { }, ... }: {
-      passthru = passthru // {
-        packageRoot = "${packageRoot}/${details.description.path}";
-      };
+  mkGitDependencySource = name: details:
+    (fetchgit {
+      name = "pub-${name}-${details.version}";
+      url = details.description.url;
+      rev = details.description.resolved-ref;
+      hash = gitHashes.${name} or (throw
+        "A Git hash is required for ${name}! Set to an empty string to obtain it.");
+    }).overrideAttrs ({ passthru ? { }, ... }: {
+      passthru = passthru // { packageRoot = details.description.path; };
     });
 
+  mkPathDependencySource = name: details:
+    assert lib.assertMsg details.description.relative
+      "Only relative paths are supported - ${name} has an absolue path!";
+    (if lib.isDerivation src then
+      src
+    else
+      (runCommand "pub-${name}-${details.version}" { }
+        ''cp -r '${src}' "$out"'')).overrideAttrs ({ passthru ? { }, ... }: {
+          passthru = passthru // {
+            packageRoot = "${packageRoot}/${details.description.path}";
+          };
+        });
+
   mkSdkDependencySource = name: details:
-    (sdkSourceBuilders.${details.description} or (throw "No SDK source builder has been given for ${details.description}!")) name;
+    (sdkSourceBuilders.${details.description} or (throw
+      "No SDK source builder has been given for ${details.description}!")) name;
 
-  addDependencySourceUtils = dependencySource: details: dependencySource.overrideAttrs ({ passthru, ... }: {
-    passthru = passthru // {
-      inherit (details) version;
-    };
-  });
+  addDependencySourceUtils = dependencySource: details:
+    dependencySource.overrideAttrs ({ passthru, ... }: {
+      passthru = passthru // { inherit (details) version; };
+    });
 
-  sourceBuilders = callPackage ../../../development/compilers/dart/package-source-builders { } // customSourceBuilders;
+  sourceBuilders =
+    callPackage ../../../development/compilers/dart/package-source-builders { }
+    // customSourceBuilders;
 
-  dependencySources = lib.filterAttrs (name: src: src != null) (builtins.mapAttrs
-    (name: details:
+  dependencySources = lib.filterAttrs (name: src: src != null)
+    (builtins.mapAttrs (name: details:
       (sourceBuilders.${name} or ({ src, ... }: src)) {
         inherit (details) version source;
         src = ((addDependencySourceUtils (({
@@ -103,12 +110,10 @@ let
           "path" = mkPathDependencySource;
           "sdk" = mkSdkDependencySource;
         }.${details.source} name) details)) details);
-      })
-    pubspecLock.packages);
-in
-{
+      }) pubspecLock.packages);
+in {
   inherit
-    # An attribute set of dependency categories to package name lists.
+  # An attribute set of dependency categories to package name lists.
     dependencies
 
     # An attribute set of package names to their versions.

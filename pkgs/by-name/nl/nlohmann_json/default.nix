@@ -1,8 +1,4 @@
-{ stdenv
-, lib
-, fetchFromGitHub
-, cmake
-}:
+{ stdenv, lib, fetchFromGitHub, cmake }:
 let
   testData = fetchFromGitHub {
     owner = "nlohmann";
@@ -24,10 +20,13 @@ in stdenv.mkDerivation (finalAttrs: {
   nativeBuildInputs = [ cmake ];
 
   cmakeFlags = [
-    "-DJSON_BuildTests=${if finalAttrs.finalPackage.doCheck then "ON" else "OFF"}"
+    "-DJSON_BuildTests=${
+      if finalAttrs.finalPackage.doCheck then "ON" else "OFF"
+    }"
     "-DJSON_FastTests=ON"
     "-DJSON_MultipleHeaders=ON"
-  ] ++ lib.optional finalAttrs.finalPackage.doCheck "-DJSON_TestDataDirectory=${testData}";
+  ] ++ lib.optional finalAttrs.finalPackage.doCheck
+    "-DJSON_TestDataDirectory=${testData}";
 
   doCheck = stdenv.hostPlatform == stdenv.buildPlatform;
 
