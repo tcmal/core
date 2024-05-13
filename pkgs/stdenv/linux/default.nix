@@ -53,7 +53,7 @@
 # For a TUI (rather than CLI) view, you can use:
 #
 #     $ nix-tree --derivation $(nix-instantiate -A stdenv)
-{ lib, localSystem, crossSystem, config, overlays, crossOverlays ? [ ]
+{ lib, localSystem, crossSystem, config
 
 , bootstrapFiles ? let
   table = {
@@ -224,7 +224,7 @@ let
       };
 
     in {
-      inherit config overlays;
+      inherit config;
       stdenv = thisStdenv;
     };
 
@@ -628,7 +628,7 @@ in assert bootstrapTools.passthru.isFromBootstrapFiles or false; # sanity check
     assert isBuiltByNixpkgsCompiler prevStage.coreutils;
     assert isBuiltByNixpkgsCompiler prevStage.gnugrep;
     assert isBuiltByNixpkgsCompiler prevStage.patchelf; {
-      inherit config overlays;
+      inherit config;
       stdenv = import ../generic lib rec {
         name = "stdenv-linux";
 
@@ -740,6 +740,6 @@ in assert bootstrapTools.passthru.isFromBootstrapFiles or false; # sanity check
     assert isBuiltByNixpkgsCompiler prevStage.coreutils;
     assert isBuiltByNixpkgsCompiler prevStage.gnugrep;
     assert isBuiltByNixpkgsCompiler prevStage.patchelf; {
-      inherit (prevStage) config overlays stdenv;
+      inherit (prevStage) config stdenv;
     })
 ]

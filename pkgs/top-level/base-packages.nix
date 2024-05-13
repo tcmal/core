@@ -4,7 +4,7 @@
 # strict sorting has been long lost due to merges. Please use the full-text
 # search of your editor. ;)
 # Hint: ### starts category names.
-{ lib, noSysDirs, config, overlays }:
+{ lib, noSysDirs, config }:
 res: pkgs: super:
 
 with pkgs;
@@ -87,7 +87,7 @@ with pkgs;
   path = ../..;
 
   ### Helper functions.
-  inherit lib config overlays;
+  inherit lib config;
 
   # do not import 'appendToName' to get consistent package-names with the same
   # set of package-parameters: https://github.com/NixOS/nixpkgs/issues/68519
@@ -112,8 +112,6 @@ with pkgs;
     entire Nixpkgs without some special measures to handle failing
     packages, like using pkgs/top-level/release-attrpaths-superset.nix.
   '';
-
-  tests = callPackages ../test { };
 
   # These are used when buiding compiler-rt / libgcc, prior to building libc.
   preLibcCrossHeaders = let inherit (stdenv.targetPlatform) libc;

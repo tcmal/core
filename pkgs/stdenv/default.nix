@@ -7,7 +7,7 @@
 { # Args just for stdenvs' usage
 lib
 # Args to pass on to the pkgset builder, too
-, localSystem, crossSystem, config, overlays, crossOverlays ? [ ] }@args:
+, localSystem, crossSystem, config }@args:
 
 let
   # The native (i.e., impure) build environment.  This one uses the
@@ -34,7 +34,7 @@ let
   stagesCustom = import ./custom args;
 
   # Select the appropriate stages for the platform `system'.
-in if crossSystem != localSystem || crossOverlays != [ ] then
+in if crossSystem != localSystem then
   stagesCross
 else if config ? replaceStdenv then
   stagesCustom

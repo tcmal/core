@@ -2,8 +2,7 @@
 
 # test suite depends on dejagnu which cannot be used during bootstrapping
 # dejagnu also requires tcl which can't be built statically at the moment
-, doCheck ? !(stdenv.hostPlatform.isStatic), dejagnu, nix-update-script, testers
-}:
+, doCheck ? !(stdenv.hostPlatform.isStatic), dejagnu, testers }:
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "libffi";
@@ -47,7 +46,6 @@ stdenv.mkDerivation (finalAttrs: {
   nativeCheckInputs = [ dejagnu ];
 
   passthru = {
-    updateScript = nix-update-script { };
     tests = {
       pkg-config =
         testers.hasPkgConfigModules { package = finalAttrs.finalPackage; };

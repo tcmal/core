@@ -17,49 +17,28 @@
    or dot-files.
 */
 
-{ # The system packages will be built on. See the manual for the
+{
+# The system packages will be built on. See the manual for the
 # subtle division of labor between these two `*System`s and the three
 # `*Platform`s.
-localSystem
-
-, lib ? import <auxlib>
-
-, # The system packages will ultimately be run on.
-crossSystem ? localSystem
-
-, # Allow a configuration attribute set to be passed in as an argument.
-config ? { }
-
-, # List of overlays layers used to extend Nixpkgs.
-overlays ? [ ]
-
-, # List of overlays to apply to target packages only.
-crossOverlays ? [ ]
-
-, # A function booting the final package set for a specific standard
-# environment. See below for the arguments given to that function, the type of
-# list it returns.
-stdenvStages ? import ../stdenv
+localSystem, lib ? import <auxlib>
+  # The system packages will ultimately be run on.
+, crossSystem ? localSystem
+  # Allow a configuration attribute set to be passed in as an argument.
+, config ? { }
+  # A function booting the final package set for a specific standard
+  # environment. See below for the arguments given to that function, the type of
+  # list it returns.
+, stdenvStages ? import ../stdenv
 
 , # Ignore unexpected args.
 ... }@args:
-
-let # Rename the function arguments
+let
+  # Rename the function arguments
   config0 = config;
   crossSystem0 = crossSystem;
-
 in let
   inherit (lib) throwIfNot;
-
-  checked = throwIfNot (lib.isList overlays)
-    "The overlays argument to nixpkgs must be a list." lib.foldr (x:
-      throwIfNot (lib.isFunction x)
-      "All overlays passed to nixpkgs must be functions.") (r: r) overlays
-    throwIfNot (lib.isList crossOverlays)
-    "The crossOverlays argument to nixpkgs must be a list." lib.foldr (x:
-      throwIfNot (lib.isFunction x)
-      "All crossOverlays passed to nixpkgs must be functions.") (r: r)
-    crossOverlays;
 
   localSystem = lib.systems.elaborate args.localSystem;
 
@@ -135,10 +114,8 @@ in let
 
   boot = import ../stdenv/booter.nix { inherit lib allPackages; };
 
-  stages = stdenvStages {
-    inherit lib localSystem crossSystem config overlays crossOverlays;
-  };
+  stages = stdenvStages { inherit lib localSystem crossSystem config; };
 
   pkgs = boot stages;
 
-in checked pkgs
+in pkgs

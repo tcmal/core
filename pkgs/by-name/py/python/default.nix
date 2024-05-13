@@ -103,6 +103,8 @@ in {
     configd = null;
     sqlite = null;
     tzdata = null;
+    libX11 = null;
+    xorgproto = null;
     libffi = libffiBoot; # without test suite
     stripConfig = true;
     stripIdlelib = true;

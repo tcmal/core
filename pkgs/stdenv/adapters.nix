@@ -1,6 +1,6 @@
-/* This file contains various functions that take a stdenv and return
-   a new stdenv with different behaviour, e.g. using a different C
-   compiler.
+/* *
+   Various functions that take a stdenv and return a new stdenv with different behaviour.
+   e.g. using a different C compiler.
 */
 
 { lib, pkgs, config }:
