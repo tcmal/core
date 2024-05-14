@@ -1,5 +1,6 @@
-{ lib, stdenv, fetchurl, guileSupport ? false, guile
-# avoid guile depend on bootstrap to prevent dependency cycles
+{ lib, stdenv, fetchurl, guileSupport ? false, guile ? throw
+  "guile used without it existing"
+  # avoid guile depend on bootstrap to prevent dependency cycles
 , inBootstrap ? false, pkg-config
 # for passthru.tests
 # , gnumake

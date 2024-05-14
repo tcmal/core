@@ -4,7 +4,9 @@
 , libsepol
 # No openssl in default version, so openssl-induced rebuilds aren't too big.
 # It makes *sum functions significantly faster.
-, minimal ? true, withOpenssl ? !minimal, openssl, withPrefix ? false
+, minimal ? true, withOpenssl ? !minimal
+, openssl ? throw "openssl used for non-minimal build of coreutils"
+, withPrefix ? false
 , singleBinary ? "symlinks" # you can also pass "shebangs" or false
 }:
 

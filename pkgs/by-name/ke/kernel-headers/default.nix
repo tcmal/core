@@ -1,5 +1,4 @@
-{ stdenvNoCC, lib, buildPackages, fetchurl, perl, elf-header, bison, flex, rsync
-, writeTextFile }:
+{ stdenvNoCC, lib, buildPackages, fetchurl, perl, elf-header, writeTextFile }:
 
 let
 
@@ -43,9 +42,7 @@ let
       # We do this so we have a build->build, not build->host, C compiler.
       depsBuildBuild = [ buildPackages.stdenv.cc ];
       # `elf-header` is null when libc provides `elf.h`.
-      nativeBuildInputs = [ perl elf-header ]
-        ++ lib.optionals stdenvNoCC.hostPlatform.isAndroid [ bison flex rsync ]
-        ++ lib.optionals
+      nativeBuildInputs = [ perl elf-header ] ++ lib.optionals
         (stdenvNoCC.buildPlatform.isDarwin && stdenvNoCC.hostPlatform.isMips) [
           darwin-endian-h
           darwin-byteswap-h

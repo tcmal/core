@@ -1,6 +1,7 @@
-{ __splicedPackages, callPackage, config, darwin, db, lib, libffiBoot
-, makeScopeWithSplicing', pythonPackagesExtensions, stdenv }@args:
+{ __splicedPackages, callPackage, config, darwin, lib, libffiBoot
+, makeScopeWithSplicing', stdenv }@args:
 let
+  passthruFun = import ./passthruFun.nix args;
   sources = {
     python311 = {
       sourceVersion = {
@@ -29,6 +30,13 @@ in {
     tzdata = null;
     libX11 = null;
     xorgproto = null;
+    bluez = null;
+    bzip2 = null;
+    mailcap = null;
+    tcl = null;
+    tix = null;
+    tk = null;
+    windows = null;
     libffi = libffiBoot; # without test suite
     stripConfig = true;
     stripIdlelib = true;
